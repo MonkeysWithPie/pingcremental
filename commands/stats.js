@@ -8,10 +8,15 @@ module.exports = {
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
     async execute(interaction) {
         const response = `
-${await database.Player.count()} people have pinged at least once
-${await database.Player.sum('totalScore')} total pts have been gained
-${await database.Player.sum('score')} pts are currently owned
-${await database.Player.sum('clicks')} pings have been dealt with`;
+${await formatNumber(database.Player.count())} people have pinged at least once
+${await formatNumber(database.Player.sum('totalScore'))} total pts have been gained
+${await formatNumber(database.Player.sum('score'))} pts are currently owned
+${await formatNumber(database.Player.sum('clicks'))} pings have been dealt with`;
         await interaction.reply(`some stats? sure!\n${response}`);
     }
+}
+
+function formatNumber(num) { //i'd never steal existing code
+    const numStr = num.toString();
+    return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }

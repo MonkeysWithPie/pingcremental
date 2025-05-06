@@ -248,6 +248,73 @@ function get(ping, context) {
         "boop",
         "back already? here's another ping",
         "you should check out our </ping:1360377407109861647> command at some point",
+        "ping served fresh, no preservatives",
+        "this ping is locally sourced",
+        "just a humble ping making its way in the world",
+        "one ping, straight from the digital oven",
+        "ping arriving at your location",
+        "you rang? ping here",
+        "this ping is brought to you by... nevermind",
+        "standard ping, nothing to see here",
+        "hello again, it’s me. ping",
+        "your regularly scheduled ping has arrived",
+        "this ping was not delayed, just fashionably late",
+        "this one’s a classic ping",
+        "serving pings since like five minutes ago",
+        "ping received no awards, but we’re proud of it",
+        "just another friendly ping moment",
+        "ping in motion tends to stay in motion",
+        "good ol' reliable ping",
+        "you’re getting the deluxe ping experience",
+        "ping is standing by",
+        "pong sold separately",
+        "ping has entered the chat",
+        "just a casual ping drop",
+        "ping vibes strong today",
+        "one ping, no frills attached",
+        "ping’s doing its best",
+        "here’s that ping you asked for (probably)",
+        "ping requested, ping delivered",
+        "yep, that’s a ping alright",
+        "ping activated, no takebacks",
+        "this is your ping on bots",
+        "ping looking extra normal today",
+        "not the best ping, not the worst ping, just... ping",
+        "let me just slide this ping over to you",
+        "today’s forecast: 100% chance of ping",
+        "your ping delivery driver has arrived",
+        "ping deployed, mission success",
+        "ping up and running, nothing weird at all",
+        "your connection just got 1 ping cooler",
+        "not a drill, just a ping",
+        "you’re now the proud owner of this ping",
+        "ping has been gently placed in your hands",
+        "imagine this ping with little sunglasses on",
+        "hello from the ping side",
+        "ping made with artificial intelligence and synthetic enthusiasm",
+        "ping is clean, calibrated, and completely average",
+        "this ping was generated during business hours",
+        "you’ve reached peak ping performance",
+        "ping has been blessed by the bot gods",
+        "you get a ping! everyone gets a ping!",
+        "ping came here to do one thing: ping",
+        "ping will be delivered in 5-7 business days",
+        "this ping was generated on a monday, act accordingly",
+        "i tried my best. it's a ping",
+        "ping? ping.",
+        "standard ping, factory settings",
+        "ping brought to you by sheer willpower",
+        "hello. this is ping. please clap",
+        "another ping, another tiny digital scream",
+        "you ever think about how weird 'ping' sounds?",
+        "ping entered the room",
+        "i’m contractually obligated to send this ping",
+        "ping has no idea what it's doing, but it's trying",
+        "this ping contains zero percent drama",
+        "if you can read this, you're within ping range",
+        "this ping could be worse. but it's not. so yay",
+        "i ran out of ping jokes so here's a normal one"
+        
 
         //ok, these next ones are kinda weird but they're fun, so here
         ping < 30 ? "whoa, that's fast! zoom zoom!" : 
@@ -259,14 +326,14 @@ function get(ping, context) {
         "ping has arrived safely.",
         "ugh, another ping? fine.",
         "this better be important.",
-        "ping sent. don't expect enthusiasm every time.",
-        "i was taking a nap, but sure, here's your ping.",
-        "again? really? okay, okay… ping.",
+        "ping sent. don't expect enthusiasm every time",
+        "i was taking a nap, but sure, here's your ping",
+        "again? really? okay, okay… ping",
         "you just had to ping me, didn't you?",
         "here's your precious ping. now leave me alone.",
         "fine. ping. happy now?",
-        "this is my 'sending ping but sighing deeply' message.",
-        "ping delivered with mild resentment.",
+        "this is my 'sending ping but sighing deeply' message",
+        "ping delivered with mild resentment",
         "pong :3", //i think its funny to sometimes be given this one and not know if it was the 15% chance or one random one
         "this ping was sent! i think.",
         "what does the fox say?",
@@ -326,7 +393,7 @@ function get(ping, context) {
         "wait, how did this ping get Xmult?",
         "ping recruited 1 new millisecond",
         "this ping feels like a big shot",
-        "Susie tried to block the ping, but it slipped past",
+        
     ]
 
     // only if player was clicking (can't appear with /ping, only on button press)
@@ -449,6 +516,13 @@ function get(ping, context) {
         `by the time this ping finishes, Stardew crops will have regrown`,
         `warning: ping is thinking about life choices`,
         ping>=300?`ping is moving at glacial speeds, but it got here`:`okay, so like, its trying its best`,
+        `this ping made a wrong turn at albuquerque`,
+        `i tried to send a ping, but it got emotionally overwhelmed`,
+        `ping got distracted halfway here`,
+        `slow ping is still ping`,
+        `at least it's honest about being late`,
+        `ping took a nap en route. relatable`,
+        `ping will be here in.. a really long time`
         
     ]
 
@@ -495,6 +569,12 @@ function get(ping, context) {
             "catch it quick before it despawns like your hopes and dreams",
             "ping anomaly confirmed. shiny variant detected.",
             "this ping radiates 'main character energy'",
+            "you’ve summoned a ping of great power",
+            "blue ping unlocked. you know what to do",
+            "this is the ping they warned you about",
+            "ping glowing ominously. click it?",
+            "do you see that? it's BLUE!",
+            "ping turned blue, probably from holding its breath",
         ]
     }
 
@@ -526,6 +606,7 @@ function get(ping, context) {
             "you just dealt 15x damage to the button. nice.",
             "your click was a direct hit!",
             "i didn't expect you to actually get it. but here we are.",
+            "boo! 15x jumpscare"
         ]
     }
 
@@ -587,6 +668,11 @@ function get(ping, context) {
             "the ping wandered off during the reboot. typical.",
             "rebooted, refreshed, still laggy",
             "ping momentarily became one with the universe",
+            "i just woke up. what year is it?",
+            "bot restarted. emotional reboot pending",
+            "ping tried to come back with milk and got lost",
+            "restarted and somehow still confused",
+            "booting up ping.exe again... please wait"
         ]
     }
 

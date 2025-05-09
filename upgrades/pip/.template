@@ -1,0 +1,30 @@
+const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { getEmoji } = require('../../../helpers/emojis.js');
+
+module.exports = {
+    getPrice(currentLevel) {
+
+    },
+    getDetails() {
+        return {
+            description: "",
+            name: "",
+            emoji: getEmoji('ponder_template'),
+            flavor: "",
+        }
+    },
+    getEffectString(level) {
+        return ""
+    },
+    getEffect(level, context) {
+        return {
+            add: 0,
+            multiply: 1,
+        }
+    },
+    upgradeRequirements() {
+        return { upgrade: 1 };
+    },
+    sortOrder() { return 1000 },
+    type() { return PipUpgradeTypes.MISC }
+}

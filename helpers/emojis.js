@@ -12,11 +12,11 @@ async function initEmojis(client) {
     });
 }
 
-function getEmoji(name) {
+function getEmoji(name, alternate = null) {
     if (!emojiCache) {
         return `🟥`; // if emojis aren't initialized yet somehow
     }
-    return emojiCache.get(name) || `:${name}:`;
+    return emojiCache.get(name) || alternate || `:${name}:`;
 }
 
 module.exports = { initEmojis, getEmoji };

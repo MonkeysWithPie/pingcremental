@@ -33,6 +33,12 @@ module.exports = (sequelize) => {
 			allowNull: false,
 		},
 
+		totalClicks: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+
 		// misc stats (move to separate table?)
 		bluePings: {
 			type: DataTypes.NUMBER,
@@ -54,7 +60,30 @@ module.exports = (sequelize) => {
 			defaultValue: 0,
 			allowNull: false,
 		},
+
+		removedUpgrades: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
 		
+
+		// prestige data
+		bp: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+		prestigeUpgrades: {
+			type: DataTypes.JSON,
+			allowNull: false,
+			defaultValue: {},
+		},
+		pip: { // short for Potential (for) Increased Pts
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
 
 		// slumber upgrade
 		lastPing: {

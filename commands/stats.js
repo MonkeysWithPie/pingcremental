@@ -32,7 +32,7 @@ async function getMessage(userId) {
         database.Player.count(),
         database.Player.sum('totalScore'),
         database.Player.sum('score'),
-        database.Player.sum('clicks'),
+        database.Player.sum('totalClicks'),
         database.Player.sum('bluePings'),
         database.Player.sum('bluePingsMissed'),
         database.Player.sum('luckyPings'),
@@ -67,7 +67,9 @@ async function getMessage(userId) {
             },
             { name: `__personal__`, value: 
                 `*viewing stats for <@${userId}>*\n` +
-                `${formatNumber(player.clicks)} total ping${player.clicks === 1 ? '' : 's'}\n` +
+                `${formatNumber(player.totalClicks)} total ping${player.totalClicks === 1 ? '' : 's'}\n` +
+                // show eternity pings if not the same as total
+                `${player.totalClicks !== player.clicks ? `${formatNumber(player.clicks)} ping${player.clicks === 1 ? '' : 's'} this eternity\n` : ''}` +
                 `${formatNumber(player.totalScore)} total pts\n` +
                 `${formatNumber(player.bluePings)} blue ping${player.bluePings === 1 ? '' : 's'} clicked\n` +
                 `${formatNumber(player.bluePingsMissed)} missed blue ping${player.bluePingsMissed === 1 ? '' : 's'} (${missRate}% miss rate)\n` +

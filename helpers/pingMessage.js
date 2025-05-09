@@ -500,13 +500,14 @@ function get(ping, context) {
 
     // blue ping just clicked
     if (context.isSuper) {
+        const mult = 15 * (context.blueStrength)
         messagesList = [
             `that's a lot of \`pts\`!`,
             "whoa",
-            "15x! that's a lot of x! i mean, `pts`",
+            `${mult}x! that's a lot of x! i mean, \`pts\``,
             "isn't RNG just beautiful?",
             "lucky you!",
-            "15x points?! i barely even wrote this message in time",
+            `${mult}x points?! i barely even wrote this message in time`,
             "power overwhelming! (ping edition)",
             "RNGesus is smiling upon you",
             "that ping was juiced",
@@ -515,15 +516,15 @@ function get(ping, context) {
             "i don't know what you did but it was awesome",
             "ping results: critical success",
             "beyond super. beyond pong. ultra",
-            "super effective! 15x points hit!",
+            `super effective! ${mult}x points hit!`,
             "critical ping! multiplier activated!",
             "blue ping clicked. dopamine received.",
             "nice shot! jackpot ping confirmed",
             "super ping: deleted. points: multiplied.",
             "that click was legendary",
             "RNG gods smiled upon you this time",
-            "15x multiplier? you're living the dream",
-            "you just dealt 15x damage to the button. nice.",
+            `${mult}x multiplier? you're living the dream`,
+            `you just dealt ${mult}x damage to the button. nice.`,
             "your click was a direct hit!",
             "i didn't expect you to actually get it. but here we are.",
         ]

@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, InteractionContextType, MessageFlags } = require('discord.js');
-const upgrades = require('./../helpers/upgrades.js')
+const { upgrades } = require('./../helpers/upgrades.js')
 const database = require('./../helpers/database.js');
-const UpgradeTypes = require('./../helpers/upgradeEnums.js');
+const { UpgradeTypes } = require('./../helpers/upgradeEnums.js');
 const formatNumber = require('./../helpers/formatNumber.js');
 
 module.exports = {
@@ -19,6 +19,46 @@ module.exports = {
         }),
         category: (async (interaction, newCategory) => {
             await interaction.update(await getEditMessage(interaction, newCategory));
+        }),
+        eternity: (async interaction => {
+            const playerData = await database.Player.findByPk(`${interaction.user.id}`);
+            const firstEternity = playerData.pip === 0;
+
+            // add removed upgrade levels, for "vague" upgrade
+            for (const [_upgrade, level] of Object.entries(playerData.upgrades)) {
+                playerData.removedUpgrades += level;
+            }
+
+            const mult = upgrades['pip']['telepathy'].getEffect(playerData.prestigeUpgrades.telepathy).special.pip;
+
+            playerData.upgrades = {};
+            playerData.score = 0;
+            // TODO: reset upgrade data bits (e.g. slumber clicks)
+            playerData.pip += Math.floor(playerData.bp * mult); // give pip for eternity
+            playerData.bp = 0;
+            playerData.clicks = 0;
+
+            // memory effects
+            if (playerData.prestigeUpgrades.memory) {
+                playerData.score += (10000 * playerData.prestigeUpgrades.memory);
+            }
+            if (playerData.prestigeUpgrades.remnants) {
+                for (const ptUpgrade of upgrades['pip']['remnants'].getEffect(playerData.prestigeUpgrades.remnants).special.upgrades) {
+                    playerData.upgrades[ptUpgrade] = playerData.prestigeUpgrades.remnants;
+                }
+            }
+            
+            playerData.changed('upgrades', true) // this is a hacky way to set the upgrades field, but it works
+
+            await playerData.save();
+            await interaction.update({ content: `*it is done.*\n-# you now have __\`${formatNumber(playerData.pip)} PIP\`__`, components: [] });
+            if (firstEternity) {
+                await interaction.followUp({ content: `
+*welcome to Eternity. congratulations on making it here.*
+*i suppose you're wondering why you want to be here.*
+*how about... </ponder:[ID]>? try it out.*
+*good luck, pinger.*`, flags: MessageFlags.Ephemeral });
+            }
         })
     },
     dropdowns: {
@@ -28,7 +68,7 @@ module.exports = {
             const playerData = await database.Player.findByPk(`${interaction.user.id}`);
 
             const playerUpgradeLevel = playerData.upgrades[upgradeId] ?? 0;
-            const upgradeClass = upgrades[upgradeId];
+            const upgradeClass = upgrades['pts'][upgradeId];
             const price = upgradeClass.getPrice(playerUpgradeLevel);
 
             // player is poor (L)
@@ -44,6 +84,30 @@ module.exports = {
                 return await interaction.followUp({
                     content: `you dont have enough \`pts\` to afford that! (missing \`${formatNumber(price - playerData.score, true)} pts\`)`,
                     components: [new ActionRowBuilder().addComponents(button)]
+                })
+            }
+
+            if (upgradeId === 'eternity') {
+                await interaction.update(await getEditMessage(interaction, upgradeClass.type())); 
+                if (playerData.bp < 10000) { return await interaction.followUp({ content: `*you shouldn't be here, yet.*`, flags: MessageFlags.Ephemeral }) }
+                const mult = upgrades['pip']['telepathy'].getEffect(playerData.prestigeUpgrades.telepathy).special.pip;
+                return await interaction.followUp({
+                    content: 
+`*Eternity calls for you, but you must make sure you're ready.*
+***are you?***
+-# this will **reset** your current upgrades and give you __\`${formatNumber(Math.floor(playerData.bp*mult))} PIP\`__`,
+                    components: [
+                        new ActionRowBuilder().addComponents(
+                            new ButtonBuilder()
+                                .setCustomId('upgrade:eternity')
+                                .setLabel('i\'m ready.')
+                                .setStyle(ButtonStyle.Success),
+                            new ButtonBuilder()
+                                .setCustomId('upgrade:delete')
+                                .setLabel('wait, no')
+                                .setStyle(ButtonStyle.Secondary)
+                        )
+                    ]
                 })
             }
 
@@ -72,7 +136,7 @@ module.exports = {
 
 async function getEditMessage(interaction, category) {
     const [playerData, _created] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
-    if (playerData.clicks < 150) { // prevent upgrading before 150 clicks
+    if (playerData.totalClicks < 150) { // prevent upgrading before 150 clicks
         const button = new ButtonBuilder()
             .setCustomId('upgrade:delete')
             .setLabel('oh... okay')
@@ -105,11 +169,11 @@ async function getEditMessage(interaction, category) {
         .setTitle("upgrades")
         .setColor("#73c9ae")
 
-    for (const [upgradeId, upgrade] of Object.entries(upgrades)) {
+    for (const [upgradeId, upgrade] of Object.entries(upgrades['pts'])) {
         // go through each upgrade and check if should be displayed
         const upgradeLevel = pUpgrades[upgradeId] ?? 0
         if (upgrade.type() != category) continue; // wrong category
-        if (!upgrade.isBuyable({ upgrades: pUpgrades, clicks: playerData.clicks })) continue; // hidden
+        if (!upgrade.isBuyable({ upgrades: pUpgrades, clicks: playerData.clicks, bp: playerData.bp })) continue; // hidden
         if (upgrade.getPrice(upgradeLevel) === null) { // maxed out
             description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (MAX)**\n${upgrade.getDetails().description}\nCurrently ${upgrade.getEffectString(upgradeLevel)}`
             continue;

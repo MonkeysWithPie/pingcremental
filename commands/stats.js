@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder } = require('discord.js');
 const database = require('./../helpers/database.js');
 const formatNumber = require('./../helpers/formatNumber.js');
+const interactionCreate = require('../events/interactionCreate.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -104,7 +105,8 @@ async function getUserMessage(userId) {
         .setTitle(`personal stats`)
         .setColor('#6fa7bd')
         .setDescription(
-                `*viewing stats for <@${userId}>*\n` +
+                `viewing stats for **${await player.getUserDisplay(interaction.client, database)}**\n\n` +
+                
                 `${formatNumber(player.totalClicks)} total ping${player.totalClicks === 1 ? '' : 's'}\n` +
                 // show eternity pings if not the same as total
                 `${player.totalClicks !== player.clicks ? `${formatNumber(player.clicks)} ping${player.clicks === 1 ? '' : 's'} this eternity\n` : ''}` +

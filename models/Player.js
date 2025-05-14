@@ -6,6 +6,7 @@ module.exports = (sequelize) => {
 		async getUserDisplay(client, database) {
 			const user = await client.users.cache.get(this.userId);
 			let display = user ? user.username : this.userId;
+			display = display.replaceAll("_", "\\_")
 
 			// badges display
 			if (this.displayedBadges.length > 0) {

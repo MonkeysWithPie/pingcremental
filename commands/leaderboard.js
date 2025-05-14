@@ -51,11 +51,10 @@ async function getMessage(interaction, leaderboardType) {
     for (player of topPlayers) {
         position++;
         if (position > 10) break; // only show the top 10 players
-        const puser = await interaction.client.users.fetch(player.userId) // find the user for username display
 
         description +=
             `
-${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${formatPlayer(puser.username, player[leaderboardType], leaderboardType, interaction)}`
+${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${formatPlayer(player.id, player[leaderboardType], leaderboardType, interaction)}`
         showedSelf = showedSelf || (interaction.user.id == player.userId);
     }
 
@@ -70,16 +69,14 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${formatP
 
         if (userIndex >= 11) {
             const userBelow = topPlayers[userIndex - 1];
-            const userBelowUsername = (await interaction.client.users.fetch(userBelow.userId)).username;
-            description += `\n#${userIndex} ${formatPlayer(userBelowUsername, userBelow[leaderboardType], leaderboardType, interaction)}`
+            description += `\n#${userIndex} ${formatPlayer(userBelow.id, userBelow[leaderboardType], leaderboardType, interaction)}`
         }
 
-        description += `\n#${userIndex + 1} ${formatPlayer(interaction.user.username, topPlayers[userIndex][leaderboardType], leaderboardType, interaction)}`
+        description += `\n#${userIndex + 1} ${formatPlayer(interaction.user.id, topPlayers[userIndex][leaderboardType], leaderboardType, interaction)}`
 
         if (userIndex !== topPlayers.length - 1) {
             const userAbove = topPlayers[userIndex + 1];
-            const userAboveUsername = (await interaction.client.users.fetch(userAbove.userId)).username;
-            description += `\n#${userIndex + 2} ${formatPlayer(userAboveUsername, userAbove[leaderboardType], leaderboardType, interaction)}`
+            description += `\n#${userIndex + 2} ${formatPlayer(userAbove.id, userAbove[leaderboardType], leaderboardType, interaction)}`
         }
     }
 
@@ -164,9 +161,10 @@ function initTypes() {
     }
 }
 
-function formatPlayer(username, score, leaderboard, interaction) {
-    let userDisplay = username.replaceAll("_", "\\_")
-    if (interaction.user.username == username) {
+async function formatPlayer(userId, score, leaderboard, interaction) {
+    const player = await database.Player.findByPk(userId);
+    let userDisplay = await player.getUserDisplay(interaction.client, database);
+    if (interaction.user.id == userId) {
         userDisplay = `__${userDisplay}__` // highlight the user's own score
     }
     return `**${userDisplay}** - \`${formatNumber(score)}\` ${leaderboardTypes[leaderboard].metric}`

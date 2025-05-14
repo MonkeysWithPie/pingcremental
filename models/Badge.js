@@ -20,6 +20,11 @@ module.exports = (sequelize) => {
             allowNull: false,
         },
 
+        flavorText: {  
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+
         emoji: {
             type: DataTypes.STRING,
             allowNull: false,

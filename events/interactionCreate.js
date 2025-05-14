@@ -49,6 +49,26 @@ module.exports = {
                         await buttonCommand.dropdowns[split[1].split('-')[0]](interaction, split[1].split('-')[1]);
                     }
                 }
+            } else if (interaction.isAutocomplete()) {
+                const command = interaction.client.commands.get(interaction.commandName);
+
+                if (!command || !command.autocomplete) {
+                    await log(`No autocomplete handler for command ${interaction.commandName} was found.`, interaction.client);
+                    return await interaction.respond([]);
+                }
+                
+                await command.autocomplete(interaction);
+            } else if (interaction.isModalSubmit()) {
+                const modalId = interaction.customId;
+                const split = modalId.split(':');
+                const modalCommand = interaction.client.commands.get(split[0]);
+
+                if (!modalCommand || !modalCommand.modals || !modalCommand.modals[split[1]]) {
+                    await log(`No modal handler for modal ${modalId} was found.`, interaction.client);
+                    return;
+                }
+
+                await modalCommand.modals[split[1]](interaction);
             }
         } catch (error) {
             if (error instanceof DiscordAPIError && error.code == 10062) {

@@ -17,22 +17,23 @@ module.exports = {
         return level > 0 ? "cat :D" : "no cat D:"
     },
     getEffect(level, context) {
-        const roll = Math.random()*3;
+        const roll = Math.random();
 
-        if (roll < 1.8) {
+        if (roll < 0.5) {
             return {
-                add: 5 + Math.floor(Math.random()*5),
+                add: 10 + Math.floor(Math.random()*15),
                 message: "mrrow!"
             }
-        } else if (roll < 2.7) {
+        } else if (roll < 0.8) {
             return {
                 multiply: 1.2 + Math.random()*0.5,
                 message: "mrrp!",
             }
         } else {
             return {
-                exponent: 1.08,
-                message: "purrrr!",
+                blue: 100,
+                special: { blueCap: 100 },
+                message: "`forced blue!` purrrr!",
             }
         }
     },

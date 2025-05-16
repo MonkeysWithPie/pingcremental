@@ -7,19 +7,19 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "gain __x1.25__ PIP",
+            description: "gain __x1.2__ PIP",
             name: "Telepathy",
             emoji: getEmoji('ponder_telepathy', "🧠"),
             flavor: "know your thoughts before you even think them.",
         }
     },
     getEffectString(level) {
-        return `x${((level*0.25) + 1).toFixed(2)}`
+        return `x${((level*0.2) + 1).toFixed(1)}`
     },
     getEffect(level, context) {
         return {
             special: {
-                "pip": ((level ? level : 0)*0.25) + 1,
+                "pip": ((level ? level : 0)*0.2) + 1,
             },
         }
     },

@@ -7,18 +7,18 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "blue pings are __20%__ stronger",
+            description: "blue pings are __15%__ stronger",
             name: "Indigo Vision",
             emoji: getEmoji('ponder_indigo', "💙"),
             flavor: "seeing an almost alternate reality.",
         }
     },
     getEffectString(level) {
-        return `+${level*20}%`
+        return `+${level*15}%`
     },
     getEffect(level, context) {
         return {
-            blueStrength: (level*0.2),
+            blueStrength: (level*0.15),
         }
     },
     upgradeRequirements() {

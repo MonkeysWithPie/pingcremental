@@ -41,6 +41,6 @@ module.exports = {
     upgradeRequirements() {
         return { favored: 1 };
     },
-    sortOrder() { return 4 },
+    sortOrder() { return 5 },
     type() { return PipUpgradeTypes.BONUS }
 }

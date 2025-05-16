@@ -7,7 +7,7 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "gain __+0.6__ pts per ping for every __350__ total clicks",
+            description: "gain __+0.6__ pts per ping for every __350__ clicks",
             name: "inpingity",
             emoji: getEmoji('upgrade_inpingity', "♾️"),
         }

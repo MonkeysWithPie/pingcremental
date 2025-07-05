@@ -596,26 +596,16 @@ function get(ping, context) {
 
     //new years
     if (new Date.getMonth() === 0 && new Date.getDate() <= 5) {
-        "new year, same ping",
-        "resolution: reduce latency (no promises)",
-        "this ping is from the future (barely)",
-        "hello new year, your ping has arrived",
-        "i scheduled this ping a year ago. totally planned",
-        "new year, new lag?",
-        "we made it! again! ping goes on",
+        messagesList.push(
+            "new year, same ping",
+            "resolution: reduce latency (no promises)",
+            "this ping is from the future (barely)",
+            "hello new year, your ping has arrived",
+            "i scheduled this ping a year ago. totally planned",
+            "new year, new lag?",
+            "we made it! again! ping goes on",
+        )
     }
-
-    if (new Date.getMonth === 3 && new Date.getDate() === 1) { //i HATE 0 indexes
-        "ping? what ping? there's no ping here",
-        "your ping is 0ms. trust me",
-        "this ping is actually a potato",
-        "you just won free lag for life! ...just kidding (or am i?)",
-        "ping activated self-destruct— oh wait no it's fine",
-        "i swapped the ping and pong values.",
-        "this ping is legally a prank",
-    }
-
-    
 
     // bonus message for LESBIANS
     if (context.user && (context.user.id === "804762486946660353" || context.user.id === "1001871665745100870")) {

@@ -14,7 +14,7 @@ module.exports = {
         return {
             description: 
 `creates 2 additional ping buttons, each with a unique symbol attached to it.
-clicking grants a scaling bonus as no mistakes are made, up to **^1.2** (at 50 clicks in a row).
+clicking grants a scaling bonus as no mistakes are made, up to **^1.15** (at 50 clicks in a row).
 clicking the same symbol twice in a row will result in a **^0.7** debuff, and resets the bonus to nothing.`,
             name: "Fabric of the Artisan",
             emoji: "✒️",

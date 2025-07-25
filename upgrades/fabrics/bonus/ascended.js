@@ -14,7 +14,7 @@ module.exports = {
     getEffect(level, context) {
         if (level >= 3) {
             return {
-                exponent: 1.55,
+                exponent: 1.5,
             }
         }
 

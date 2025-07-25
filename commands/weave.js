@@ -62,6 +62,30 @@ module.exports = {
                 flags: MessageFlags.Ephemeral
             });
         },
+        breakdown: async (interaction) => {
+            const player = await database.Player.findByPk(interaction.user.id);
+            const breakdown = getGainedThread(player, false);
+
+            let desc = `you will gain ${formatNumber(getGainedThread(player))} thread for tearing the universe, given by the following:\n`;
+            desc += `\n**base**: ${breakdown.base} (always given regardless)`;
+            if (breakdown.pts) {
+                desc += `\n**owned \`pts\`**: ${formatNumber(breakdown.pts)} (1 per every digit in your owned \`pts\`)`;
+            }
+            if (breakdown.pip) {
+                desc += `\n**owned pip**: ${formatNumber(breakdown.pip)} (2 per every digit in your owned pip)`;
+            }
+            if (breakdown.eternities) {
+                desc += `\n**eternities**: ${formatNumber(breakdown.eternities)} (1 per every every eternity beyond the requirement, up to 15)`;
+            }
+            if (breakdown.tairs) {
+                desc += `\n**previous tears**: ${formatNumber(breakdown.tairs)} (3 per every previous tear, up to 30)`;
+            }
+
+            return await interaction.reply({
+                content: desc,
+                flags: MessageFlags.Ephemeral
+            });
+        },
         delete: async (interaction) => {
             await interaction.update({ content: "(vwoop!)", components: [] });
             await interaction.deleteReply(interaction.message);
@@ -272,10 +296,14 @@ unfortunately, it wants everything you have in return.
         embed.setTitle("tear the universe?")
         embed.setDescription(desc);
         extraRows.push(new ActionRowBuilder().addComponents(new ButtonBuilder()
-            .setCustomId(`weave:reset`)
-            .setLabel("time to tear!")
-            .setStyle(ButtonStyle.Danger)
-            .setDisabled(player.eternities < getTearRequirement(player.tears))
+                .setCustomId(`weave:reset`)
+                .setLabel("time to tear!")
+                .setStyle(ButtonStyle.Danger)
+                .setDisabled(player.eternities < getTearRequirement(player.tears)),
+            new ButtonBuilder()
+                .setCustomId(`weave:breakdown`)
+                .setLabel("thread breakdown")
+                .setStyle(ButtonStyle.Secondary)
         ));
     }
 
@@ -603,10 +631,33 @@ function getShopStock(seed) {
     return stock;
 }
 
-function getGainedThread(player) {
-    return 100; // TODO: probably change later
+function getGainedThread(player, simplify = true) {
+    let gain = {};
+    gain['base'] = 100;
+    
+    if (player.score > 0) {
+        gain['pts'] = Math.floor(Math.log10(player.score));
+    }
+    if (player.pip > 0) {
+        gain['pip'] = Math.floor(Math.log10(player.pip) * 2);
+    }
+    if (player.eternities > getTearRequirement(player.tears)) {
+        gain['eternities'] = Math.min(player.eternities - getTearRequirement(player.tears), 15);
+    }
+    if (player.tears > 0) {
+        gain['tairs'] = Math.min(player.tears * 3, 30);
+    }
+
+    if (simplify) {
+        // totals all gain sources
+        return Object.values(gain).reduce((total, count) => {
+            return total + count;
+        })
+    }
+
+    return gain;
 }
 
 function getTearRequirement(tears) {
-    return tears * 2 + 3; // TODO: placeholder calculation
+    return tears * 2 + 3;
 }

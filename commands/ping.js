@@ -226,7 +226,7 @@ you can ping again **<t:${Math.floor(allowTime/1000)}:R>**.`
         return await interaction.update({
             content:
                 `${pingMessage}
-you have a lot of \`pts\`... why don't you go spend them over in ${await getEmbeddedCommand(`upgrade`)}?`, 
+you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCommand(`upgrade`)}?`, 
             components: [disabledRow],
             embeds: [],
         })

@@ -33,7 +33,7 @@ module.exports = {
             return {
                 // force a blue ping to spawn
                 blue: 100,
-                special: { "blueCap": 100 },
+                blueCap: 100,
                 message: "\`Blue!\` purrrr!",
             }
         }

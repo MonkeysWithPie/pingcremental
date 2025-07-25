@@ -28,6 +28,8 @@ clicking the same symbol twice in a row will result in a **^0.7** debuff, and re
         
         if (context.artisanClickedSymbol && context.artisanClickedSymbol === lastClickedSymbolCache[context.user.id]) {
             exponent = 0.7;
+
+            bonusCache[context.user.id] = 1;
             comboCache[context.user.id] = 0;
         } else if (context.artisanClickedSymbol && lastClickedSymbolCache[context.user.id]) {
             bonusCache[context.user.id] = Math.min((bonusCache[context.user.id] || 1) + (0.15 / 50), 1.15);

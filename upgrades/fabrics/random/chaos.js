@@ -37,7 +37,7 @@ module.exports = {
         }
         else if (roll < 76) {
             return {
-                apt: Math.round(Math.random() * 40 * level),
+                apt: Math.round(Math.random() * 15 * level),
             }
         }
         else {

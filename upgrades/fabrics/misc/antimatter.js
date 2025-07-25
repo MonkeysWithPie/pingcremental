@@ -8,14 +8,14 @@ module.exports = {
         return {
             description: 
 `gain **2** extra fabric slots.
-gives a passive **^0.75** pts debuff.`,
+gives a passive **^0.8** pts debuff.`,
             name: "Antimatter Fabric",
             emoji: "🌑",
         }
     },
     getEffect(_level, context) {
         return {
-            exponent: 0.75,
+            exponent: 0.8,
             special: {
                 extraFabricSlots: 2,
             }

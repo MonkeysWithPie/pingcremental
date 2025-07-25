@@ -245,7 +245,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     }
 
     if (totalExp > 1 && pingFormat !== "expanded") {
-        displays.exponents.push(`**__\`^${totalExp.toFixed(2)}\`__**`);
+        displays.exponents.push(`**__\`^${totalExp.toFixed(3)}\`__**`);
     }
 
     score = Math.round(score);
@@ -326,7 +326,7 @@ function formatEffect(effect, upgradeClass, format) {
         effectString += ` __\`x${formatNumber(Math.floor(effect.multiply))}${(effect.multiply % 1).toFixed(2).slice(1)}\`__`;
     }
     if (effect.exponent && effect.exponent !== 1) {
-        effectString += ` **__\`^${effect.exponent.toFixed(2)}\`__**`;
+        effectString += ` **__\`^${effect.exponent.toFixed(3)}\`__**`;
     }
     if (effect.bp) {
         effectString += ` \`+${formatNumber(effect.bp)} bp\``;

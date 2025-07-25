@@ -272,6 +272,8 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         }
     }
 
+    let skipExtraDisplayFormatting = false;
+
     if (currentEffects.specials.rerolls && !overrides.skipRerolls) {
         if (Math.random() < currentEffects.specials.rerolls % 1) {
             currentEffects.specials.rerolls++;
@@ -286,10 +288,11 @@ async function ping(interaction, isSuper = false, overrides = {}) {
                 currentEffects = reroll.currentEffects;
                 context = reroll.context;
             }
+            skipExtraDisplayFormatting = true;
         }
     }
 
-    if (pingFormat !== "expanded") {
+    if (pingFormat !== "expanded" && !skipExtraDisplayFormatting) {
         displays.add.push(`\`+${formatNumber(score)}\``);
         if (currentEffects.bp) {
             displays.bp.push(`\`+${formatNumber(currentEffects.bp)} bp\``);

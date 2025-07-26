@@ -120,6 +120,8 @@ module.exports = {
             let finalEffects;
             let nextUpdate = updateEmbedEvery;
 
+            console.log(`autoping of x${pings} started for ${interaction.user.username} (${interaction.user.id})`);
+
             for (let i = 0; i < pings; i++) {
                 if (i === nextUpdate) {
                     embed.setDescription(`autoping is running!\n**${formatNumber(i)}**/${formatNumber(pings)}...`);
@@ -154,6 +156,8 @@ module.exports = {
                     finalEffects = currentEffects;
                 }
             }
+
+            console.log(`autoping of x${pings} finished for ${interaction.user.username} (${interaction.user.id})`);
 
             // wow that's a lot of stats
             player.apt -= pings;

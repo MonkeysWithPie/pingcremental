@@ -271,8 +271,16 @@ async function ping(interaction, isSuper = false, overrides = {}) {
             displays.apt.push(formatEffect(effect, upgradeClass, pingFormat))
         }
     }
-
-    let skipExtraDisplayFormatting = false;
+    
+    if (pingFormat !== "expanded" && !skipExtraDisplayFormatting) {
+        displays.add.push(`\`+${formatNumber(score)}\``);
+        if (currentEffects.bp) {
+            displays.bp.push(`\`+${formatNumber(currentEffects.bp)} bp\``);
+        }
+        if (currentEffects.apt) {
+            displays.apt.push(`\`+${formatNumber(currentEffects.apt)} APT\``);
+        }
+    }
 
     if (currentEffects.specials.rerolls && !overrides.skipRerolls) {
         if (Math.random() < currentEffects.specials.rerolls % 1) {
@@ -288,17 +296,6 @@ async function ping(interaction, isSuper = false, overrides = {}) {
                 currentEffects = reroll.currentEffects;
                 context = reroll.context;
             }
-            skipExtraDisplayFormatting = true;
-        }
-    }
-
-    if (pingFormat !== "expanded" && !skipExtraDisplayFormatting) {
-        displays.add.push(`\`+${formatNumber(score)}\``);
-        if (currentEffects.bp) {
-            displays.bp.push(`\`+${formatNumber(currentEffects.bp)} bp\``);
-        }
-        if (currentEffects.apt) {
-            displays.apt.push(`\`+${formatNumber(currentEffects.apt)} APT\``);
         }
     }
     

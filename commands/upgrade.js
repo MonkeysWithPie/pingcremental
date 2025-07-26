@@ -274,7 +274,7 @@ function getMultiBuyCost(buySetting, upgrade, score, playerUpgradeLevel) {
             price -= upgrade.getPrice(playerUpgradeLevel + levels);
         }
     } else {
-        for (let i = 0; i < buySetting; i++) {
+        for (let i = 0; i < buySetting && i < 1e6; i++) {
             if (upgrade.getPrice(playerUpgradeLevel + i) === null) break; // maxed out
             levels++;
             price += upgrade.getPrice(playerUpgradeLevel + i);

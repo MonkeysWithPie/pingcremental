@@ -272,7 +272,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         }
     }
     
-    if (pingFormat !== "expanded" && !skipExtraDisplayFormatting) {
+    if (pingFormat !== "expanded") {
         displays.add.push(`\`+${formatNumber(score)}\``);
         if (currentEffects.bp) {
             displays.bp.push(`\`+${formatNumber(currentEffects.bp)} bp\``);

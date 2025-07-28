@@ -14,9 +14,9 @@ function formatNumber(num, shortHand = false, decimalPlaces = 2, display = 0) {
     const numStr = num.toString();
 
     const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', // 10^30
-                      'Dc', 'Ud', 'Dd', 'Td', 'Qtd', 'Qd', 'Sxd', 'Spd', 'Od', 'Nd', // 10^60
-                      'Vg', 'Uvg', 'Dvg', 'Trv', 'Qtv', 'Qiv', 'Sxv', 'Spv', 'Ocv', // 10^87
-                      'Ndv', 'Tg', 'Utg', 'Dtg'];  // 10^99
+                      'Dc', 'Udc', 'Ddc', 'Tdc', 'Qadc', 'Qidc', 'Sxdc', 'Spdc', 'Ocdc', 'Nmdc', // 10^60
+                      'Vg', 'Uvg', 'Dvg', 'Tvg', 'Qavg', 'Qivg', 'Sxvg', 'Spvg', 'Ovg', // 10^87
+                      'Nvg', 'Tg', 'Utg', 'Dtg'];  // 10^99
 
     const fullSuffixes = ['', 'Thousand', 'Million', 'Billion', 'Trillion', 'Quadrillion', 'Quintillion', // 10^18
                           'Sextillion', 'Septillion', 'Octillion', 'Nonillion', // 10^30

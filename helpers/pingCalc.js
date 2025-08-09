@@ -28,6 +28,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         score: playerProfile.score,
         clicks: playerProfile.clicks,
         totalClicks: playerProfile.totalClicks,
+        lastPing: playerProfile.lastPing,
         pip: playerProfile.pip,
         removedUpgrades: playerProfile.removedUpgrades,
         missedBluePings: playerProfile.bluePingsMissed,
@@ -170,14 +171,6 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     }
     
     context.specials = currentEffects.specials; // update context for later effects
-
-    // add slumber clicks if offline for long enough
-    if (currentEffects.specials.canGainSlumber && Date.now() - playerProfile.lastPing >= 1000 * 60 * (21 - playerProfile.upgrades.slumber)) {
-        playerProfile.slumberClicks += Math.floor((Date.now() - playerProfile.lastPing) / (1000 * 60 * (21 - playerProfile.upgrades.slumber)));
-        playerProfile.slumberClicks = Math.min(playerProfile.slumberClicks, Math.round((2 * 24 * 60) / (21 - playerProfile.upgrades.slumber))); // max of 2 days of slumber clicks
-        playerProfile.slumberClicks = Math.max(playerProfile.slumberClicks, 0); // no negative slumber clicks
-        context.slumberClicks = playerProfile.slumberClicks; // update context for later effects
-    }
 
     
     /* PTS CALCULATION */

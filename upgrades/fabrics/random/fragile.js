@@ -27,7 +27,7 @@ module.exports = {
         if (hits > 0) {
             return {
                 exponent: 1.6 ** hits,
-                message: `***__A ${['', 'BRILLIANT ', 'LEGENDARY '][hits]}SURGE OF POWER!__***`
+                message: `***__A ${['', 'BRILLIANT ', 'LEGENDARY ', 'GODLIKE '][hits]}SURGE OF POWER!__***`
             }
         }
 

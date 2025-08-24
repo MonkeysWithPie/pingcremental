@@ -194,6 +194,9 @@ you can ping again **<t:${Math.floor(allowTime/1000)}:R>**.`
     if (context.specials.orchestraCombo && context.specials.orchestraCombo > playerProfile.highestOrchestraCombo) {
         playerProfile.highestOrchestraCombo = context.specials.orchestraCombo;
     }
+    if (context.specials.pigScore && context.specials.pigScore > playerProfile.highestPigScore) {
+        playerProfile.highestPigScore = context.specials.pigScore;
+    }
 
     // etc
     playerProfile.bp = Math.min(currentEffects.bp + playerProfile.bp, currentEffects.bpMax);

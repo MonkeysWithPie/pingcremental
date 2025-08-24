@@ -122,7 +122,8 @@ async function getUserMessage(userId, interaction) {
             `\`${formatNumber(player.highestScore)} pts\` in one ping\n` +
             `${formatNumber(player.highestBlueStreak)} blue ping${player.highestBlueStreak === 1 ? '' : 's'} in a row\n` +
             `${formatNumber(player.luckyPings)} lucky ping${player.luckyPings === 1 ? '' : 's'}\n` +
-            `${player.highestCoinflipCount ? `${formatNumber(player.highestCoinflipCount)} coinflip${player.highestCoinflipCount === 1 ? '' : 's'} in one ping\n` : ''}`;
+            `${player.highestCoinflipCount ? `${formatNumber(player.highestCoinflipCount)} coinflip${player.highestCoinflipCount === 1 ? '' : 's'} in one ping\n` : ''}` +
+            `${player.highestPigScore ? `${formatNumber(player.highestPigScore)} pig score in one ping\n` : ''}`;
 
     if (player.highestArtisanCombo || player.highestOrchestraCombo) desc += `\n__skill combos__\n` +
             `${player.highestArtisanCombo ? `${formatNumber(player.highestArtisanCombo)} artisan combo at once\n` : ''}` +

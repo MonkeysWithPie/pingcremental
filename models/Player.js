@@ -283,6 +283,11 @@ module.exports = (sequelize) => {
 			defaultValue: 0,
 			allowNull: false,
 		},
+		highestPigScore: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
 	}, {
 		sequelize,
 		timestamps: true,

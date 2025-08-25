@@ -1,4 +1,4 @@
-const { UpgradeTypes } = require('../../../helpers/commonEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
@@ -17,6 +17,8 @@ module.exports = {
         return `x${(1+level*0.1).toFixed(1)}, every ${21-level}m, up to ${Math.round((2*24*60)/(21-level))} pings`;
     },
     getEffect(level, context) {
+        if (context.state !== PingCalculationStates.SCORING) return;
+
         let clicks = context.slumberClicks;
         let intervalMs = 1000 * 60 * (21 - level);
         let maxClicks = Math.round((2 * 24 * 60) / (21 - level));

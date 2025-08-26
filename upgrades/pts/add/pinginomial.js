@@ -25,7 +25,7 @@ module.exports = {
     isBuyable(context) {
         return true;
     },
-    sortOrder() { return 3 },
+    sortOrder() { return 4 },
     type() { return UpgradeTypes.ADD_BONUS }
 }
 

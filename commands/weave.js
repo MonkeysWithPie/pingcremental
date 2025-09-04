@@ -77,8 +77,8 @@ module.exports = {
             if (breakdown.eternities) {
                 desc += `\n**eternities**: ${formatNumber(breakdown.eternities)} (1 per every every eternity beyond the requirement, up to 15)`;
             }
-            if (breakdown.tairs) {
-                desc += `\n**previous tears**: ${formatNumber(breakdown.tairs)} (3 per every previous tear, up to 30)`;
+            if (breakdown.tears) {
+                desc += `\n**previous tears**: ${formatNumber(breakdown.tears)} (3 per every previous tear, up to 30)`;
             }
 
             return await interaction.reply({
@@ -650,7 +650,7 @@ function getGainedThread(player, simplify = true) {
         gain['eternities'] = Math.min(player.eternities - getTearRequirement(player.tears), 15);
     }
     if (player.tears > 0) {
-        gain['tairs'] = Math.min(player.tears * 3, 30);
+        gain['tears'] = Math.min(player.tears * 3, 30);
     }
 
     if (simplify) {

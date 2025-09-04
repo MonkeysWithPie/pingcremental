@@ -207,7 +207,7 @@ module.exports = (sequelize) => {
 		shopSeed: {
 			type: DataTypes.STRING,
 			allowNull: false,
-			defaultValue: '',
+			defaultValue: 'TUTORIAL',
 		},
 		shopEmptySlots: {
 			type: DataTypes.STRING,

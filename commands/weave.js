@@ -611,6 +611,11 @@ function getShopStock(seed) {
     const rng = new RandSeed(seed);
     const stock = [];
     const fabrics = Object.keys(upgrades['fabrics']);
+
+    if (seed === "TUTORIAL") {
+        stock = [fabrics["goldlace"], fabrics['elusive'], fabrics['azure']]
+        return stock;
+    }
     
     while (stock.length < 3) {
         // very specific case where all registered fabrics are unique but there's not enough to fill stock

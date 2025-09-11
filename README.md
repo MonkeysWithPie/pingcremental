@@ -55,9 +55,9 @@ to run the bot, simply run the `index.js` file. there are some flags for running
     this prevents the usage of /ping unless you are the owner.
     this additionally sets the ping to always be 5, in order to bypass the wait for `client.ws.ping` to update.
 
-2. `-v` or `--verbose` (not done yet)
+2. `-t` or `--timing`
 
-    this logs a lot of actions that occur, used for debugging.
+    this logs the duration of segments when calculating ping. useful for optimization.
 
 ### go wild
 

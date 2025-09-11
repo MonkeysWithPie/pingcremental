@@ -14,7 +14,28 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     }
     pingMs += Math.round(Math.random() * MAX_PING_OFFSET * 2) - MAX_PING_OFFSET; // randomize a bit since it only updates occasionally
 
-    const [playerProfile, _created] = await database.Player.findOrCreate({ where: { userId: overrides.userId || interaction.user.id } })
+    measureTimeSegment("profile fetch")
+
+    let playerProfile;
+    if (overrides.prefetchedProfile) {
+        // console.log("using prefetched profile");
+        playerProfile = overrides.prefetchedProfile;
+    } else {
+        [playerProfile, _created] = await database.Player.findOrCreate({ where: { userId: overrides.userId || interaction.user.id } })
+    }
+
+    measureTimeSegment("profile fetch")
+    measureTimeSegment("upgrade prep")
+    
+    let iterateUpgrades = {}
+    for (const upgradeTypeList of [playerProfile.upgrades, playerProfile.prestigeUpgrades, playerProfile.equippedFabrics]) {
+        if (!upgradeTypeList) continue;
+        for (const [upg, lv] of Object.entries(upgradeTypeList)) iterateUpgrades[upg] = lv;
+    }
+
+    measureTimeSegment("upgrade prep")
+    measureTimeSegment("object prep")
+
     let context = { // BIG LONG EVIL CONTEXT (will kill you if it gets the chance)
         // actual context
         user: interaction.user,
@@ -52,17 +73,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         apt: 0,
         state: PingCalculationStates.RNG_AND_SPECIAL
     }
-
-    let iterateUpgrades = {}
-    for (const upgradeTypeList of [playerProfile.upgrades, playerProfile.prestigeUpgrades, playerProfile.equippedFabrics]) {
-        if (!upgradeTypeList) continue;
-        for (const [upg, lv] of Object.entries(upgradeTypeList)) iterateUpgrades[upg] = lv;
-    }
-
-
-    /* PRE-PTS CALCULATION */
     
-
     // prep a bunch of variables for the effects
     let currentEffects = {
         mults: [],
@@ -87,16 +98,22 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         bp: [],
         apt: [],
     }
+
     const pingFormat = playerProfile.settings.pingFormat || "expanded";
     if (pingFormat === "expanded") {
         displays.add.push(`${getEmoji('ping')} \`+${pingMs}\``);
     } else if (pingFormat === "compact") {
         displays.add.push(`${getEmoji('ping')}`);
     }
+    
+    measureTimeSegment("object prep");
+    measureTimeSegment("upgrade check 1");
+    
+    /* PRE-PTS CALCULATION */
+    
     let effect;
     let score = pingMs; // base score is ping
-
-
+    
     for (const [upgradeId, level] of Object.entries(iterateUpgrades)) {
         effect = rawUpgrades[upgradeId].getEffect(level, context);
         if (effect.special) {
@@ -121,6 +138,9 @@ async function ping(interaction, isSuper = false, overrides = {}) {
             context.RNGmult = currentEffects.RNGmult; 
         }
     }
+
+    measureTimeSegment("upgrade check 1");
+    measureTimeSegment("randomness");
 
     currentEffects.blue = Math.min(currentEffects.blue, currentEffects.blueCap, 90); // hard cap at 90% chance or whatever the blue cap is
 
@@ -173,6 +193,9 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     
     context.specials = currentEffects.specials; // update context for later effects
 
+    measureTimeSegment("randomness");
+    measureTimeSegment("upgrade check 2");
+
     
     /* PTS CALCULATION */
 
@@ -219,6 +242,9 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         }
     }
 
+    measureTimeSegment("upgrade check 2");
+    measureTimeSegment("scoring");
+
     score = Math.max(score, 1); // prevent negative scores
 
     let totalMult = 1;
@@ -246,6 +272,8 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     if (score === Infinity) score = 0; // prevent infinite score (and fuck you; you get nothing)
     context.score = score; // update context for later effects
 
+    measureTimeSegment("scoring");
+    measureTimeSegment("post-scoring")
 
     /* POST-PTS CALCULATION */
     // this is done for things that require pt values after most calculation is already done
@@ -276,6 +304,8 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         }
     }
 
+    measureTimeSegment("post-scoring", true);
+
     if (currentEffects.specials.rerolls && !overrides.skipRerolls) {
         if (Math.random() < currentEffects.specials.rerolls % 1) {
             currentEffects.specials.rerolls++;
@@ -283,7 +313,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         currentEffects.specials.rerolls = Math.floor(currentEffects.specials.rerolls);
 
         for (let i = 0; i < currentEffects.specials.rerolls; i++) {
-            const reroll = await ping(interaction, isSuper, { skipRerolls: true });
+            const reroll = await ping(interaction, isSuper, { skipRerolls: true, prefetchedProfile: playerProfile, ...overrides });
             if (reroll.score > score) {
                 score = reroll.score;
                 displays = reroll.displays;
@@ -307,6 +337,35 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         displays,
         currentEffects,
         context,
+    }
+}
+
+let segmentStart = null;
+let allDurations = {};
+
+function measureTimeSegment(segmentName, finish = false) {
+    if (!(process.argv.includes("--timing") || process.argv.includes("-t"))) return;
+
+    if (segmentStart === null) {
+        segmentStart = process.hrtime.bigint();
+        return;
+    }
+
+    const end = process.hrtime.bigint();
+    const durationMs = Number(end - segmentStart) / 1e6;
+    allDurations[segmentName] = (allDurations[segmentName] || 0) + durationMs;
+    segmentStart = null;
+
+    if (finish) {
+        const totalTime = Object.values(allDurations).reduce((prev, curr) => prev + curr, 0);
+        console.log();
+        console.log(`took ${totalTime.toFixed(2)}ms total...`)
+
+        for (const [name, time] of Object.entries(allDurations)) {
+            console.log(` - ${name}: ${time.toFixed(2)}ms (${((time/totalTime)*100).toFixed(1)}%)`);
+        }
+
+        allDurations = {}
     }
 }
 

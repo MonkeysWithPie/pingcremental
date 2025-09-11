@@ -43,7 +43,7 @@ module.exports = {
                             .setCustomId("value")
                             .setLabel("autoping count")
                             .setStyle(TextInputStyle.Short)
-                            .setPlaceholder(`input a number up to ${Math.min(player.apt, 10000)} or "ALL"...`)
+                            .setPlaceholder(`input a number up to ${player.apt} or "ALL"...`)
                     )
                 );
             await interaction.showModal(modal);
@@ -62,7 +62,7 @@ module.exports = {
 
             let pings;
             if (interaction.fields.getTextInputValue("value").toLowerCase() === "all") {
-                pings = Math.min(player.apt, 10000);
+                pings = player.apt;
             } else {
                 pings = parseInt(interaction.fields.getTextInputValue("value"));
             }
@@ -73,9 +73,9 @@ module.exports = {
                     flags: MessageFlags.Ephemeral,
                 });
             }
-            if (pings < 1 || pings > Math.min(player.apt, 10000)) {
+            if (pings < 1 || pings > player.apt) {
                 return interaction.reply({
-                    content: `please input a number between 1 and ${Math.min(player.apt, 10000)}.`,
+                    content: `please input a number between 1 and ${player.apt}.`,
                     flags: MessageFlags.Ephemeral,
                 });
             }
@@ -100,7 +100,6 @@ module.exports = {
 
             let updateEmbedEvery = Math.ceil(pings / (5 + (Math.random() * Math.log2(pings))));
             if (updateEmbedEvery <= 1) updateEmbedEvery = pings;
-            if (updateEmbedEvery > 100) updateEmbedEvery = 100;
 
             let pingDataTotal = {
                 score: 0,
@@ -114,13 +113,14 @@ module.exports = {
                 bluesMissed: 0,
                 highestBlueCombo: 0,
             }
+            let storedCache = null;
             let nextPingBlue = false;
             let nextPingArtisan = null;
             let currentChain = 0;
             let finalEffects;
             let nextUpdate = updateEmbedEvery;
 
-            console.log(`autoping of x${pings} started for ${interaction.user.username} (${interaction.user.id})`);
+            const startTime = process.hrtime.bigint();
 
             for (let i = 0; i < pings; i++) {
                 if (i === nextUpdate) {
@@ -129,8 +129,9 @@ module.exports = {
                     nextUpdate += updateEmbedEvery + Math.ceil(Math.random() - 0.5 * pings / 1000);
                 }
 
-                const {score, currentEffects} = await ping(interaction, nextPingBlue, { autopinging: true, blueCombo: currentChain, artisanClickedSymbol: nextPingArtisan });
+                const {score, currentEffects, cache} = await ping(interaction, nextPingBlue, { autopinging: true, blueCombo: currentChain, artisanClickedSymbol: nextPingArtisan, cache: storedCache, skipDisplays: true });
                 nextPingBlue = currentEffects.spawnedSuper && currentEffects.specials.budge;
+                storedCache = cache;
 
                 pingDataTotal.score += score;
                 pingDataTotal.highestScore = Math.max(pingDataTotal.highestScore, score);
@@ -157,7 +158,7 @@ module.exports = {
                 }
             }
 
-            console.log(`autoping of x${pings} finished for ${interaction.user.username} (${interaction.user.id})`);
+            const endTime = process.hrtime.bigint();
 
             // wow that's a lot of stats
             player.apt -= pings;
@@ -186,12 +187,12 @@ got **\`${formatNumber(pingDataTotal.highestScore, true, 3)} pts\`** at most, **
 
             if (pingDataTotal.bp > 0) { 
                 if (player.bp >= finalEffects.bpMax) {
-                    finalDescription += `\ngained **${formatNumber(pingDataTotal.bp)}** BP (hit MAX of ${formatNumber(finalEffects.bpMax)})`;
+                    finalDescription += `\ngained **${formatNumber(pingDataTotal.bp, true, 4)}** BP (hit MAX of ${formatNumber(finalEffects.bpMax, true, 4)})`;
                 } else {
-                    finalDescription += `\ngained **${formatNumber(pingDataTotal.bp)}** BP`
+                    finalDescription += `\ngained **${formatNumber(pingDataTotal.bp, true, 4)}** BP`
                 }
             }
-            if (pingDataTotal.apt > 0) finalDescription += `\nwould've found **${formatNumber(pingDataTotal.apt)}** APT`
+            if (pingDataTotal.apt > 0) finalDescription += `\nwould've found **${formatNumber(pingDataTotal.apt, true, 5)}** APT`
             
             if (pingDataTotal.blues > 0 || pingDataTotal.bluesMissed > 0) {
                 finalDescription += `
@@ -207,9 +208,11 @@ missed **${pingDataTotal.bluesMissed}** blue ping${pingDataTotal.bluesMissed ===
                 .setDescription(finalDescription)
                 .setColor("#18c4bf");
             
+            let footer = `finished in ${(Number(endTime - startTime) / 1e9).toFixed(3)}s `;
             if (player.apt > 0) {
-                finalEmbed.setFooter({ text: `${formatNumber(player.apt)} APT remaining` });
+                footer = `${formatNumber(player.apt)} APT remaining | ` + footer;
             }
+            finalEmbed.setFooter({ text: footer });
             
             const components = [
                 new ButtonBuilder()

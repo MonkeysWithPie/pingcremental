@@ -16,7 +16,7 @@ module.exports = {
         return level === 1 ? "d20" : "d0"
     },
     getEffect(level, context) {
-        if (context.state !== PingCalculationStates.SCORING) return;
+        if (context.state !== PingCalculationStates.SCORING) return {};
 
         const rollCount = (context.specials.extraDice || 0) + 1;
 

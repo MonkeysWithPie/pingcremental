@@ -17,7 +17,7 @@ module.exports = {
         return `${level*15}%`
     },
     getEffect(level, context) {
-        if (context.state !== PingCalculationStates.RNG_AND_SPECIAL) return;
+        if (context.state !== PingCalculationStates.RNG_AND_SPECIAL) return {};
 
         if (Math.random()*100 <= level*15) {
             return {

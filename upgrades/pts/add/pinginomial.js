@@ -16,7 +16,7 @@ module.exports = {
         return level === 0 ? "+0" : `+${getFib(level+1)}`;
     },
     getEffect(level, context) {
-        if (context.state !== PingCalculationStates.SCORING) return;
+        if (context.state !== PingCalculationStates.SCORING) return {};
 
         return {
             add: getFib(level+1),

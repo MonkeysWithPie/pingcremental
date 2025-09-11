@@ -32,6 +32,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         pip: playerProfile.pip,
         removedUpgrades: playerProfile.removedUpgrades,
         missedBluePings: playerProfile.bluePingsMissed,
+        totalFabrics: Object.keys(playerProfile.ownedFabrics).length,
 
         // per-upgrade vars
         slumberClicks: playerProfile.slumberClicks,

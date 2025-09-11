@@ -1,5 +1,6 @@
-const { PipUpgradeTypes } = require('../../../helpers/commonEnums.js');
+const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const RandSeed = require('rand-seed').default;
 
 module.exports = {
     getPrice(currentLevel) {
@@ -17,7 +18,7 @@ module.exports = {
         return level > 0 ? "cat :D" : "no cat D:"
     },
     getEffect(level, context) {
-        const roll = Math.random();
+        const roll = new RandSeed(`${context.interactionTimestamp}cat`).next();
 
         if (roll < 0.65) { // 65%
             return {
@@ -42,5 +43,6 @@ module.exports = {
         return { beginning: 1 };
     },
     sortOrder() { return 203 },
-    type() { return PipUpgradeTypes.MISC }
+    type() { return PipUpgradeTypes.MISC },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL | PingCalculationStates.SCORING; }
 }

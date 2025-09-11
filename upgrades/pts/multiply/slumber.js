@@ -50,5 +50,6 @@ module.exports = {
         return context.upgrades.multiplier && context.upgrades.multiplier >= 10;
     },
     sortOrder() { return 107 },
-    type() { return UpgradeTypes.MULT_BONUS  }
+    type() { return UpgradeTypes.MULT_BONUS },
+    section() { return PingCalculationStates.SCORING; }
 }

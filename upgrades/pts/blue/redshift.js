@@ -1,4 +1,4 @@
-const { UpgradeTypes } = require('../../../helpers/commonEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
@@ -25,5 +25,6 @@ module.exports = {
         return Object.keys(context.upgrades).includes('blue')
     },
     sortOrder() { return 12 },
-    type() { return UpgradeTypes.BLUE_PING }
+    type() { return UpgradeTypes.BLUE_PING },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
 }

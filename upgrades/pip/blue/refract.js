@@ -36,5 +36,6 @@ module.exports = {
         return { indigo: 3 };
     },
     sortOrder() { return 106 },
-    type() { return PipUpgradeTypes.BLUE_PING }
+    type() { return PipUpgradeTypes.BLUE_PING },
+    section() { return PingCalculationStates.SCORING; }
 }

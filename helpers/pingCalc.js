@@ -27,10 +27,20 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     measureTimeSegment("profile fetch")
     measureTimeSegment("upgrade prep")
     
-    let iterateUpgrades = {}
+    let allUpgrades = { 
+        [PingCalculationStates.RNG_AND_SPECIAL]: {}, 
+        [PingCalculationStates.SCORING]: {}, 
+        [PingCalculationStates.POST_SCORING]: {}
+    }
     for (const upgradeTypeList of [playerProfile.upgrades, playerProfile.prestigeUpgrades, playerProfile.equippedFabrics]) {
         if (!upgradeTypeList) continue;
-        for (const [upg, lv] of Object.entries(upgradeTypeList)) iterateUpgrades[upg] = lv;
+
+        // filter upgrades for each state
+        for (const [upg, lv] of Object.entries(upgradeTypeList)) {
+            for (const state of Object.values(PingCalculationStates)) {
+                if (rawUpgrades[upg].section() & state !== 0) allUpgrades[state][upg] = lv;
+            }
+        }
     }
 
     measureTimeSegment("upgrade prep")
@@ -114,7 +124,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     let effect;
     let score = pingMs; // base score is ping
     
-    for (const [upgradeId, level] of Object.entries(iterateUpgrades)) {
+    for (const [upgradeId, level] of Object.entries(allUpgrades[context.state])) {
         effect = rawUpgrades[upgradeId].getEffect(level, context);
         if (effect.special) {
             for (const [special, value] of Object.entries(effect.special)) {
@@ -201,7 +211,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
 
     
     context.state = PingCalculationStates.SCORING;
-    for (const [upgradeId, level] of Object.entries(iterateUpgrades)) {
+    for (const [upgradeId, level] of Object.entries(allUpgrades[context.state])) {
         const upgradeClass = rawUpgrades[upgradeId];
         effect = upgradeClass.getEffect(level,context);
 
@@ -280,7 +290,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     
 
     context.state = PingCalculationStates.POST_SCORING;
-    for (const [upgradeId, level] of Object.entries(iterateUpgrades)) {
+    for (const [upgradeId, level] of Object.entries(allUpgrades[context.state])) {
         const upgradeClass = rawUpgrades[upgradeId];
         effect = upgradeClass.getEffect(level, context);
 

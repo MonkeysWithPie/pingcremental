@@ -13,11 +13,13 @@ const PipUpgradeTypes = {
     PRESTIGE: 'Repeat',
 }
 
+// some upgrades are used in multiple states, so we use bitflags
 const PingCalculationStates = {
-    RNG_AND_SPECIAL: 0,
-    SCORING: 1,
-    POST_SCORING: 2,
+    RNG_AND_SPECIAL:  0b001,
+    SCORING:          0b010,
+    POST_SCORING:     0b100,
 }
+
 const FabricUpgradeTypes = {
     FLAT_BONUS: 'Flat Bonus',
     BLUE_PING: 'Blue Modification',

@@ -1,4 +1,4 @@
-const { FabricUpgradeTypes } = require('../../../helpers/commonEnums.js');
+const { FabricUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 
 module.exports = {
     getPrice() {
@@ -20,5 +20,6 @@ module.exports = {
         }
     },
     type() { return FabricUpgradeTypes.BLUE_PING },
-    isUnique() { return true; }
+    isUnique() { return true; },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL },
 }

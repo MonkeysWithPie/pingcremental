@@ -1,4 +1,4 @@
-const { FabricUpgradeTypes } = require('../../../helpers/commonEnums.js');
+const { FabricUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 
 module.exports = {
     getPrice() {
@@ -21,5 +21,6 @@ inpingity will give an additional **x1.08** bonus per **888** total clicks you h
         }
     },
     type() { return FabricUpgradeTypes.FLAT_BONUS },
-    isUnique() { return true; }
+    isUnique() { return true; },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
 }

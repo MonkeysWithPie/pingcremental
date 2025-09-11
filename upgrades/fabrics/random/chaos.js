@@ -1,4 +1,4 @@
-const { FabricUpgradeTypes } = require('../../../helpers/commonEnums.js');
+const { FabricUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const RandSeed = require("rand-seed").default;
 
 module.exports = {
@@ -48,5 +48,6 @@ module.exports = {
         }
     },
     type() { return FabricUpgradeTypes.PURE_RANDOM },
-    isUnique() { return false; }
+    isUnique() { return false; },
+    section() { return PingCalculationStates.POST_SCORING | PingCalculationStates.SCORING | PingCalculationStates.RNG_AND_SPECIAL; },
 }

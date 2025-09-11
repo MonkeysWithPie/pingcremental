@@ -24,7 +24,6 @@ skipping one beat is okay, but more will break the combo.`,
         }
     },
     getEffect(_level, context) {
-        if (context.state !== PingCalculationStates.SCORING) return {};
         if (context.autopinging) return {};
 
         if (!context.interactionTimestamp) return {};
@@ -106,7 +105,8 @@ skipping one beat is okay, but more will break the combo.`,
         }
     },
     type() { return FabricUpgradeTypes.SKILL_BASED },
-    isUnique() { return true; }
+    isUnique() { return true; },
+    section() { return PingCalculationStates.SCORING; }
 }
 
 function addBonus(userId, amount) {

@@ -27,5 +27,6 @@ module.exports = {
         return { storage: 2 };
     },
     sortOrder() { return 403 },
-    type() { return PipUpgradeTypes.PRESTIGE }
+    type() { return PipUpgradeTypes.PRESTIGE },
+    section() { return 0; }
 }

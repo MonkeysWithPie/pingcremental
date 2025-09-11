@@ -22,5 +22,6 @@ module.exports = {
         return true;
     },
     sortOrder() { return 1000 },
-    type() { return UpgradeTypes.ONE_TIME }
+    type() { return UpgradeTypes.ONE_TIME },
+    section() { return 0; }
 }

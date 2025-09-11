@@ -17,8 +17,6 @@ module.exports = {
         return `+${(2.5*level).toFixed(1)} bp`
     },
     getEffect(level, context) {
-        if (context.state !== PingCalculationStates.POST_SCORING) return {};
-
         return {
             bp: Math.ceil(level * 2.5 * context.score / 1e6),
         }
@@ -27,5 +25,6 @@ module.exports = {
         return { hoard: 2 };
     },
     sortOrder() { return 405 }, // upgrade IS found (i'm not using 404 to spite you)
-    type() { return PipUpgradeTypes.PRESTIGE }
+    type() { return PipUpgradeTypes.PRESTIGE },
+    section() { return PingCalculationStates.POST_SCORING; }
 }

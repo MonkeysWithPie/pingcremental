@@ -1,4 +1,4 @@
-const { PipUpgradeTypes } = require('../../../helpers/commonEnums.js');
+const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
@@ -25,5 +25,6 @@ module.exports = {
         return { beginning: 1 };
     },
     sortOrder() { return 402 },
-    type() { return PipUpgradeTypes.PRESTIGE }
+    type() { return PipUpgradeTypes.PRESTIGE },
+    section() { return PingCalculationStates.SCORING; }
 }

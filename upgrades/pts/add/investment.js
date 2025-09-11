@@ -1,4 +1,4 @@
-const { UpgradeTypes } = require('../../../helpers/commonEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 function getPrice(level) {
@@ -36,5 +36,6 @@ module.exports = {
         return context.fabrics.shopkeeper !== undefined;
     },
     sortOrder() { return 1000 },
-    type() { return UpgradeTypes.ADD_BONUS }
+    type() { return UpgradeTypes.ADD_BONUS },
+    section() { return PingCalculationStates.SCORING; },
 }

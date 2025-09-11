@@ -15,8 +15,6 @@ gain a compounding **x1.15** \`pts\` for every score.`,
         }
     },
     getEffect(_level, context) {
-        if (context.state !== PingCalculationStates.SCORING) return {};
-
         let roll = 0;
         let score = 0;
 
@@ -36,5 +34,6 @@ gain a compounding **x1.15** \`pts\` for every score.`,
         }
     },
     type() { return FabricUpgradeTypes.PURE_RANDOM },
-    isUnique() { return true; }
+    isUnique() { return true; },
+    section() { return PingCalculationStates.SCORING; }
 }

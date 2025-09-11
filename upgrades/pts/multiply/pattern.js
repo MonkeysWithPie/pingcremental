@@ -1,4 +1,4 @@
-const { UpgradeTypes } = require('../../../helpers/commonEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 function getMultiplier(level) {
@@ -35,5 +35,6 @@ module.exports = {
         return Object.keys(context.upgrades).includes('lucky');
     },
     sortOrder() { return 102 },
-    type() { return UpgradeTypes.MULT_BONUS }
+    type() { return UpgradeTypes.MULT_BONUS },
+    section() { return PingCalculationStates.SCORING; }
 }

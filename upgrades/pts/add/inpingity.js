@@ -1,4 +1,4 @@
-const { UpgradeTypes } = require('../../../helpers/commonEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
@@ -31,7 +31,8 @@ module.exports = {
         return context.totalClicks >= 1000;
     },
     sortOrder() { return 8 },
-    type() { return UpgradeTypes.ADD_BONUS }
+    type() { return UpgradeTypes.ADD_BONUS },
+    section() { return PingCalculationStates.SCORING; },
 }
 
 function maxClicks(level) {

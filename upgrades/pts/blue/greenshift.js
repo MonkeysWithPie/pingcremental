@@ -26,5 +26,6 @@ module.exports = {
         return context.upgrades['redshift'] >= 4;
     },
     sortOrder() { return 14 },
-    type() { return UpgradeTypes.BLUE_PING }
+    type() { return UpgradeTypes.BLUE_PING },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
 }

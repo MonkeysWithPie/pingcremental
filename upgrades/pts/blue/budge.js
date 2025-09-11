@@ -17,8 +17,6 @@ module.exports = {
         return `${level*15}%`
     },
     getEffect(level, context) {
-        if (context.state !== PingCalculationStates.RNG_AND_SPECIAL) return {};
-
         if (Math.random()*100 <= level*15) {
             return {
                 special: { "budge": true },
@@ -30,5 +28,6 @@ module.exports = {
         return context.upgrades['blueshift'] && context.upgrades.blueshift > 6;
     },
     sortOrder() { return 15 },
-    type() { return UpgradeTypes.BLUE_PING }
+    type() { return UpgradeTypes.BLUE_PING },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL },
 }

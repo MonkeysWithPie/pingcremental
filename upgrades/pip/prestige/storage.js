@@ -23,5 +23,6 @@ module.exports = {
         return { beginning: 1 };
     },
     sortOrder() { return 401 },
-    type() { return PipUpgradeTypes.PRESTIGE }
+    type() { return PipUpgradeTypes.PRESTIGE },
+    section() { return 0; }
 }

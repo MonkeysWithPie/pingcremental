@@ -1,4 +1,4 @@
-const { UpgradeTypes } = require('../../../helpers/commonEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
@@ -29,5 +29,6 @@ module.exports = {
         return true; // return true if the upgrade should be visible, false if not
     },
     sortOrder() { return 1000 }, // high order = low on list
-    type() { return UpgradeTypes.GENERIC } // should be using the enums from commonEnums.js
+    type() { return UpgradeTypes.GENERIC }, // should be using the enums from commonEnums.js
+    section() { return 0 }, // which section of the ping calculation this upgrade should be applied in, if any
 }

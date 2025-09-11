@@ -26,7 +26,8 @@ module.exports = {
         return true;
     },
     sortOrder() { return 4 },
-    type() { return UpgradeTypes.ADD_BONUS }
+    type() { return UpgradeTypes.ADD_BONUS },
+    section() { return PingCalculationStates.SCORING }
 }
 
 function getFib(n) {

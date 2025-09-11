@@ -1,4 +1,4 @@
-const { FabricUpgradeTypes } = require('../../../helpers/commonEnums.js');
+const { FabricUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 
 module.exports = {
     getPrice() {
@@ -22,5 +22,6 @@ adds an additional **x15** multiplier to slumber (e.g. x1.1 \\* x15 = x16.5 tota
         }
     },
     type() { return FabricUpgradeTypes.MISC },
-    isUnique() { return true; }
+    isUnique() { return true; },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
 }

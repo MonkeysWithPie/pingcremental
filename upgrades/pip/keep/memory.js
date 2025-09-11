@@ -27,5 +27,6 @@ module.exports = {
         return { beginning: 1 };
     },
     sortOrder() { return 301 },
-    type() { return PipUpgradeTypes.KEEP }
+    type() { return PipUpgradeTypes.KEEP },
+    section() { return 0; }
 }

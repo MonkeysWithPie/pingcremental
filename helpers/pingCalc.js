@@ -17,9 +17,9 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     measureTimeSegment("profile fetch")
 
     let playerProfile;
-    if (overrides.prefetchedProfile) {
+    if (overrides.cache?.profile) {
         // console.log("using prefetched profile");
-        playerProfile = overrides.prefetchedProfile;
+        playerProfile = overrides.cache.profile;
     } else {
         [playerProfile, _created] = await database.Player.findOrCreate({ where: { userId: overrides.userId || interaction.user.id } })
     }
@@ -32,13 +32,17 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         [PingCalculationStates.SCORING]: {}, 
         [PingCalculationStates.POST_SCORING]: {}
     }
-    for (const upgradeTypeList of [playerProfile.upgrades, playerProfile.prestigeUpgrades, playerProfile.equippedFabrics]) {
-        if (!upgradeTypeList) continue;
+    if (overrides.cache?.upgrades) {
+        allUpgrades = overrides.cache.upgrades;
+    } else {
+        for (const upgradeTypeList of [playerProfile.upgrades, playerProfile.prestigeUpgrades, playerProfile.equippedFabrics]) {
+            if (!upgradeTypeList) continue;
 
-        // filter upgrades for each state
-        for (const [upg, lv] of Object.entries(upgradeTypeList)) {
-            for (const state of Object.values(PingCalculationStates)) {
-                if (rawUpgrades[upg].section() & state !== 0) allUpgrades[state][upg] = lv;
+            // filter upgrades for each state
+            for (const [upg, lv] of Object.entries(upgradeTypeList)) {
+                for (const state of Object.values(PingCalculationStates)) {
+                    if ((rawUpgrades[upg].section() & state) !== 0) allUpgrades[state][upg] = lv;
+                }
             }
         }
     }
@@ -260,9 +264,9 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     let totalMult = 1;
     // add mults at the end so they're actually effective
     for (const mult of currentEffects.mults) {
-        score *= mult;
         totalMult *= mult;
     }
+    score *= totalMult;
 
     if (totalMult > 1 && pingFormat !== "expanded") {
         displays.mult.push(`__\`x${formatNumber(Math.floor(totalMult))}${(totalMult % 1).toFixed(2).slice(1)}\`__`);
@@ -270,9 +274,9 @@ async function ping(interaction, isSuper = false, overrides = {}) {
 
     let totalExp = 1;
     for (const exponent of currentEffects.exponents) {
-        score = Math.pow(score, exponent);
         totalExp *= exponent;
     }
+    score = Math.pow(score, totalExp);
 
     if (totalExp > 1 && pingFormat !== "expanded") {
         displays.exponents.push(`**__\`^${totalExp.toFixed(3)}\`__**`);
@@ -316,6 +320,14 @@ async function ping(interaction, isSuper = false, overrides = {}) {
 
     measureTimeSegment("post-scoring", true);
 
+    let cache;
+    if (!overrides.cache) {
+        cache = {
+            profile: playerProfile,
+            upgrades: allUpgrades,
+        }
+    } else cache = overrides.cache;
+
     if (currentEffects.specials.rerolls && !overrides.skipRerolls) {
         if (Math.random() < currentEffects.specials.rerolls % 1) {
             currentEffects.specials.rerolls++;
@@ -323,7 +335,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         currentEffects.specials.rerolls = Math.floor(currentEffects.specials.rerolls);
 
         for (let i = 0; i < currentEffects.specials.rerolls; i++) {
-            const reroll = await ping(interaction, isSuper, { skipRerolls: true, prefetchedProfile: playerProfile, ...overrides });
+            const reroll = await ping(interaction, isSuper, { skipRerolls: true, cache, ...overrides });
             if (reroll.score > score) {
                 score = reroll.score;
                 displays = reroll.displays;
@@ -347,6 +359,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         displays,
         currentEffects,
         context,
+        cache,
     }
 }
 

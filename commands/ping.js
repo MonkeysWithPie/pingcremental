@@ -292,7 +292,7 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
 
     // autoclicker check
     const last = playerProfile.lastPing || 0;
-    if (last > 0 && Date.now() - last < RECENT_PING_THRESHOLD) { 
+    if ((last > 0 && Date.now() - last < RECENT_PING_THRESHOLD) && !(playerProfile.settings.usesAutoclicker === 'yes')) { 
         recentPingCache[interaction.user.id] = (recentPingCache[interaction.user.id] || 0) + 1;
         const recentPings = recentPingCache[interaction.user.id];
 
@@ -306,8 +306,8 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
 `just making sure you're still paying attention! 
 you have until **<t:${Math.floor((shutoutList[interaction.user.id] / 1000))}:R>** to respond to this message by clicking the button below.
 
--# autoclicking is not allowed. this is a game about clicking, after all! 
--# don't worry if you've come across this normally, there's no punishment unless you don't respond!`)
+-# if you want to use an autoclicker, please opt in using ${getEmbeddedCommand('settings')}.
+-# don't worry if you've come across this normally, there's no penalty unless you don't respond!`)
 
             const row = new ActionRowBuilder()
             const leftPad = Math.floor((Math.random() * 4) + 1); // random left padding

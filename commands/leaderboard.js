@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, InteractionContextType, ButtonBuilder
 const database = require('./../helpers/database.js')
 const formatNumber = require('./../helpers/formatNumber.js');
 const { getEmoji } = require('../helpers/emojis.js');
+const { Sequelize } = require('sequelize');
 
 let leaderboardTypes = null;
 
@@ -18,6 +19,10 @@ module.exports = {
         refresh: (async (interaction, leaderboard) => {
             await interaction.deferUpdate();
             await interaction.editReply(await getMessage(interaction, leaderboard));
+        }),
+        ac: (async (interaction, leaderboard) => {
+            await interaction.deferUpdate();
+            await interaction.editReply(await getMessage(interaction, leaderboard, !isAutoclickerShown(interaction.message.components)));
         })
     },
     dropdowns: {
@@ -29,14 +34,28 @@ module.exports = {
     }
 }
 
-async function getMessage(interaction, leaderboardType) {
+function isAutoclickerShown(components) {
+    return components[0].components[1].label.endsWith('shown');
+}
+
+async function getMessage(interaction, leaderboardType, autoclickOverride = null) {
     if (!leaderboardTypes) initTypes();
     if (!leaderboardType) leaderboardType = "totalScore";
+
+    let showAutoclicker;
+    if (autoclickOverride !== null) showAutoclicker = autoclickOverride;
+    else if (!interaction.message) {
+        const [playerProfile, _created] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
+        showAutoclicker = playerProfile.settings.usesAutoclicker === 'yes';
+    } else {
+        showAutoclicker = isAutoclickerShown(interaction.message.components);
+    }
 
     let description = "";
     const topPlayers = await database.Player.findAll({
         order: [[leaderboardType, 'DESC']], // highest first
         attributes: ['userId', leaderboardType], // only get userId and totalScore
+        where: showAutoclicker ? {} : Sequelize.literal(`JSON_EXTRACT(settings, '$.usesAutoclicker') IS NOT 'yes'`)
     })
 
     let leaderboardEmojis = []
@@ -62,21 +81,24 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
         // find position of the user
         const userIndex = topPlayers.findIndex(player => player.userId == interaction.user.id);
 
-        // show next user and user below
-        if (userIndex >= 12) {
-            description += `\n...`
-        }
+        // user may not be displayed because of autoclicker filter
+        if (userIndex !== -1) {
+            // show next user and user below
+            if (userIndex >= 12) {
+                description += `\n...`
+            }
 
-        if (userIndex >= 11) {
-            const userBelow = topPlayers[userIndex - 1];
-            description += `\n#${userIndex} ${await formatPlayer(userBelow.userId, userBelow[leaderboardType], leaderboardType, interaction)}`
-        }
+            if (userIndex >= 11) {
+                const userBelow = topPlayers[userIndex - 1];
+                description += `\n#${userIndex} ${await formatPlayer(userBelow.userId, userBelow[leaderboardType], leaderboardType, interaction)}`
+            }
 
-        description += `\n#${userIndex + 1} ${await formatPlayer(interaction.user.id, topPlayers[userIndex][leaderboardType], leaderboardType, interaction)}`
+            description += `\n#${userIndex + 1} ${await formatPlayer(interaction.user.id, topPlayers[userIndex][leaderboardType], leaderboardType, interaction)}`
 
-        if (userIndex !== topPlayers.length - 1) {
-            const userAbove = topPlayers[userIndex + 1];
-            description += `\n#${userIndex + 2} ${await formatPlayer(userAbove.userId, userAbove[leaderboardType], leaderboardType, interaction)}`
+            if (userIndex !== topPlayers.length - 1) {
+                const userAbove = topPlayers[userIndex + 1];
+                description += `\n#${userIndex + 2} ${await formatPlayer(userAbove.userId, userAbove[leaderboardType], leaderboardType, interaction)}`
+            }
         }
     }
 
@@ -84,12 +106,17 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
         .setTitle(`leaderboard / ${leaderboardTypes[leaderboardType].emoji} ${leaderboardTypes[leaderboardType].name}`)
         .setColor('#9c8e51')
         .setDescription(description)
-    const button = new ButtonBuilder()
+    const refreshButton = new ButtonBuilder()
         .setCustomId(`leaderboard:refresh-${leaderboardType}`)
         .setLabel('refresh')
         .setStyle(ButtonStyle.Secondary)
+    const autoclickButton = new ButtonBuilder()
+        .setCustomId(`leaderboard:ac-${leaderboardType}`)
+        .setLabel(`${showAutoclicker ? 'shown' : 'hidden'}`)
+        .setStyle(ButtonStyle.Secondary)
+        .setEmoji(getEmoji('autoclicker'))
     const row = new ActionRowBuilder()
-        .addComponents(button)
+        .addComponents(refreshButton, autoclickButton)
 
     const select = new StringSelectMenuBuilder()
         .setCustomId(`leaderboard:select`)

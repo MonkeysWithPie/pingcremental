@@ -18,6 +18,10 @@ module.exports = (sequelize) => {
 				display += ' ' + badges.map(badge => getEmoji(badge.emoji)).join('');
 			}
 
+			if (this.settings.usesAutoclicker === 'yes') {
+				display += ' ' + getEmoji('autoclicker');
+			}
+
 			return display;
 		}
 	}

@@ -101,21 +101,16 @@ async function pingResponse(interaction, isSuper = false) {
             delete recentPingCache[interaction.user.id];
         } else {
             return await interaction.update({
-                components: [new ActionRowBuilder().addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('ping:again')
-                        .setLabel('again...?')
-                        .setStyle(ButtonStyle.Secondary)
-                )],
+                components: [],
                 embeds: [new EmbedBuilder()
-                    .setColor("#ff0000")
+                    .setColor("#c92222")
                     .setTitle('autoclicking detected...')
                     .setDescription(`
-sorry, but looks like you were autoclicking, which is **strictly disallowed**. 
-if this was a mistake, it's best to wait it out, but if you really want to, contact the developer (@monkeyswithpie).
-otherwise, use this cooldown to think about what you've done. autoclicking really defeats the point of the game, and i really thought better of you... 
+sorry, but it seems like you were autoclicking, which is **against the rules** when you're not opted in. 
+if this was a mistake, it's best to wait it out. maybe you could go out for a walk? (it really is nice! i did it once, like, five months ago.)
+if you were using an autoclicker, you can avoid timeouts like these in the future with ${getEmbeddedCommand('settings')}.
 
-you can ping again **<t:${Math.floor(allowTime/1000)}:R>**.`
+you can ping again **<t:${Math.floor(allowTime/1000)}:R>**. *(you'll need to run /ping again.)*`
                     )
                 ],
                 content: ""
@@ -300,7 +295,7 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
             shutoutList[interaction.user.id] = Date.now() + VERIFICATION_TIMEOUT;
 
             const userAliveEmbed = new EmbedBuilder()
-                .setColor("#ff0000")
+                .setColor("#b97f11")
                 .setTitle('you still there?')
                 .setDescription(
 `just making sure you're still paying attention! 

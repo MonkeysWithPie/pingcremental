@@ -19,7 +19,7 @@ module.exports = {
         return {
             description: "gain __x1.02__ `pts`",
             name: "fine, just have a multiplier",
-            emoji: getEmoji('upgrade_multiplier', "**X**"),
+            emoji: getEmoji('upgrade_multiplier', "X"),
         }
     },
     getEffectString(level) {

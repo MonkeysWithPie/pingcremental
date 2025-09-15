@@ -22,5 +22,6 @@ module.exports = {
         return context.bp >= 10000;
     },
     sortOrder() { return 1003 },
-    type() { return UpgradeTypes.PRESTIGE }
+    type() { return UpgradeTypes.PRESTIGE },
+    section() { return 0; }
 }

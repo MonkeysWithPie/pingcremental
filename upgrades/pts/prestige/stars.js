@@ -1,5 +1,6 @@
 const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const formatNumber = require('../../../helpers/formatNumber.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -13,7 +14,7 @@ module.exports = {
         }
     },
     getEffectString(level) {
-        return `${level*4} bp`
+        return `${formatNumber(level*4, true, 3)} bp`
     },
     getEffect(level, context) {
         if (context.state !== PingCalculationStates.POST_SCORING) return {};
@@ -26,5 +27,6 @@ module.exports = {
         return context.upgrades.pingularity;
     },
     sortOrder() { return 1001 },
-    type() { return UpgradeTypes.PRESTIGE }
+    type() { return UpgradeTypes.PRESTIGE },
+    section() { return PingCalculationStates.POST_SCORING; }
 }

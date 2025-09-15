@@ -3,8 +3,8 @@ const { getEmoji } = require('../../../helpers/emojis.js');
 
 function getMultiplier(level) {
     let mult = 1 + (level * 0.11);
-    if (level / 10 >= 1) {
-        mult += 0.01 * Math.floor(level / 10); // always make last 2 digits the same
+    if (level >= 10) {
+        mult += 0.01 * Math.floor(level / 9); // always make last 2 digits the same
     }
 
     return mult

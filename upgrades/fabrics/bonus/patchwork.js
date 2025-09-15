@@ -7,14 +7,14 @@ module.exports = {
     getDetails() {
         return {
             description: 
-`Gain **x1.4** (compounding) for every type of fabric you own.`,
+`Gain **x1.35** (compounding) for every type of fabric you own.`,
             name: "Patchwork Fabric",
             emoji: "🧵",
         }
     },
     getEffect(_level, context) {
         return {
-            multiply: 1.4 ** context.totalFabrics,
+            multiply: 1.35 ** context.totalFabrics,
         }
     },
     type() { return FabricUpgradeTypes.FLAT_BONUS },

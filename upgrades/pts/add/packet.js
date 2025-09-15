@@ -9,7 +9,7 @@ module.exports = {
         return {
             description: "gain 0 to __1__ extra `pts` per ping",
             name: "packet loss",
-            emoji: getEmoji('upgrade_packet', ""),
+            emoji: getEmoji('upgrade_packet', "💻"),
         }
     },
     getEffectString(level) {

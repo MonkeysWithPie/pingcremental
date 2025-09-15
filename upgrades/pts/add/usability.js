@@ -14,7 +14,7 @@ module.exports = {
         return {
             description: "gain __+2__ `pts` when ping is less/equal to 50",
             name: "prioritize usability",
-            emoji: getEmoji('upgrade_usability', "🖥️"),
+            emoji: getEmoji('upgrade_usability', "📉"),
         }
     },
     getEffectString(level) {

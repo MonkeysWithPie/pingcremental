@@ -1,5 +1,6 @@
 const { UpgradeTypes } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const formatNumber = require('../../../helpers/formatNumber.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -13,7 +14,7 @@ module.exports = {
         }
     },
     getEffectString(level) {
-        return `${(level+1)*10000} storage`;
+        return `${formatNumber((level+1)*10000, true, 3)} storage`;
     },
     getEffect(level, context) {
         return {} // nothing; effect is elsewhere
@@ -22,5 +23,6 @@ module.exports = {
         return context.upgrades.pingularity && context.upgrades.stars && context.upgrades.stars >= 1;
     },
     sortOrder() { return 1002 },
-    type() { return UpgradeTypes.PRESTIGE }
+    type() { return UpgradeTypes.PRESTIGE },
+    section() { return 0; }
 }

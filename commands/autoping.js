@@ -33,6 +33,13 @@ module.exports = {
                     flags: MessageFlags.Ephemeral,
                 });
             }
+            
+            if (interaction.client.ws.ping === -1) {
+                return interaction.reply({
+                    content: "the bot just restarted! wait just a moment before you autoping...",
+                    flags: MessageFlags.Ephemeral,
+                });
+            }
 
             const modal = new ModalBuilder()
                 .setCustomId("autoping:run")
@@ -76,12 +83,6 @@ module.exports = {
             if (pings < 1 || pings > player.apt) {
                 return interaction.reply({
                     content: `please input a number between 1 and ${player.apt}.`,
-                    flags: MessageFlags.Ephemeral,
-                });
-            }
-            if (interaction.client.ws.ping === -1) {
-                return interaction.reply({
-                    content: "the bot just restarted! wait just a moment before you autoping...",
                     flags: MessageFlags.Ephemeral,
                 });
             }

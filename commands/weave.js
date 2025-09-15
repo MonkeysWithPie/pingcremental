@@ -613,8 +613,7 @@ function getShopStock(seed) {
     const fabrics = Object.keys(upgrades['fabrics']);
 
     if (seed === "TUTORIAL") {
-        stock = [fabrics["goldlace"], fabrics['elusive'], fabrics['azure']]
-        return stock;
+        return ["goldlace", "elusive", "azure"]
     }
     
     while (stock.length < 3) {

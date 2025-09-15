@@ -4,6 +4,7 @@ const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, Butto
 const database = require("../helpers/database");
 const { FabricUpgradeTypes } = require("../helpers/commonEnums.js");
 const RandSeed = require("rand-seed").default;
+const awardBadge = require("../helpers/awardBadge");
 
 const WEAVE_SECTION = {
     Tear: 'tear',
@@ -34,10 +35,13 @@ module.exports = {
                 });
             }
 
+            const gainedThread = getGainedThread(player);
+            const gainedThreadDetailed = getGainedThread(player, false);
+
             player.tears++;
             player.totalTears++;
-            player.thread += getGainedThread(player);
-            player.totalThread += getGainedThread(player);
+            player.thread += gainedThread;
+            player.totalThread += gainedThread;
             player.cloakModificationsAllowed = 1;
             player.shopSeed = getNewSeed();
             player.shopEmptySlots = [];
@@ -55,6 +59,12 @@ module.exports = {
             player.eternities = 0;
 
             await player.save();
+
+            await awardBadge(interaction.user.id, 'interwoven', interaction.client);
+
+            if (gainedThread - gainedThreadDetailed.tears <= 110) {
+                await awardBadge(interaction.user.id, 'threadbare', interaction.client);
+            }
 
             await interaction.update(await getEmbed(interaction, WEAVE_SECTION.Tear));
             return await interaction.followUp({

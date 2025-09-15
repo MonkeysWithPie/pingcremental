@@ -209,6 +209,18 @@ you can ping again **<t:${Math.floor(allowTime/1000)}:R>**. *(you'll need to run
     if (playerProfile.totalClicks >= 10000) {
         await awardBadge(interaction.user.id, 'heavy hands', interaction.client);
     }
+    if (playerProfile.clicks === 1 && score > 100000) {
+        await awardBadge(interaction.user.id, 'jumpstart', interaction.client);
+    }
+    if (currentEffects.specials.glimmer <= -5) {
+        await awardBadge(interaction.user.id, 'hall of mirrors', interaction.client);
+    }
+    if (currentEffects.specials.artisanCombo >= 250) {
+        await awardBadge(interaction.user.id, 'craftmaster', interaction.client);
+    }
+    if (currentEffects.specials.orchestraCombo >= 100) {
+        await awardBadge(interaction.user.id, 'maestro', interaction.client);
+    }
 
     await playerProfile.save();
 

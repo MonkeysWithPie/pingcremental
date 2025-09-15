@@ -28,9 +28,11 @@ module.exports = {
             const firstEternity = playerData.pip === 0;
 
             // add removed upgrade levels, for "vague" upgrade
+            let removed = 0;
             for (const [_upgrade, level] of Object.entries(playerData.upgrades)) {
-                playerData.removedUpgrades += level;
+                removed += level;
             }
+            playerData.removedUpgrades += removed;
 
             const mult = upgrades['pip']['telepathy'].getEffect(playerData.prestigeUpgrades.telepathy).special.pip;
 
@@ -56,7 +58,7 @@ module.exports = {
                 }
             }
             
-            playerData.changed('upgrades', true) // this is a hacky way to set the upgrades field, but it works
+            playerData.changed('upgrades', true) 
 
             await playerData.save();
             await interaction.update({ content: `*it is done.*\n-# you now have __\`${formatNumber(playerData.pip)} PIP\`__`, components: [] });
@@ -66,6 +68,7 @@ module.exports = {
 *i suppose you're wondering why you want to be here.*
 *how about... ${getEmbeddedCommand(`ponder`)}? try it out.*
 *good luck, pinger.*`, flags: MessageFlags.Ephemeral });
+                await awardBadge(interaction.user.id, 'foreverbound', interaction.client);
             }
 
             if (playerData.tears < 1 && getTearRequirement(playerData.tears) === playerData.eternities) {
@@ -77,6 +80,11 @@ module.exports = {
 *${getEmbeddedCommand("weave")}*`,
                     flags: MessageFlags.Ephemeral
                 });
+            }
+
+            if (removed === 0) {
+                await awardBadge(interaction.user.id, 'purity', interaction.client);
+                await interaction.followUp({ content: "*you've brought yourself back to eternity... without your earthly possessions. impressive.*", flags: MessageFlags.Ephemeral });
             }
         }),
         multibuy: (async (interaction, buySetting) => {
@@ -178,6 +186,10 @@ module.exports = {
             playerData.changed('upgrades', true) // this is a hacky way to set the upgrades field, but it works
             await playerData.save();
             let followupType = playerData.settings.upgradeFollowup;
+
+            if (levels >= 50 && upgradeId !== 'stars') {
+                await awardBadge(interaction.user.id, 'seal the deal', interaction.client);
+            }
 
             const msg = ['sweet!', 'nice!', 'sick!', 'cool!', 'neat!', 'nifty!', 'yippee!', 'awesome!'];
             let pickedMsg = msg[Math.floor(Math.random() * msg.length)];

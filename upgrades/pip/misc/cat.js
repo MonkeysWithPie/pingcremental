@@ -22,7 +22,7 @@ module.exports = {
 
         if (roll < 0.65) { // 65%
             return {
-                add: 5 + Math.floor(Math.random()*20), // add 5-25
+                add: 5 + Math.floor(Math.random()*21), // add 5-25
                 message: "mrrow!"
             }
         } else if (roll < 0.9) { // 25%
@@ -32,10 +32,8 @@ module.exports = {
             }
         } else { // 10%
             return {
-                // force a blue ping to spawn
-                blue: 100,
-                blueCap: 100,
-                message: "\`Blue!\` purrrr!",
+                apt: 3 + Math.floor(Math.random()*7), // add 3-9 apt
+                message: "purrrr!",
             }
         }
     },
@@ -44,5 +42,5 @@ module.exports = {
     },
     sortOrder() { return 203 },
     type() { return PipUpgradeTypes.MISC },
-    section() { return PingCalculationStates.RNG_AND_SPECIAL | PingCalculationStates.SCORING; }
+    section() { return PingCalculationStates.RNG_AND_SPECIAL | PingCalculationStates.SCORING | PingCalculationStates.POST_SCORING; }
 }

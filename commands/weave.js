@@ -327,13 +327,13 @@ unfortunately, it wants everything you have in return.
 
             let isBuyable = true;
 
-            desc += `\n\n**${fabricUpgrade.getDetails().name}**`;
+            desc += `\n\n**${fabricUpgrade.getDetails().emoji} ${fabricUpgrade.getDetails().name}**`;
 
             if (fabricUpgrade.isUnique() && ownedFabrics[fabricName] > 0) {
-                desc += `\n*unique* ~ you already own this one-of-a-kind fabric`;
+                desc += ` (unique, already owned)`;
                 isBuyable = false;
             } else if (fabricUpgrade.isUnique()) {
-                desc += `\n*unique* ~ you can only own one of this fabric`;
+                desc += ` (unique)`;
             }
             
             if (emptySlots.includes(stock.indexOf(fabricName)) && isBuyable) {
@@ -391,7 +391,7 @@ unfortunately, it wants everything you have in return.
             if (!fabricUpgrade) continue;
 
             total += count;
-            let nameDisplay = fabricUpgrade.getDetails().name;
+            let nameDisplay = `${fabricUpgrade.getDetails().emoji} ${fabricUpgrade.getDetails().name}`;
             if (fabricUpgrade.isUnique()) {
                 nameDisplay += ` (unique)`;
             }
@@ -417,7 +417,7 @@ ${fabricUpgrade.getDetails().description}`;
             const fabricUpgrade = rawUpgrades[fabricName];
             if (!fabricUpgrade) continue;
 
-            desc += `\n\n**${fabricUpgrade.getDetails().name}**\n${fabricUpgrade.getDetails().description}`.repeat(player.equippedFabrics[fabricName] || 1);
+            desc += `\n\n**${fabricUpgrade.getDetails().emoji} ${fabricUpgrade.getDetails().name}**\n${fabricUpgrade.getDetails().description}`.repeat(player.equippedFabrics[fabricName] || 1);
         }
 
         if (player.cloakModificationsAllowed <= 0) {
@@ -517,7 +517,7 @@ async function getSewEmbed(interaction, equippedFabrics) {
             maxEquipped += increasesMax;
         }
 
-        desc += `\n\n**${fabricUpgrade.getDetails().name}**\n${fabricUpgrade.getDetails().description}`.repeat(count);
+        desc += `\n\n**${fabricUpgrade.getDetails().emoji} ${fabricUpgrade.getDetails().name}**\n${fabricUpgrade.getDetails().description}`.repeat(count);
         totalEquipped += count;
         removeMenu.addOptions([
             new StringSelectMenuOptionBuilder()

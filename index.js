@@ -11,6 +11,11 @@ if (!token) throw new Error('variable in .env missing: DISCORD_TOKEN')
 const ownerId = process.env.OWNER_ID;
 if (!ownerId) console.warn('variable in .env missing: OWNER_ID, some functionality may not work correctly or be disabled');
 
+const testing = process.env.BETA_TEST === 'true';
+if (testing) {
+	console.warn(`beta testing mode is enabled!! this means users will have 100 APT minimum to allow for testing faster!`)
+}
+
 const client = new Client({ intents: [] });
 client.commands = new Collection();
 

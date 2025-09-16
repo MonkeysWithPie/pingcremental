@@ -33,7 +33,27 @@ module.exports = {
             subcommand
                 .setName('recache')
                 .setDescription('refetch some important caches')
-        ),
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('data')
+                .setDescription('view or edit a user\'s data')
+                .addUserOption(option =>
+                    option.setName('user')
+                        .setDescription('the user to view or edit the data of')
+                        .setRequired(true)
+                )
+                .addStringOption(option =>
+                    option.setName('key')
+                        .setDescription('the key of the data to view or edit')
+                        .setRequired(true)
+                )
+                .addStringOption(option =>
+                    option.setName('value')
+                        .setDescription('the value to set the key to (leave empty to view the data)')
+                        .setRequired(false)
+                )
+            ),
     async execute(interaction) {
         if (interaction.user.id !== ownerId) {
             return await interaction.reply({ content: 'you can\'t do that, you\'re not my owner', flags: MessageFlags.Ephemeral });
@@ -77,6 +97,25 @@ module.exports = {
             await initEmojis(interaction.client);
             await cacheCommandIds();
             await interaction.editReply({ content: 'done!', flags: MessageFlags.Ephemeral });
+        } else if (interaction.options.getSubcommand() === 'data') {
+            const user = interaction.options.getUser('user');
+            const key = interaction.options.getString('key');
+            const value = interaction.options.getString('value');
+
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+            let userData = await database.Player.findByPk(user.id);
+            if (!userData) {
+                return await interaction.editReply({ content: `no data found for ${user.username}`, flags: MessageFlags.Ephemeral });
+            }
+
+            if (value) {
+                userData[key] = value;
+                await userData.save();
+                await interaction.editReply({ content: `set ${key} to ${value} for ${user.username}`, flags: MessageFlags.Ephemeral });
+            } else {
+                const dataValue = userData[key];
+                await interaction.editReply({ content: `\`\`\`${dataValue}\n\`\`\``, flags: MessageFlags.Ephemeral });
+            }
         }
     }
 }

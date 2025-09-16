@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRow
 const database = require("../helpers/database");
 const formatNumber = require("../helpers/formatNumber");
 const ping = require("../helpers/pingCalc");
+const betaMode = process.env.BETA_TEST === 'true';
 
 let usersAutopinging = [];
 
@@ -178,6 +179,7 @@ module.exports = {
             player.lastPing = Date.now();
 
             await player.save();
+            await refreshAPT(player);
 
             
             let finalDescription =
@@ -246,6 +248,8 @@ missed **${pingDataTotal.bluesMissed}** blue ping${pingDataTotal.bluesMissed ===
 async function getAutopingEmbed(interaction) {
     const [player, _created] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
 
+    await refreshAPT(player);
+
     const embed = new EmbedBuilder()
         .setTitle("autoping!")
         .setDescription(`
@@ -270,4 +274,10 @@ you currently have **${formatNumber(player.apt)} APT**.`)
         embeds: [embed],
         components: [new ActionRowBuilder().addComponents(button, refreshButton)],
     };
+}
+
+async function refreshAPT(player) {
+    if (!betaMode) return;
+    player.apt = Math.max(player.apt, 100);
+    await player.save();
 }

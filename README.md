@@ -25,7 +25,7 @@ there are three fields that should be mostly self-explainatory. these fields wil
 
 3. `OWNER_ID` - the discord snowflake of the owner user of the bot. technically optional, but some functionality will be disabled or work incorrectly.
 
-4. `TEST_ENV` - when set to "true", will enable special commands that **anyone can use to modify their profile freely**.
+4. `BETA_TEST` - when set to "true", gives all players 100 APT always so they can test faster.
 
 ### running
 
@@ -33,7 +33,7 @@ there are two ways to do this.
 
 #### 1. automatic
 
-just run `run.bat`! it's that simple. it'll set everything up for you (commands, database, and the bot itself).
+just run `run.bat` or `run.sh`! it's that simple. it'll set everything up for you (commands, database, and the bot itself).
 
 the bot will restart on its own upon encountering an error, or when using `/development restart`.
 

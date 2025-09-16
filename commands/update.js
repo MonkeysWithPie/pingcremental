@@ -26,12 +26,15 @@ module.exports = {
         )
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
     async execute(interaction) {
-        if (process.env.TEST_ENV && process.env.TEST_ENV === 'true') {
-            return await interaction.reply({ content: "versioning isn't available in beta or testing!", flags: MessageFlags.Ephemeral });
+        if (process.env.BETA_TEST === 'true') {
+            return await interaction.reply({ content: "versioning isn't available in beta!", flags: MessageFlags.Ephemeral });
         }
 
         if (interaction.options.getSubcommand() === 'view') {
             const version = interaction.options.getString('version') || 'latest';
+            if (version === 'none') {
+                return await interaction.reply({ content: 'no, that\'s not a version, what are you doing?', flags: MessageFlags.Ephemeral });
+            }
             await interaction.reply(await getVersionMessage(version));
             return;
         } 
@@ -83,6 +86,10 @@ module.exports = {
             let choices = versions.map(v => v.verNum).filter(v => v.includes(focusedValue));
             if (choices.length > 25) {
                 choices = choices.slice(0, 25);
+            }
+
+            if (!versions || versions.length === 0) {
+                await interaction.respond([{ name: 'nothing matches your search', value: 'none' }]);
             }
 
             await interaction.respond(choices.map(choice => ({ name: choice, value: choice })));

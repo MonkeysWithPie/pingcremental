@@ -169,6 +169,7 @@ module.exports = {
             player.totalScore += pingDataTotal.score;
             player.clicks += pings;
             player.totalClicks += pings;
+            player.totalAptClicks += pings;
             player.bp = Math.min(player.bp + pingDataTotal.bp, finalEffects.bpMax);
             player.luckyPings += pingDataTotal.rares;
             player.bluePings += pingDataTotal.blues;

@@ -71,6 +71,11 @@ module.exports = (sequelize) => {
 			defaultValue: 0,
 			allowNull: false,
 		},
+		totalAptClicks: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
 
 		badges: {
 			type: DataTypes.STRING,

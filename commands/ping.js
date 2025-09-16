@@ -201,19 +201,19 @@ you can ping again **<t:${Math.floor(allowTime/1000)}:R>**. *(you'll need to run
 
     // badges
     if (currentEffects.blueCombo >= 10) { 
-        await awardBadge(interaction.user.id, 'blue stupor', interaction.client); 
+        await awardBadge(interaction.user.id, 'stupor', interaction.client); 
     }
     if (currentEffects.rare) {
         await awardBadge(interaction.user.id, 'lucky', interaction.client);
     }
     if (playerProfile.totalClicks >= 10000) {
-        await awardBadge(interaction.user.id, 'heavy hands', interaction.client);
+        await awardBadge(interaction.user.id, 'hands', interaction.client);
     }
     if (playerProfile.clicks === 1 && score > 100000) {
         await awardBadge(interaction.user.id, 'jumpstart', interaction.client);
     }
     if (currentEffects.specials.glimmer <= -5) {
-        await awardBadge(interaction.user.id, 'hall of mirrors', interaction.client);
+        await awardBadge(interaction.user.id, 'mirrors', interaction.client);
     }
     if (currentEffects.specials.artisanCombo >= 250) {
         await awardBadge(interaction.user.id, 'craftmaster', interaction.client);

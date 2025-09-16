@@ -1,8 +1,8 @@
 const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder, StringSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const database = require('./../helpers/database.js');
 const { getEmoji } = require('./../helpers/emojis.js')
-const { Op } = require('sequelize');
 const { getEmbeddedCommand } = require('../helpers/embedCommand.js');
+const { BADGE_TIERS, getBadgeByName, getBadgesByName, getAllBadges } = require('../helpers/badgeUtils.js');
 const BADGES_PER_PAGE = 10;
 const ownerId = process.env.OWNER_ID;
 
@@ -57,13 +57,11 @@ module.exports = {
             const user = interaction.options.getUser('user') || interaction.user;
             const player = await database.Player.findByPk(`${user.id}`);
 
-            if (player.badges.length === 0) {
+            if (!player || player.badges.length === 0) {
                 return await interaction.reply({ content: `${getEmoji('badge_none_1')} ${user.username} has no badges.`, flags: MessageFlags.Ephemeral });
             }
             
-            const badges = await database.Badge.findAll({
-                where: { dbId: player.badges },
-            });
+            const badges = getBadgesByName(...player.badges);
             let description = `badges of ${await player.getUserDisplay(interaction.client, database)}\n\n`;
 
             for (const badge of badges) {
@@ -77,7 +75,7 @@ module.exports = {
             return await interaction.reply({ embeds: [embed] });
         } 
         else if (interaction.options.getSubcommand() === 'list') {
-            return await interaction.reply(await getListPage(interaction, 1));
+            return await interaction.reply(await getListPage(interaction, BADGE_TIERS.SILVER));
         }
         else if (interaction.options.getSubcommand() === 'showcase') {
             return await interaction.reply(await getShowcaseDisplay(interaction));
@@ -89,21 +87,21 @@ module.exports = {
 
             await interaction.deferReply({ ephemeral: true });
             const user = interaction.options.getUser('user');
-            const badgeName =interaction.options.getString('badge');
+            const badgeName = interaction.options.getString('badge');
 
             const player = await database.Player.findByPk(user.id.toString());
-            const badge = await database.Badge.findOne({ where: { name: badgeName } });
+            const badge = getBadgeByName(badgeName);
             let dmMessage = '';
             let playerDisplayedBadges = player.displayedBadges;
             let playerBadges = player.badges; // because sequelize doesn't like it when you try to modify the array directly
 
-            if (playerBadges.includes(badge.dbId.toString())) {
-                playerBadges = playerBadges.filter(bId => bId !== badge.dbId.toString());
-                playerDisplayedBadges = playerDisplayedBadges.filter(bId => bId !== badge.dbId.toString());
+            if (playerBadges.includes(badge.name)) {
+                playerBadges = playerBadges.filter(bId => bId !== badge.name);
+                playerDisplayedBadges = playerDisplayedBadges.filter(bId => bId !== badge.name);
 
                 dmMessage = `**bad news...**\n\nthe badge ${badgeDisplay(badge,true)} was manually removed. \nif you think this was a mistake, stay tuned; your badge will likely be returned soon.`;
             } else {
-                playerBadges.push(badge.dbId);
+                playerBadges.push(badge.name);
 
                 dmMessage = `**good news!!**\n\nyou have been manually awarded the badge ${badgeDisplay(badge,true)}! be sure to show it off with ${getEmbeddedCommand('badges showcase')}.`;
             }
@@ -115,59 +113,12 @@ module.exports = {
             const dmablePlayer = await interaction.client.users.resolve(user.id);
             await dmablePlayer.send(dmMessage);
 
-            await interaction.editReply({ content: `successfully ${player.badges.includes(badge.dbId.toString()) ? 'awarded' : 'removed'} the badge ${badgeDisplay(badge,true)} to ${await player.getUserDisplay(interaction.client, database)}` });
-        }
-        else if (interaction.options.getSubcommand() === 'create') {
-            if (interaction.user.id !== ownerId) {
-                return await interaction.reply({ content: 'you can\'t do that, you\'re not my owner', flags: MessageFlags.Ephemeral });
-            }
-
-            const modal = new ModalBuilder()
-                .setCustomId('badges:create')
-                .setTitle('creating a new badge...');
-
-            const nameInput = new TextInputBuilder()
-                .setCustomId('badgeNameInput')
-                .setLabel('name')
-                .setStyle(TextInputStyle.Short)
-                .setRequired(true);
-            const emojiInput = new TextInputBuilder()
-                .setCustomId('badgeEmojiInput')
-                .setLabel('emoji')
-                .setStyle(TextInputStyle.Short)
-                .setRequired(true);
-            const descriptionInput = new TextInputBuilder()
-                .setCustomId('badgeDescriptionInput')
-                .setLabel('description')
-                .setStyle(TextInputStyle.Paragraph)
-                .setPlaceholder('how does someone get this badge?')
-                .setRequired(true);
-            const flavorTextInput = new TextInputBuilder()
-                .setCustomId('badgeFlavorTextInput')
-                .setLabel('flavor text')
-                .setStyle(TextInputStyle.Paragraph)
-                .setPlaceholder('what\'s the backstory of this badge?')
-                .setRequired(true);
-            const tierInput = new TextInputBuilder()
-                .setCustomId('badgeTierInput')
-                .setLabel('tier')
-                .setStyle(TextInputStyle.Short)
-                .setPlaceholder('1 = silver, 2 = blue, 3 = purple')
-                .setRequired(true);
-            
-            modal.addComponents(
-                new ActionRowBuilder().addComponents(nameInput),
-                new ActionRowBuilder().addComponents(emojiInput),
-                new ActionRowBuilder().addComponents(descriptionInput),
-                new ActionRowBuilder().addComponents(flavorTextInput),
-                new ActionRowBuilder().addComponents(tierInput),
-            );
-            await interaction.showModal(modal);
+            await interaction.editReply({ content: `successfully ${player.badges.includes(badge.name) ? 'awarded' : 'removed'} the badge ${badgeDisplay(badge,true)} to ${await player.getUserDisplay(interaction.client, database)}` });
         }
     },
     dropdowns: {
         "badgeSelect": async (interaction) => {
-            const badgeToToggle = parseInt(interaction.values[0]);
+            const badgeToToggle = interaction.values[0];
             const playerData = await database.Player.findByPk(`${interaction.user.id}`);
             let displayedBadges = playerData.displayedBadges;
 
@@ -206,35 +157,12 @@ module.exports = {
             await interaction.update(await getListPage(interaction, parseInt(tier), parseInt(page)));
         }
     },
-    modals: {
-        "create": async (interaction) => {
-            const name = interaction.fields.getTextInputValue('badgeNameInput');
-            const emoji = interaction.fields.getTextInputValue('badgeEmojiInput');
-            const description = interaction.fields.getTextInputValue('badgeDescriptionInput');
-            const flavorText = interaction.fields.getTextInputValue('badgeFlavorTextInput');
-            const tier = parseInt(interaction.fields.getTextInputValue('badgeTierInput'));
-
-            const newBadge = await database.Badge.create({
-                name,
-                emoji,
-                description,
-                flavorText,
-                tier,
-            });
-
-            await interaction.reply({ content: `successfully created the badge ${badgeDisplay(newBadge, true)}!`, flags: MessageFlags.Ephemeral });
-        }
-    },
     async autocomplete(interaction) {
         const focusedValue = interaction.options.getString('badge');
-        const badges = await database.Badge.findAll({
-            where: {
-                name: {
-                    [Op.substring]: focusedValue
-                }
-            },
-            limit: 25,
-        });
+        const badges = getAllBadges().filter(b => b.name.toLowerCase().includes(focusedValue.toLowerCase())).slice(0, 25);
+        if (badges.length === 0) {
+            return await interaction.respond([{ name: 'no match', value: 'none' }]);
+        }
 
         const options = [];
         for (const badge of badges) {
@@ -249,9 +177,8 @@ module.exports = {
 }
 
 async function getListPage(interaction, tier, page = 1) {
-    const badgeCount = await database.Badge.count({
-        where: { tier: tier },
-    });
+    let badges = getAllBadges().filter(b => b.tier === tier);
+    const badgeCount = badges.length;
 
     if (page < 1 || isNaN(page)) page = 1;
 
@@ -260,11 +187,7 @@ async function getListPage(interaction, tier, page = 1) {
     if (badgeCount === 0) {
         description += `huh. there's nothing here...?`;
     } else {
-        const badges = await database.Badge.findAll({
-            where: { tier: tier },
-            limit: 10,
-            offset: (page - 1) * BADGES_PER_PAGE,
-        });
+        badges = badges.slice((page - 1) * BADGES_PER_PAGE, page * BADGES_PER_PAGE);
 
         for (const badge of badges) {
             description += `${badgeDisplay(badge)}\n`;
@@ -275,7 +198,7 @@ async function getListPage(interaction, tier, page = 1) {
         .setColor('#d1b586')
         .setDescription(description.trim());
 
-    const tierButtons = [1,2,3].map(t => {
+    const tierButtons = Object.values(BADGE_TIERS).map(t => {
         return new ButtonBuilder()
             .setCustomId(`badges:list-${t},1`) // formatted tier-page
             .setLabel(`${['silver','blue','purple'][t-1]} tier`)
@@ -325,9 +248,7 @@ async function getShowcaseDisplay(interaction) {
     }
 
     const displayedBadges = player.displayedBadges;
-    const badges = await database.Badge.findAll({
-        where: { dbId: player.badges },
-    });
+    let badges = getBadgesByName(...player.badges);
 
     if (badges.length === 0) {
         return { content: `${getEmoji('badge_empty')} you don't have any badges...`, flags: MessageFlags.Ephemeral };
@@ -342,10 +263,10 @@ async function getShowcaseDisplay(interaction) {
     for (const badge of badges) {
         dropdown.addOptions({
             label: `${badge.name}`,
-            value: `${badge.dbId}`,
+            value: `${badge.name}`,
             // emoji: getEmoji(badge.emoji),
         });
-        description += `${badgeDisplay(badge,true)} ${displayedBadges.includes(badge.dbId.toString()) ? '🟢' : ''}\n`;
+        description += `${badgeDisplay(badge,true)} ${displayedBadges.includes(badge.name) ? '🟢' : ''}\n`;
     }
 
     const row = new ActionRowBuilder().addComponents(dropdown);
@@ -357,15 +278,15 @@ async function getShowcaseDisplay(interaction) {
     return { embeds: [embed], components: [row] };
 }
 
-function badgeDisplay(dbBadge, short = false) {
+function badgeDisplay(badge, short = false) {
     if (short) {
-        return `${getEmoji(dbBadge.emoji)} ${dbBadge.name}`;
+        return `${badge.emoji} ${badge.name}`;
     }
 
     const display = 
-`${getEmoji(dbBadge.emoji)} **${dbBadge.name}**
-*"${dbBadge.flavorText}"*
-${dbBadge.description}`;
+`${badge.emoji} **${badge.name}**
+*"${badge.flavorText}"*
+${badge.description}`;
 
     return display;
 }

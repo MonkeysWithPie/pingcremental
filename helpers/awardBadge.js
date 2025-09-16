@@ -1,7 +1,7 @@
-const { getEmoji } = require('../helpers/emojis.js');
 const { getEmbeddedCommand } = require('../helpers/embedCommand.js');
 const database = require('./database.js');
 const log = require('./log.js');
+const { getBadgeByName } = require('./badgeUtils.js');
 
 async function awardBadge(userId, badge, client) {
     const player = await database.Player.findOne({
@@ -17,18 +17,7 @@ async function awardBadge(userId, badge, client) {
     let badgeObj = null;
     
     // allow for badge name or id to be passed in
-    if (typeof badge === 'string') {
-        badgeObj = await database.Badge.findOne({
-            where: {
-                name: badge,
-            },
-        });
-    } else if (typeof badge === 'number') {
-        badgeObj = await database.Badge.findByPk(badge);
-    } else {
-        await log(`[WARN] tried to award badge ${badge} but it's not a string or number`, client);
-        return false; // no idea what this could be
-    }
+    badgeObj = getBadgeByName(badge);
 
     if (!badgeObj) {
         await log(`[WARN] tried to award badge ${badge} but it doesn't exist`, client);
@@ -37,11 +26,11 @@ async function awardBadge(userId, badge, client) {
 
     let ownedBadges = player.badges || [];
 
-    if (ownedBadges.includes(badgeObj.dbId.toString())) { // already owned
+    if (ownedBadges.includes(badgeObj.name)) { // already owned
         return false;
     }
 
-    ownedBadges.push(badgeObj.dbId.toString());
+    ownedBadges.push(badgeObj.name);
     await player.update({
         badges: ownedBadges,
     });
@@ -50,7 +39,7 @@ async function awardBadge(userId, badge, client) {
     if (dmablePlayer) {
         await dmablePlayer.send(
 `**you've earned a badge!**
-${getEmoji(badgeObj.emoji)} ${badgeObj.name}
+${badgeObj.emoji} ${badgeObj.name}
 *"${badgeObj.flavorText}"*
 ${badgeObj.description}
 

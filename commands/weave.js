@@ -4,7 +4,7 @@ const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, Butto
 const database = require("../helpers/database");
 const { FabricUpgradeTypes } = require("../helpers/commonEnums.js");
 const RandSeed = require("rand-seed").default;
-const awardBadge = require("../helpers/awardBadge");
+const awardBadge = require("../helpers/awardBadge.js");
 
 const WEAVE_SECTION = {
     Tear: 'tear',

@@ -1,5 +1,6 @@
 const { DataTypes, Model } = require('sequelize');
 const { getEmoji } = require('./../helpers/emojis.js');
+const { getBadgesByName } = require('../helpers/badgeUtils.js');
 
 module.exports = (sequelize) => {
 	class User extends Model {
@@ -10,12 +11,9 @@ module.exports = (sequelize) => {
 
 			// badges display
 			if (this.displayedBadges.length > 0) {
-				const badges = await database.Badge.findAll({
-					where: {
-						dbId: this.displayedBadges,
-					}
-				});
-				display += ' ' + badges.map(badge => getEmoji(badge.emoji)).join('');
+				const badges = getBadgesByName(...this.displayedBadges);
+
+				display += ' ' + badges.map(badge => badge.emoji).join('');
 			}
 
 			if (this.settings.usesAutoclicker === 'yes') {

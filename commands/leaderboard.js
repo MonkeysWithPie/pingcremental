@@ -143,6 +143,7 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
     }
 }
 
+// funky leaderboard caching in case getEmoji() returns a placeholder
 function initTypes() {
     leaderboardTypes = {
         totalScore: {
@@ -155,15 +156,35 @@ function initTypes() {
             emoji: '🖱️',
             metric: "clicks"
         },
-        score: {
-            name: 'owned pts',
-            emoji: '💰',
-            metric: "`pts` currently owned"
+        highestScore: {
+            name: 'highest score',
+            emoji: getEmoji('ponder_favored', '🏆'),
+            metric: "`pts` in best ping"
         },
         bluePings: {
             name: 'blue pings',
             emoji: getEmoji('upgrade_blue', '🔵'),
             metric: "blue pings clicked"
+        },
+        totalEternities: {
+            name: 'total eternities',
+            emoji: getEmoji('upgrade_pingularity', '♾️'),
+            metric: "eternities"
+        },
+        totalTears: {
+            name: 'total tears',
+            emoji: '🌆',
+            metric: "tears"
+        },
+        totalPip: {
+            name: 'total pip',
+            emoji: '🟣',
+            metric: "pip total"
+        },
+        totalThread: {
+            name: 'total thread',
+            emoji: '🧵',
+            metric: "thread total"
         },
         bluePingsMissed: {
             name: 'blue pings missed',
@@ -179,11 +200,6 @@ function initTypes() {
             name: 'lucky pings',
             emoji: getEmoji('upgrade_special', '🍀'),
             metric: "rare pings discovered"
-        },
-        highestScore: {
-            name: 'highest score',
-            emoji: getEmoji('ponder_favored', '🏆'),
-            metric: "`pts` in best ping"
         },
     }
 }

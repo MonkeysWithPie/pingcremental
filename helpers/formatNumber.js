@@ -5,9 +5,9 @@ function formatNumber(num, shortHand = false, decimalPlaces = 2) {
     const numStr = num.toString();
 
     const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', // 10^30
-                      'Dc', 'Ud', 'Dd', 'Td', 'Qtd', 'Qd', 'Sxd', 'Spd', 'Od', 'Nd', // 10^60
-                      'Vg', 'Uvg', 'Dvg', 'Trv', 'Qtv', 'Qiv', 'Sxv', 'Spv', 'Ocv', // 10^87
-                      'Ndv', 'Tg', 'Utg', 'Dtg'];  // 10^99
+                      'Dc', 'UDc', 'DDc', 'TDc', 'QaDc', 'QiDc', 'SxDc', 'SpDc', 'OcDc', 'NoDc', // 10^60
+                      'Vg', 'UVg', 'DVg', 'TVg', 'QaVg', 'QiVg', 'SxVg', 'SpVg', 'OcVg', 'NoVg', // 10^90
+                      'Tg', 'UTg', 'DTg'];  // 10^99
 
     //get magnitude
     const magnitude = Math.floor(Math.log10(num));

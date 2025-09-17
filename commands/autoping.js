@@ -11,7 +11,7 @@ module.exports = {
         .setName("autoping")
         .setDescription("ping a ton for you, automatically")
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
-    
+
     async execute(interaction) {
         await interaction.reply(await getAutopingEmbed(interaction));
     },
@@ -19,7 +19,7 @@ module.exports = {
         refresh: async (interaction) => {
             await interaction.update(await getAutopingEmbed(interaction));
         },
-        run: async (interaction) => {
+        run: async (interaction, count) => {
             if (usersAutopinging.includes(interaction.user.id)) {
                 return interaction.reply({
                     content: "you are already autopinging!",
@@ -34,12 +34,16 @@ module.exports = {
                     flags: MessageFlags.Ephemeral,
                 });
             }
-            
+
             if (interaction.client.ws.ping === -1) {
                 return interaction.reply({
                     content: "the bot just restarted! wait just a moment before you autoping...",
                     flags: MessageFlags.Ephemeral,
                 });
+            }
+
+            if (count) {
+                return doAutoping(interaction, count);
             }
 
             const modal = new ModalBuilder()
@@ -59,191 +63,206 @@ module.exports = {
     },
     modals: {
         run: async (interaction) => {
-            if (usersAutopinging.includes(interaction.user.id)) {
-                return interaction.reply({
-                    content: "you are already autopinging!",
-                    flags: MessageFlags.Ephemeral,
-                });
-            }
-            
-            const player = await database.Player.findByPk(interaction.user.id);
+            await doAutoping(interaction, interaction.fields.getTextInputValue("value").toLowerCase());
+        }
+    }
+}
 
-            let pings;
-            if (interaction.fields.getTextInputValue("value").toLowerCase() === "all") {
-                pings = player.apt;
-            } else {
-                pings = parseInt(interaction.fields.getTextInputValue("value"));
-            }
+async function doAutoping(interaction, count) {
 
-            if (isNaN(pings)) {
-                return interaction.reply({
-                    content: "please input a number...",
-                    flags: MessageFlags.Ephemeral,
-                });
-            }
-            if (pings < 1 || pings > player.apt) {
-                return interaction.reply({
-                    content: `please input a number between 1 and ${player.apt}.`,
-                    flags: MessageFlags.Ephemeral,
-                });
-            }
+    if (usersAutopinging.includes(interaction.user.id)) {
+        return interaction.reply({
+            content: "you are already autopinging!",
+            flags: MessageFlags.Ephemeral,
+        });
+    }
 
-            const embed = new EmbedBuilder()
-                .setTitle("autopinging...")
-                .setDescription(`autoping is running!\n**0**/${formatNumber(pings)}...`)
-                .setColor("#c4bf18")
-            
-            await interaction.update({
-                embeds: [embed],
-                components: [],
-            })
+    const player = await database.Player.findByPk(interaction.user.id);
 
-            usersAutopinging.push(interaction.user.id);
+    let pings;
+    if (count === "all") {
+        pings = player.apt;
+    } else {
+        pings = parseInt(count);
+    }
 
-            let updateEmbedEvery = Math.ceil(pings / (5 + (Math.random() * Math.log2(pings))));
-            if (updateEmbedEvery <= 1) updateEmbedEvery = pings;
+    if (isNaN(pings)) {
+        return interaction.reply({
+            content: "please input a number...",
+            flags: MessageFlags.Ephemeral,
+        });
+    }
+    if (pings < 1 || pings > player.apt) {
+        return interaction.reply({
+            content: `please input a number between 1 and ${player.apt}.`,
+            flags: MessageFlags.Ephemeral,
+        });
+    }
 
-            let pingDataTotal = {
-                score: 0,
-                highestScore: 0,
-                worstScore: Infinity,
-                bp: 0,
-                apt: 0,
+    const embed = new EmbedBuilder()
+        .setTitle("autopinging...")
+        .setDescription(`autoping is running!\n**0**/${formatNumber(pings)}...`)
+        .setColor("#c4bf18")
 
-                rares: 0,
-                blues: 0,
-                bluesMissed: 0,
-                highestBlueCombo: 0,
-            }
-            let storedCache = null;
-            let nextPingBlue = false;
-            let nextPingArtisan = null;
-            let currentChain = 0;
-            let finalEffects;
-            let nextUpdate = updateEmbedEvery;
+    await interaction.update({
+        embeds: [embed],
+        components: [],
+    })
 
-            const startTime = process.hrtime.bigint();
+    usersAutopinging.push(interaction.user.id);
 
-            for (let i = 0; i < pings; i++) {
-                if (i === nextUpdate) {
-                    embed.setDescription(`autoping is running!\n**${formatNumber(i)}**/${formatNumber(pings)}...`);
-                    await interaction.editReply({ embeds: [embed] });
-                    nextUpdate += updateEmbedEvery + Math.ceil(Math.random() - 0.5 * pings / 1000);
-                }
+    let updateEmbedEvery = Math.ceil(pings / (4 + (Math.random() * Math.log10(pings))));
+    if (updateEmbedEvery <= 1) updateEmbedEvery = pings;
 
-                const {score, currentEffects, cache} = await ping(interaction, nextPingBlue, { autopinging: true, blueCombo: currentChain, artisanClickedSymbol: nextPingArtisan, cache: storedCache, skipDisplays: true });
-                nextPingBlue = currentEffects.spawnedSuper && currentEffects.specials.budge;
-                storedCache = cache;
+    let pingDataTotal = {
+        score: 0,
+        highestScore: 0,
+        worstScore: Infinity,
+        bp: 0,
+        apt: 0,
 
-                pingDataTotal.score += score;
-                pingDataTotal.highestScore = Math.max(pingDataTotal.highestScore, score);
-                pingDataTotal.worstScore = Math.min(pingDataTotal.worstScore, score);
-                pingDataTotal.bp += currentEffects.bp || 0;
-                pingDataTotal.apt += currentEffects.apt || 0;
+        rares: 0,
+        blues: 0,
+        bluesMissed: 0,
+        highestBlueCombo: 0,
+    }
+    let storedCache = null;
+    let nextPingBlue = false;
+    let nextPingArtisan = null;
+    let currentChain = 0;
+    let finalEffects;
+    let nextUpdate = updateEmbedEvery;
 
-                if (currentEffects.spawnedSuper && currentEffects.specials.budge) {
-                    currentChain++;
-                    pingDataTotal.blues++;
-                    pingDataTotal.highestBlueCombo = Math.max(pingDataTotal.highestBlueCombo, currentChain);
-                } else {
-                    currentChain = 0;
-                }
-                pingDataTotal.bluesMissed += currentEffects.spawnedSuper && !currentEffects.specials.budge ? 1 : 0;
-                pingDataTotal.rares += currentEffects.rare ? 1 : 0;
+    const startTime = process.hrtime.bigint();
 
-                if (currentEffects.artisanClickedSymbol) {
-                    nextPingArtisan = currentEffects.artisanNextSymbols[0];
-                }
+    for (let i = 0; i < pings; i++) {
+        if (i === nextUpdate) {
+            embed.setDescription(`autoping is running!\n**${formatNumber(i)}**/${formatNumber(pings)}...`);
+            await interaction.editReply({ embeds: [embed] });
+            await new Promise(r => setTimeout(r, 400)); // short delay to avoid rate limits
+            nextUpdate += updateEmbedEvery + Math.ceil(Math.random() - 0.5 * pings / 1000);
+        }
 
-                if (i === pings - 1) {
-                    finalEffects = currentEffects;
-                }
-            }
+        const { score, currentEffects, cache } = await ping(interaction, nextPingBlue, { autopinging: true, blueCombo: currentChain, artisanClickedSymbol: nextPingArtisan, cache: storedCache, skipDisplays: true });
+        nextPingBlue = currentEffects.spawnedSuper && currentEffects.specials.budge;
+        storedCache = cache;
 
-            const endTime = process.hrtime.bigint();
+        pingDataTotal.score += score;
+        pingDataTotal.highestScore = Math.max(pingDataTotal.highestScore, score);
+        pingDataTotal.worstScore = Math.min(pingDataTotal.worstScore, score);
+        pingDataTotal.bp += currentEffects.bp || 0;
+        pingDataTotal.apt += currentEffects.apt || 0;
 
-            // wow that's a lot of stats
-            player.apt -= pings;
+        if (currentEffects.spawnedSuper && currentEffects.specials.budge) {
+            currentChain++;
+            pingDataTotal.blues++;
+            pingDataTotal.highestBlueCombo = Math.max(pingDataTotal.highestBlueCombo, currentChain);
+        } else {
+            currentChain = 0;
+        }
+        pingDataTotal.bluesMissed += currentEffects.spawnedSuper && !currentEffects.specials.budge ? 1 : 0;
+        pingDataTotal.rares += currentEffects.rare ? 1 : 0;
 
-            player.score += pingDataTotal.score;
-            player.totalScore += pingDataTotal.score;
-            player.clicks += pings;
-            player.totalClicks += pings;
-            player.totalAptClicks += pings;
-            player.bp = Math.min(player.bp + pingDataTotal.bp, finalEffects.bpMax);
-            player.luckyPings += pingDataTotal.rares;
-            player.bluePings += pingDataTotal.blues;
-            player.bluePingsMissed += pingDataTotal.bluesMissed;
-            if (pingDataTotal.highestBlueCombo > player.highestBlueStreak) {
-                player.highestBlueStreak = pingDataTotal.highestBlueCombo;
-            }
-            player.lastPing = Date.now();
+        if (currentEffects.artisanClickedSymbol) {
+            nextPingArtisan = currentEffects.artisanNextSymbols[0];
+        }
 
-            await player.save();
-            await refreshAPT(player);
+        if (i === pings - 1) {
+            finalEffects = currentEffects;
+        }
+    }
 
-            
-            let finalDescription =
-`**${formatNumber(pings)}** pings completed, which...
+    const endTime = process.hrtime.bigint();
+
+    // wow that's a lot of stats
+    player.apt -= pings;
+
+    player.score += pingDataTotal.score;
+    player.totalScore += pingDataTotal.score;
+    player.clicks += pings;
+    player.totalClicks += pings;
+    player.totalAptClicks += pings;
+    player.bp = Math.min(player.bp + pingDataTotal.bp, finalEffects.bpMax);
+    player.luckyPings += pingDataTotal.rares;
+    player.bluePings += pingDataTotal.blues;
+    player.bluePingsMissed += pingDataTotal.bluesMissed;
+    if (pingDataTotal.highestBlueCombo > player.highestBlueStreak) {
+        player.highestBlueStreak = pingDataTotal.highestBlueCombo;
+    }
+    player.lastPing = Date.now();
+
+    await player.save();
+    await refreshAPT(player);
+
+
+    let finalDescription =
+        `**${formatNumber(pings)}** pings completed, which...
 
 __gained **\`${formatNumber(pingDataTotal.score, true, 4)} pts\`**__
 got **\`${formatNumber(pingDataTotal.highestScore, true, 3)} pts\`** at most, **\`${formatNumber(pingDataTotal.worstScore, true, 3)} pts\`** at worst`;
 
-            if (pingDataTotal.bp > 0) { 
-                if (player.bp >= finalEffects.bpMax) {
-                    finalDescription += `\ngained **${formatNumber(pingDataTotal.bp, true, 4)}** BP (hit MAX of ${formatNumber(finalEffects.bpMax, true, 4)})`;
-                } else {
-                    finalDescription += `\ngained **${formatNumber(pingDataTotal.bp, true, 4)}** BP`
-                }
-            }
-            if (pingDataTotal.apt > 0) finalDescription += `\nwould've found **${formatNumber(pingDataTotal.apt, true, 5)}** APT`
-            
-            if (pingDataTotal.blues > 0 || pingDataTotal.bluesMissed > 0) {
-                finalDescription += `
+    if (pingDataTotal.bp > 0) {
+        if (player.bp >= finalEffects.bpMax) {
+            finalDescription += `\ngained **${formatNumber(pingDataTotal.bp, true, 4)}** BP (hit MAX of ${formatNumber(finalEffects.bpMax, true, 4)})`;
+        } else {
+            finalDescription += `\ngained **${formatNumber(pingDataTotal.bp, true, 4)}** BP`
+        }
+    }
+    if (pingDataTotal.apt > 0) finalDescription += `\nwould've found **${formatNumber(pingDataTotal.apt, true, 5)}** APT`
+
+    if (pingDataTotal.blues > 0 || pingDataTotal.bluesMissed > 0) {
+        finalDescription += `
 clicked **${pingDataTotal.blues}** blue ping${pingDataTotal.blues === 1 ? '' : 's'}
 found a **${pingDataTotal.highestBlueCombo}** blue ping chain
 missed **${pingDataTotal.bluesMissed}** blue ping${pingDataTotal.bluesMissed === 1 ? '' : 's'}`
-            }
-
-            if (pingDataTotal.rares > 0) finalDescription += `\nfound **${pingDataTotal.rares}** rare ping${pingDataTotal.rares === 1 ? '' : 's'}`;
-
-            const finalEmbed = new EmbedBuilder()
-                .setTitle("autoping finished!")
-                .setDescription(finalDescription)
-                .setColor("#18c4bf");
-            
-            let footer = `finished in ${(Number(endTime - startTime) / 1e9).toFixed(3)}s `;
-            if (player.apt > 0) {
-                footer = `${formatNumber(player.apt)} APT remaining | ` + footer;
-            }
-            finalEmbed.setFooter({ text: footer });
-            
-            const components = [
-                new ButtonBuilder()
-                    .setCustomId("autoping:run")
-                    .setLabel(player.apt < 1 ? "out of APT..." : "autoping again!")
-                    .setStyle(player.apt < 1 ? ButtonStyle.Secondary : ButtonStyle.Success)
-                    .setDisabled(player.apt < 1)
-            ];
-            
-            // only show refresh with no APT
-            if (player.apt < 1) {
-                components.push(
-                    new ButtonBuilder()
-                        .setCustomId("autoping:refresh")
-                        .setLabel("refresh")
-                        .setStyle(ButtonStyle.Secondary)
-                );
-            }
-
-            usersAutopinging = usersAutopinging.filter(id => id !== interaction.user.id);
-
-            await interaction.editReply({
-                embeds: [finalEmbed],
-                components: [new ActionRowBuilder().addComponents(...components)],
-            });
-        }
     }
+
+    if (pingDataTotal.rares > 0) finalDescription += `\nfound **${pingDataTotal.rares}** rare ping${pingDataTotal.rares === 1 ? '' : 's'}`;
+
+    const finalEmbed = new EmbedBuilder()
+        .setTitle("autoping finished!")
+        .setDescription(finalDescription)
+        .setColor("#18c4bf");
+
+    let footer = `finished in ${(Number(endTime - startTime) / 1e9).toFixed(3)}s `;
+    if (player.apt > 0) {
+        footer = `${formatNumber(player.apt)} APT remaining | ` + footer;
+    }
+    finalEmbed.setFooter({ text: footer });
+
+    const components = [
+        new ButtonBuilder()
+            .setCustomId("autoping:run")
+            .setLabel(player.apt < 1 ? "out of APT..." : "autoping again!")
+            .setStyle(player.apt < 1 ? ButtonStyle.Secondary : ButtonStyle.Success)
+            .setDisabled(player.apt < 1)
+    ];
+
+    if (player.apt >= pings) {
+        components.push(
+            new ButtonBuilder()
+                .setCustomId(`autoping:run-${pings}`)
+                .setLabel("repeat autoping!")
+                .setStyle(ButtonStyle.Secondary)
+        );
+    }
+
+    // only show refresh with no APT
+    if (player.apt < 1) {
+        components.push(
+            new ButtonBuilder()
+                .setCustomId("autoping:refresh")
+                .setLabel("refresh")
+                .setStyle(ButtonStyle.Secondary)
+        );
+    }
+
+    usersAutopinging = usersAutopinging.filter(id => id !== interaction.user.id);
+
+    await interaction.editReply({
+        embeds: [finalEmbed],
+        components: [new ActionRowBuilder().addComponents(...components)],
+    });
 }
 
 async function getAutopingEmbed(interaction) {

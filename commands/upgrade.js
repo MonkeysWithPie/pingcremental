@@ -188,14 +188,14 @@ module.exports = {
             let followupType = playerData.settings.upgradeFollowup;
 
             if (levels >= 50 && upgradeId !== 'stars') {
-                await awardBadge(interaction.user.id, 'deal', interaction.client);
+                await awardBadge(interaction.user.id, 'seal the deal', interaction.client);
             }
 
             const msg = ['sweet!', 'nice!', 'sick!', 'cool!', 'neat!', 'nifty!', 'yippee!', 'awesome!'];
             let pickedMsg = msg[Math.floor(Math.random() * msg.length)];
             if (pickedMsg === 'awesome!' && Math.random() < 0.001) {
                 pickedMsg = 'awesome sauce 🐴';
-                await awardBadge(interaction.user.id, 'awesome_sauce', interaction.client);
+                await awardBadge(interaction.user.id, 'awesome sauce :horse:', interaction.client);
 
                 // force regular followup since it's rare
                 followupType = 'regular';

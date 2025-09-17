@@ -4,7 +4,7 @@ const { getEmoji } = require('../../../helpers/emojis.js');
 module.exports = {
     getPrice(currentLevel) {
         if (currentLevel >= 30) return null; // 30% max
-        return 350 * (1.35**currentLevel)
+        return Math.round(350 * (1.35**currentLevel))
     },
     getDetails() {
         return {

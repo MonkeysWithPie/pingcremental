@@ -26,5 +26,5 @@ module.exports = {
     },
     sortOrder() { return 12 },
     type() { return UpgradeTypes.BLUE_PING },
-    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
+    section() { return PingCalculationStates.RNG_AND_SPECIAL | PingCalculationStates.SCORING; }
 }

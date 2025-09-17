@@ -83,7 +83,7 @@ module.exports = {
     ${error.requestBody && error.requestBody.json && error.requestBody.json.data ? JSON.stringify(error.requestBody.json.data) : "no request body available"}`, interaction.client, error);
 
             const reply = {
-                embeds: [new EmbedBuilder().setTitle("An error occurred!").setDescription(`wuh oh, something broke\ndon't worry! the developer has been informed of this failure and will fix this bug ASAP.\n\n${error}`).setColor("ff0000")],
+                embeds: [new EmbedBuilder().setTitle("An error occurred!").setDescription(`wuh oh, something broke\nthe developer has been informed of this failure and will fix it ASAP; __no need to report this__.`).setColor("ff0000")],
                 flags: MessageFlags.Ephemeral
             }
             try {

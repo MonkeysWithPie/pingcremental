@@ -303,7 +303,7 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
         recentPingCache[interaction.user.id] = (recentPingCache[interaction.user.id] || 0) + 1;
         const recentPings = recentPingCache[interaction.user.id];
 
-        if (recentPings >= 65 && (Math.random() < recentPings/1000) && !shutoutList[interaction.user.id]) {
+        if (recentPings >= 100 && (Math.random() < (recentPings-100)/1250) && !shutoutList[interaction.user.id]) {
             shutoutList[interaction.user.id] = Date.now() + VERIFICATION_TIMEOUT;
 
             const userAliveEmbed = new EmbedBuilder()

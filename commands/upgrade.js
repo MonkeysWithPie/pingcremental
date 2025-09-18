@@ -89,7 +89,7 @@ module.exports = {
         }),
         multibuy: (async (interaction, buySetting) => {
             const catButtonRow = interaction.message.components[0];
-            const category = catButtonRow.components.find(button => button.disabled === true).customId.split('-')[1];
+            const category = catButtonRow.components.find(button => button.style === ButtonStyle.Primary).customId.split('-')[1];
 
             if (buySetting === 'MAX') {
                 buySetting = 'MAX';
@@ -234,7 +234,7 @@ module.exports = {
             }
 
             const catButtonRow = interaction.message.components[0];
-            const category = catButtonRow.components.find(button => button.disabled === true).customId.split('-')[1];
+            const category = catButtonRow.components.find(button => button.style === ButtonStyle.Primary).customId.split('-')[1];
 
             if (newBuySetting === 'MAX') {
                 newBuySetting = 'MAX';

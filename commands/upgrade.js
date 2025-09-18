@@ -287,7 +287,8 @@ function getMultiBuyCost(buySetting, upgrade, score, playerUpgradeLevel) {
         }
     } else {
         for (let i = 0; i < buySetting && i < 1e6; i++) {
-            if (upgrade.getPrice(playerUpgradeLevel + i) === null) break; // maxed out
+            const p = upgrade.getPrice(playerUpgradeLevel + i);
+            if (p === null || p + price === Infinity) break; // maxed out
             levels++;
             price += upgrade.getPrice(playerUpgradeLevel + i);
         }
@@ -369,9 +370,9 @@ async function getEditMessage(interaction, category, buySetting) {
         
         const {price, levels} = getMultiBuyCost(buySetting, upgrade, playerData.score, upgradeLevel);
 
-        description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${upgradeLevel})**
+        description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, true, 6)})**
 ${upgrade.getDetails().description}
-${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, true)} pts\`${levels > 1 ? ` (*${levels} levels*)` : ''}`
+${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, true)} pts\`${levels > 1 ? ` (*${formatNumber(levels, true)} levels*)` : ''}`
 
         select.addOptions(
             new StringSelectMenuOptionBuilder()

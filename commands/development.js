@@ -114,7 +114,7 @@ module.exports = {
                 await interaction.editReply({ content: `set ${key} to ${value} for ${user.username}`, flags: MessageFlags.Ephemeral });
             } else {
                 const dataValue = userData[key];
-                await interaction.editReply({ content: `\`\`\`${dataValue}\n\`\`\``, flags: MessageFlags.Ephemeral });
+                await interaction.editReply({ content: `\`\`\`${typeof dataValue === "object" ? JSON.stringify(dataValue) : dataValue}\n\`\`\``, flags: MessageFlags.Ephemeral });
             }
         }
     }

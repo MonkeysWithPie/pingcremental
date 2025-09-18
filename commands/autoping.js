@@ -179,6 +179,9 @@ async function doAutoping(interaction, count) {
 
     player.score += pingDataTotal.score;
     player.totalScore += pingDataTotal.score;
+    if (pingDataTotal.highestScore > player.highestScore) {
+        player.highestScore = pingDataTotal.highestScore;
+    }
     player.clicks += pings;
     player.totalClicks += pings;
     player.totalAptClicks += pings;

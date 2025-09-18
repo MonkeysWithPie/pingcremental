@@ -211,7 +211,7 @@ module.exports = {
 
             if (followupType !== 'none') {
                 return await interaction.followUp({
-                    content: `upgraded **${upgradeClass.getDetails().name}** to level ${playerUpgradeLevel + levels}! you've \`${formatNumber(playerData.score, true, 4)} pts\` left.`,
+                    content: `upgraded **${upgradeClass.getDetails().name}** to level ${playerUpgradeLevel + levels}! you have \`${formatNumber(playerData.score, true, 4)} pts\` left.`,
                     components: [new ActionRowBuilder().addComponents(button)],
                     flags: ephemeral
                 })

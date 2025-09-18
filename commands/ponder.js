@@ -136,7 +136,6 @@ async function getEditMessage(interaction, category) {
             .setCustomId(`ponder:category-${cat}`)
             .setLabel(cat)
             .setStyle(category === cat ? ButtonStyle.Primary : ButtonStyle.Secondary)
-            .setDisabled(category === cat)
         buttonRow.addComponents(button)
     }
 

@@ -153,8 +153,7 @@ async function buildFeedbackEmbed(interaction, category) {
             new ButtonBuilder()
                 .setCustomId(`feedback:category-${cat}`)
                 .setLabel(`${cat} (${await database.Feedback.count({ where: { type: cat } })})`)
-                .setStyle(ButtonStyle.Secondary)
-                .setDisabled(cat === category) // disable the current category button
+                .setStyle(cat === category ? ButtonStyle.Primary : ButtonStyle.Secondary)
         )
     }
 

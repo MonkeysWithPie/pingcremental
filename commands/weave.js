@@ -280,8 +280,7 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
         row.addComponents(new ButtonBuilder()
             .setCustomId(`weave:section-${sectionName}`)
             .setLabel(sectionName)
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(section === sectionName)
+            .setStyle(section === sectionName ? ButtonStyle.Primary : ButtonStyle.Secondary)
         );
     }
 

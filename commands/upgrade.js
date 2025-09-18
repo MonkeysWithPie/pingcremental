@@ -317,8 +317,7 @@ async function getEditMessage(interaction, category, buySetting) {
         const button = new ButtonBuilder()
             .setCustomId(`upgrade:category-${cat}`)
             .setLabel(cat)
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(category === cat)
+            .setStyle(category === cat ? ButtonStyle.Primary : ButtonStyle.Secondary)
         buttonRow.addComponents(button)
     }
 

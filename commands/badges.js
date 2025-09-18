@@ -202,8 +202,7 @@ async function getListPage(interaction, tier, page = 1) {
         return new ButtonBuilder()
             .setCustomId(`badges:list-${t},1`) // formatted tier-page
             .setLabel(`${['silver','blue','purple'][t-1]} tier`)
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(t === tier)
+            .setStyle(t === tier ? ButtonStyle.Primary : ButtonStyle.Secondary)
             .setEmoji(getEmoji(`badge_none_${t}`));
     });
 

@@ -1,6 +1,7 @@
 const { FabricUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 
 let recentPingTimes = {}
+let nextPingLeniency = []
 let bonusCache = {}
 let comboCache = {}
 
@@ -33,22 +34,24 @@ skipping one beat is okay, but more will break the combo.`,
 
         let msg = "";
 
-        const timeSinceLast = context.interactionTimestamp - (recentPingTimes[context.user.id][0] || 0);
-        const length = recentPingTimes[context.user.id].unshift(context.interactionTimestamp);
+        let tempList = recentPingTimes[context.user.id].slice();
+        const timeSinceLast = context.interactionTimestamp - (tempList[0] || 0);
+        const length = tempList.unshift(context.interactionTimestamp);
 
         if (length < 5) {
+            if (context.state === PingCalculationStates.NON_REPEAT_FINISH) { recentPingTimes[context.user.id] = tempList; }
             return {
                 message: `keep the rhythm... (${length}/5)`,
             }
         }
         if (length > 15) {
-            recentPingTimes[context.user.id].pop();
+            tempList.pop();
         }
 
 
         const intervals = [];
         for (let i = 0; i < Math.min(length - 1, 10); i++) {
-            intervals.push(recentPingTimes[context.user.id][i] - recentPingTimes[context.user.id][i + 1]);
+            intervals.push(tempList[i] - tempList[i + 1]);
         }
         
         intervals.sort((a, b) => a - b);
@@ -66,17 +69,24 @@ skipping one beat is okay, but more will break the combo.`,
         }
 
         if (Math.abs(distFromTarget) > COMBO_WINDOW) {
-            bonusCache[context.user.id] = 1;
-            comboCache[context.user.id] = 0;
-            if (distFromTarget < 0) {
-                msg += `EARLY...`;
-            } else {
-                msg += `LATE...`;
+            if (nextPingLeniency[context.user.id]) {
+                distFromTarget = COMBO_WINDOW;
+                if (context.state === PingCalculationStates.NON_REPEAT_FINISH) nextPingLeniency[context.user.id] = false;
+            }
+
+            else {
+                bonusCache[context.user.id] = 1;
+                comboCache[context.user.id] = 0;
+                if (distFromTarget < 0) {
+                    msg += `EARLY...`;
+                } else {
+                    msg += `LATE...`;
+                }
             }
         }
 
         if (Math.abs(distFromTarget) >= COMBO_WINDOW * 2) {
-            recentPingTimes[context.user.id] = [];
+            tempList = [];
         }
 
         if (distFromTarget > 0 && Math.abs(distFromTarget) < COMBO_WINDOW && Math.abs(distFromTarget) > NOTELESS_WINDOW) {
@@ -85,34 +95,49 @@ skipping one beat is okay, but more will break the combo.`,
             msg += `E`
         }
 
+        let exp = 1;
+
         if (Math.abs(distFromTarget) < PERFECT_WINDOW) {
-            addBonus(context.user.id, 1.2 / 100);
+            exp = addBonus(context.user.id, 1.2 / 100, context.state);
             msg += `perfect!`;
         } else if (Math.abs(distFromTarget) < GREAT_WINDOW) {
-            addBonus(context.user.id, 0.5 / 100);
+            exp = addBonus(context.user.id, 0.5 / 100, context.state);
             msg += `great!`;
         } else if (Math.abs(distFromTarget) <= COMBO_WINDOW) {
-            addBonus(context.user.id, 0); // only maintains combo
+            exp = addBonus(context.user.id, 0, context.state); // only maintains combo
             msg += `okay!`;
         }
 
+        if (context.state === PingCalculationStates.NON_REPEAT_FINISH) {
+            recentPingTimes[context.user.id] = tempList;
+            if (context.rare) nextPingLeniency[context.user.id] = true;
+        }
+
+        let combo = (comboCache[context.user.id] || 0) + 1;
+
         return {
-            exponent: bonusCache[context.user.id],
-            message: `${msg} (x${comboCache[context.user.id]})`,
+            exponent: exp,
+            message: `${msg} (x${combo})`,
             special: {
-                orchestraCombo: comboCache[context.user.id] || 0,
+                orchestraCombo: combo,
             }
         }
     },
     type() { return FabricUpgradeTypes.SKILL_BASED },
     isUnique() { return true; },
-    section() { return PingCalculationStates.SCORING; }
+    section() { return PingCalculationStates.SCORING | PingCalculationStates.NON_REPEAT_FINISH; }
 }
 
-function addBonus(userId, amount) {
+function addBonus(userId, amount, state) {
     if (!bonusCache[userId]) {
         bonusCache[userId] = 1;
     }
+    let exp = Math.min(bonusCache[userId] + amount, 1.15);
+    if (state !== PingCalculationStates.NON_REPEAT_FINISH) {
+        return exp;
+    }
+
     bonusCache[userId] = Math.min(bonusCache[userId] + amount, 1.15);
     comboCache[userId] = (comboCache[userId] || 0) + 1;
+    return exp;
 }

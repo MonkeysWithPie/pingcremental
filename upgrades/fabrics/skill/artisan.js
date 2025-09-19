@@ -21,36 +21,43 @@ clicking the same symbol twice in a row will result in a **^0.7** debuff, and re
         }
     },
     getEffect(_level, context) {
-        if (context.state !== PingCalculationStates.SCORING) return { special: { artisan: true } };
+        if (context.state === PingCalculationStates.RNG_AND_SPECIAL) return { special: { artisan: true } };
         if (!context.artisanClickedSymbol) return { special: { artisan: true } };
 
         let exponent = 1;
         
+        let combo = (comboCache[context.user.id] || 0) + 1;
+
         if (context.artisanClickedSymbol && context.artisanClickedSymbol === lastClickedSymbolCache[context.user.id]) {
             exponent = 0.7;
-
+            
             bonusCache[context.user.id] = 1;
             comboCache[context.user.id] = 0;
+            combo = 0;
         } else if (context.artisanClickedSymbol && lastClickedSymbolCache[context.user.id]) {
-            bonusCache[context.user.id] = Math.min((bonusCache[context.user.id] || 1) + (0.15 / 50), 1.15);
-            comboCache[context.user.id] = (comboCache[context.user.id] || 0) + 1;
+            exponent = Math.min((bonusCache[context.user.id] || 1) + (0.15 / 50), 1.15);
 
-            exponent = bonusCache[context.user.id];
+            if (context.state === PingCalculationStates.NON_REPEAT_FINISH) {
+                bonusCache[context.user.id] = exponent;
+                comboCache[context.user.id] = combo;
+            }
         }
 
-        lastClickedSymbolCache[context.user.id] = context.artisanClickedSymbol;
+        if (context.state === PingCalculationStates.NON_REPEAT_FINISH) {
+            lastClickedSymbolCache[context.user.id] = context.artisanClickedSymbol;
+        }
 
         return {
             exponent: exponent,
             special: {
                 artisan: true,
-                artisanCombo: comboCache[context.user.id] || 0,
+                artisanCombo: combo,
             },
-            message: `(${context.artisanClickedSymbol || "?"}${comboCache[context.user.id] ? ` x${comboCache[context.user.id]}` : ""})`,
+            message: `(${context.artisanClickedSymbol || "?"}${combo ? ` x${combo}` : ""})`,
         }
     },
     type() { return FabricUpgradeTypes.SKILL_BASED },
     isUnique() { return true; },
     artisanSymbols,
-    section() { return PingCalculationStates.SCORING | PingCalculationStates.RNG_AND_SPECIAL; }
+    section() { return PingCalculationStates.SCORING | PingCalculationStates.RNG_AND_SPECIAL | PingCalculationStates.NON_REPEAT_FINISH; }
 }

@@ -30,7 +30,8 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     let allUpgrades = { 
         [PingCalculationStates.RNG_AND_SPECIAL]: {}, 
         [PingCalculationStates.SCORING]: {}, 
-        [PingCalculationStates.POST_SCORING]: {}
+        [PingCalculationStates.POST_SCORING]: {},
+        [PingCalculationStates.NON_REPEAT_FINISH]: {}
     }
     if (overrides.cache?.upgrades) {
         allUpgrades = overrides.cache.upgrades;
@@ -344,6 +345,14 @@ async function ping(interaction, isSuper = false, overrides = {}) {
                 currentEffects = reroll.currentEffects;
                 context = reroll.context;
             }
+        }
+    }
+    
+    if (!overrides.skipRerolls) {
+        context.state = PingCalculationStates.NON_REPEAT_FINISH;
+        for (const [upgradeId, level] of Object.entries(allUpgrades[context.state])) {
+            const upgradeClass = rawUpgrades[upgradeId];
+            effect = upgradeClass.getEffect(level, context);
         }
     }
     

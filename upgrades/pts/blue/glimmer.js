@@ -23,7 +23,7 @@ module.exports = {
             }
         } else if (context.glimmerClicks) {
             return {
-                special: { "glimmer": -1 },
+                special: { "glimmer": (context.specials.glimmer || 0) - 1 },
                 multiply: 1.2,
                 message: `(${context.glimmerClicks} left)`,
             }

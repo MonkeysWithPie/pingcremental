@@ -237,8 +237,9 @@ async function ping(interaction, isSuper = false, overrides = {}) {
 
         if (effect.special) { 
             for (const [special, value] of Object.entries(effect.special)) {
-                if (!currentEffects.specials[special]) currentEffects.specials[special] = value;
+                currentEffects.specials[special] = value;
             }
+            context.specials = currentEffects.specials;
         }
 
         effectString = formatEffect(effect, upgradeClass, pingFormat);

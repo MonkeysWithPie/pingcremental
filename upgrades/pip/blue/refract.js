@@ -26,7 +26,7 @@ module.exports = {
         if (mult === 1) return {};
         return {
             special: {
-                "glimmer": -(extraGlimmer + 1) // +1 due to the base glimmer click
+                "glimmer": (context.specials.glimmer || 0) - extraGlimmer
             },
             multiply: mult,
             message: `(used ${extraGlimmer} extra)`

@@ -19,7 +19,8 @@ module.exports = {
             description:
 `clicking in a rhythm will grant a scaling bonus up to **^1.15**.
 clicking too far off rhythm will break the combo. 
-skipping one beat is okay, but more will break the combo.`,
+skipping one beat is okay, but more will break the combo.
+-# rare ping delays will give leniency for the next ping so combo isn't broken unfairly.`,
             name: "Fabric of the Orchestra",
             emoji: "🎶",
         }
@@ -62,26 +63,27 @@ skipping one beat is okay, but more will break the combo.`,
         const targetTime = medianInterval;
         let distFromTarget = timeSinceLast - targetTime;
         
+        if (nextPingLeniency[context.user.id]) {
+            distFromTarget = COMBO_WINDOW;
+            if (context.state === PingCalculationStates.NON_REPEAT_FINISH) nextPingLeniency[context.user.id] = false;
+        }
+
         if (Math.abs(distFromTarget - targetTime) < Math.abs(distFromTarget)) {
             // skipped a beat, probably
             distFromTarget -= targetTime;
             msg += "SK"
         }
 
-        if (Math.abs(distFromTarget) > COMBO_WINDOW) {
-            if (nextPingLeniency[context.user.id]) {
-                distFromTarget = COMBO_WINDOW;
-                if (context.state === PingCalculationStates.NON_REPEAT_FINISH) nextPingLeniency[context.user.id] = false;
-            }
+        let combo = (comboCache[context.user.id] || 0) + 1;
 
-            else {
-                bonusCache[context.user.id] = 1;
-                comboCache[context.user.id] = 0;
-                if (distFromTarget < 0) {
-                    msg += `EARLY...`;
-                } else {
-                    msg += `LATE...`;
-                }
+        if (Math.abs(distFromTarget) > COMBO_WINDOW) {
+            bonusCache[context.user.id] = 1;
+            comboCache[context.user.id] = 0;
+            combo = 0;
+            if (distFromTarget < 0) {
+                msg += `EARLY...`;
+            } else {
+                msg += `LATE...`;
             }
         }
 
@@ -113,11 +115,9 @@ skipping one beat is okay, but more will break the combo.`,
             if (context.rare) nextPingLeniency[context.user.id] = true;
         }
 
-        let combo = (comboCache[context.user.id] || 0) + 1;
-
         return {
             exponent: exp,
-            message: `${msg} (x${combo})`,
+            message: `${msg}${combo ? ` x${combo}` : ""}`,
             special: {
                 orchestraCombo: combo,
             }

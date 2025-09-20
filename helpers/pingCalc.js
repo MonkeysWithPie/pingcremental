@@ -253,7 +253,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
                 displays.mult.push(effectString);
             } else if (effect.exponent) {
                 displays.exponents.push(effectString);
-            } else if (effect.message) {
+            } else if (effect.message && !effect.apt && !effect.bp) { // only include when it's only message
                 displays.extra.push(effectString);
             }
         }

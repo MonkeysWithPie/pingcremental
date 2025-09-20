@@ -18,21 +18,22 @@ module.exports = {
         return level > 0 ? "cat :D" : "no cat D:"
     },
     getEffect(level, context) {
-        const roll = new RandSeed(`${context.interactionTimestamp}cat`).next();
+        const seed = new RandSeed(context.rngSeed + "pipcat");
+        const roll = seed.next();
 
         if (roll < 0.65) { // 65%
             return {
-                add: 1 + Math.floor(Math.random()*50),
+                add: 1 + Math.floor(seed.next()*50),
                 message: "mrrow!"
             }
         } else if (roll < 0.9) { // 25%
             return {
-                multiply: 1.2 + Math.random()*0.7,
+                multiply: 1.2 + seed.next()*0.7,
                 message: "mrrp!",
             }
         } else { // 10%
             return {
-                apt: 1 + Math.floor(Math.random()*5),
+                apt: 1 + Math.floor(seed.next()*5),
                 message: "purrrr!",
             }
         }

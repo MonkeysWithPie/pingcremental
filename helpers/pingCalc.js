@@ -57,6 +57,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         ping: pingMs,
         isSuper: isSuper,
         versionNumber: await getLatestVersion(),
+        rngSeed: Math.random().toString(36), // one-state upgrades aren't required to use this
         interactionTimestamp: interaction.createdAt,
         autopinging: overrides.autopinging || false,
 

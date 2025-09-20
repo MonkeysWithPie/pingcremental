@@ -13,31 +13,32 @@ module.exports = {
         }
     },
     getEffect(level, context) {
-        const roll = new RandSeed(`${context.interactionTimestamp}`).next() * 100;
+        const seed = new RandSeed(context.rngSeed + "fabricchaos");
+        const roll = seed.next() * 100;
 
         if (roll < 25) {
             return {
-                add: Math.round(Math.random() * 1000 * level),
+                add: Math.round(seed.next() * 1000 * level),
             }
         }
         else if (roll < 50) {
             return {
-                multiply: 1 + (Math.random() * 49) ** level, 
+                multiply: 1 + (seed.next() * 49) ** level, 
             }
         }
         else if (roll < 56) {
             return {
-                exponent: (1 + (Math.random() * 0.15)) ** level,
+                exponent: (1 + (seed.next() * 0.15)) ** level,
             }
         }
         else if (roll < 70) {
             return {
-                bp: Math.round(Math.random() * 3000 * level),
+                bp: Math.round(seed.next() * 3000 * level),
             }
         }
         else if (roll < 76) {
             return {
-                apt: Math.round(Math.random() * 15 * level),
+                apt: Math.round(seed.next() * 15 * level),
             }
         }
         else {

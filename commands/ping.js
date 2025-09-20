@@ -8,10 +8,12 @@ const { getEmbeddedCommand } = require('../helpers/embedCommand.js');
 const database = require('../helpers/database.js');
 
 let recentPingCache = {};
+let checkinDisableList = {};
 let shutoutList = {};
 
 const RECENT_PING_THRESHOLD = 2500;
 const VERIFICATION_TIMEOUT = 1000 * 60 * 2; // 2 mins
+const CHECKIN_DISABLE_TIME = 1000 * 60 * 10; // 10 mins
 const BLOCK_DURATION = 1000 * 60 * 60 * 2; // 2 hours
 
 // don't leak memory! isn't that smart
@@ -68,6 +70,7 @@ module.exports = {
             }
             delete shutoutList[interaction.user.id]; 
             delete recentPingCache[interaction.user.id];
+            checkinDisableList[interaction.user.id] = Date.now() + CHECKIN_DISABLE_TIME;
 
             await interaction.update({ content: "thanks for checking in!", components: [], embeds: [] });
         }),
@@ -299,11 +302,11 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
 
     // autoclicker check
     const last = playerProfile.lastPing || 0;
-    if ((last > 0 && Date.now() - last < RECENT_PING_THRESHOLD) && !(playerProfile.settings.usesAutoclicker === 'yes')) { 
+    if ((last > 0 && Date.now() - last < RECENT_PING_THRESHOLD) && checkinDisableList[interaction.user.id] < Date.now() && !(playerProfile.settings.usesAutoclicker === 'yes')) { 
         recentPingCache[interaction.user.id] = (recentPingCache[interaction.user.id] || 0) + 1;
         const recentPings = recentPingCache[interaction.user.id];
 
-        if (recentPings >= 100 && (Math.random() < (recentPings-100)/1250) && !shutoutList[interaction.user.id]) {
+        if (recentPings >= 100 && (Math.random() < 0.001) && !shutoutList[interaction.user.id]) {
             shutoutList[interaction.user.id] = Date.now() + VERIFICATION_TIMEOUT;
 
             const userAliveEmbed = new EmbedBuilder()

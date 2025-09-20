@@ -46,11 +46,6 @@ module.exports = {
                         .setRequired(true)
                         .setAutocomplete(true)
                 )
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('create')
-                .setDescription('create a new badge')
         ),
     async execute(interaction) {
         if (interaction.options.getSubcommand() === 'view') {

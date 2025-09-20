@@ -22,17 +22,17 @@ module.exports = {
 
         if (roll < 0.65) { // 65%
             return {
-                add: 5 + Math.floor(Math.random()*21), // add 5-25
+                add: 1 + Math.floor(Math.random()*50),
                 message: "mrrow!"
             }
         } else if (roll < 0.9) { // 25%
             return {
-                multiply: 1.2 + Math.random()*0.5, // multiply by 1.2-1.7
+                multiply: 1.2 + Math.random()*0.7,
                 message: "mrrp!",
             }
         } else { // 10%
             return {
-                apt: 3 + Math.floor(Math.random()*7), // add 3-9 apt
+                apt: 1 + Math.floor(Math.random()*5),
                 message: "purrrr!",
             }
         }

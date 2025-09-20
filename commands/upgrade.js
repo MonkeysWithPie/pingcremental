@@ -36,8 +36,8 @@ module.exports = {
             playerData.removedUpgrades += removed;
 
             let gainedPip = playerData.bp;
-            gainedPip *= upgrades['pip']['telepathy'].getEffect(playerData.prestigeUpgrades.telepathy).special.pip;
-            gainedPip *= upgrades['fabrics']['eternityFab'].getEffect(playerData.equippedFabrics?.eternityFab).special.pip;
+            if (playerData.prestigeUpgrades.telepathy) gainedPip *= upgrades['pip']['telepathy'].getEffect(playerData.prestigeUpgrades.telepathy).special.pipMult;
+            if (playerData.equippedFabrics.eternityFab) gainedPip *= upgrades['fabrics']['eternityFab'].getEffect(playerData.equippedFabrics.eternityFab).special.pipMult;
             gainedPip = Math.floor(gainedPip);
 
             playerData.upgrades = {};

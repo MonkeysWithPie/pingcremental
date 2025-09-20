@@ -283,6 +283,16 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
             .setStyle(section === sectionName ? ButtonStyle.Primary : ButtonStyle.Secondary)
         );
     }
+    for (const sectionName of Object.values(WEAVE_SECTION)) {
+        if (!availableSections.includes(sectionName)) {
+            row.addComponents(new ButtonBuilder()
+                .setCustomId(`weave:section-${sectionName}`)
+                .setLabel(`???`)
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(true)
+            );
+        }
+    }
 
     if (section === WEAVE_SECTION.Tear) {
         let desc = `do you want to tear a bit of the universe?`;

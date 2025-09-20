@@ -23,8 +23,11 @@ module.exports = {
             multiply: Math.min(level * 0.0002 * context.pip, 15 * level)
         }
     },
-    isBuyable(context) {
-        return context.fabrics.shopkeeper !== undefined;
+    unlockRequirements(context) {
+        if (!context.upgrades.pingularity) return { showable: false };
+        if (!context.fabrics.shopkeeper) return { showable: false };
+        
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 1000 },
     type() { return UpgradeTypes.PRESTIGE },

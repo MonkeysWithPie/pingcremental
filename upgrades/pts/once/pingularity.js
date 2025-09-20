@@ -18,8 +18,8 @@ module.exports = {
     getEffect(level, context) {
         return {}
     },
-    isBuyable(context) {
-        return true;
+    unlockRequirements(context) {
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 1000 },
     type() { return UpgradeTypes.ONE_TIME },

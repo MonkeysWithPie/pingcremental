@@ -21,8 +21,8 @@ module.exports = {
             multiply: Math.random()*1000 <= (level*10) ? 3 : undefined,
         }
     },
-    isBuyable(context) {
-        return true;
+    unlockRequirements(context) {
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 5 },
 

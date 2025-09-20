@@ -1,5 +1,6 @@
 const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: hoardUnlockRequirements } = require('./hoard.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -21,8 +22,11 @@ module.exports = {
             bp: Math.ceil(level * 2.5 * context.score / 1e6),
         }
     },
-    upgradeRequirements() {
-        return { hoard: 2 };
+    unlockRequirements(context) {
+        if (!(hoardUnlockRequirements(context).buyable)) return { showable: false };
+        let stardustLevel = context.upgrades.stardust || 0;
+        if (stardustLevel < 2) return { showable: true, buyable: false, reason: `'Stardust' ${stardustLevel}/2` };
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 405 }, // upgrade IS found (i'm not using 404 to spite you)
     type() { return PipUpgradeTypes.PRESTIGE },

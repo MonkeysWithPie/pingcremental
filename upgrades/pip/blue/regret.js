@@ -1,5 +1,6 @@
 const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: indigoUnlockRequirements } = require('./indigo.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -21,8 +22,12 @@ module.exports = {
             blueStrength: (level*0.002)*context.missedBluePings,
         }
     },
-    upgradeRequirements() {
-        return { indigo: 3 };
+    unlockRequirements(context) {
+        if (!indigoUnlockRequirements(context).buyable) return { showable: false };
+        let indigoLevel = context.upgrades.indigo || 0;
+        if (indigoLevel < 3) return { showable: true, buyable: false, reason: `'Indigo Vision' ${indigoLevel}/3` };
+        
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 104 },
     type() { return PipUpgradeTypes.BLUE_PING },

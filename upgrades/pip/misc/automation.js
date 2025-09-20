@@ -1,5 +1,6 @@
 const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: exponentiateUnlockRequirements } = require('../pts/exponentiate.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -24,8 +25,10 @@ module.exports = {
             apt: level,
         }
     },
-    upgradeRequirements() {
-        return { exponentiate: 1 };
+    unlockRequirements(context) {
+        if (!(exponentiateUnlockRequirements(context).buyable)) return { showable: false };
+        if (!context.upgrades.exponentiate) return { showable: true, buyable: false, reason: `buy 'Exponentiate'` };
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 204 },
     type() { return PipUpgradeTypes.MISC },

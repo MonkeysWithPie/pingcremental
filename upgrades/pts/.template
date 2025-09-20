@@ -25,8 +25,12 @@ module.exports = {
             message: "!!", // extra message next to emoji
         }
     },
-    isBuyable(context) {
-        return true; // return true if the upgrade should be visible, false if not
+    unlockRequirements(context) {
+        return {
+            showable: true, // whether the upgrade is shown; shown but not buyable shows a locked icon
+            buyable: false, // whether the upgrade can be bought
+            reason: "not implemented", // reason why it's not buyable, if applicable
+        }
     },
     sortOrder() { return 1000 }, // high order = low on list
     type() { return UpgradeTypes.GENERIC }, // should be using the enums from commonEnums.js

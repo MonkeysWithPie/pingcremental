@@ -21,10 +21,11 @@ module.exports = {
             blueStrength: (level*0.2),
         }
     },
-    upgradeRequirements() {
-        return { beginning: 1 };
+    unlockRequirements(context) {
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity\'s Welcome'" };
+        return { showable: true, buyable: true };
     },
-    sortOrder() { return 102 },
+    sortOrder() { return 103 },
     type() { return PipUpgradeTypes.BLUE_PING },
     section() { return PingCalculationStates.RNG_AND_SPECIAL; }
 }

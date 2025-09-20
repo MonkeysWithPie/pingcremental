@@ -1,5 +1,6 @@
 const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: multiplierUnlockRequirements } = require('../multiply/multiplier.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -46,8 +47,13 @@ module.exports = {
         
         return {}
     },
-    isBuyable(context) {
-        return context.upgrades.multiplier && context.upgrades.multiplier >= 10;
+    unlockRequirements(context) {
+        if (!(multiplierUnlockRequirements(context).buyable)) return { showable: false };
+
+        let multiplierLevel = context.upgrades.multiplier || 0;
+        if (multiplierLevel < 10) return { showable: true, buyable: false, reason: `'fine, just have a multiplier' ${multiplierLevel}/10` };
+        
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 107 },
     type() { return UpgradeTypes.MULT_BONUS },

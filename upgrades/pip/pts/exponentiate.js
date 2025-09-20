@@ -1,5 +1,6 @@
 const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: sacrificeUnlockRequirements } = require('./sacrifice.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -21,8 +22,12 @@ module.exports = {
             exponent: (level*0.02) + 1,
         }
     },
-    upgradeRequirements() {
-        return { sacrifice: 2 };
+    unlockRequirements(context) {
+        if (!(sacrificeUnlockRequirements(context).buyable)) return { showable: false };
+        let sacrificeUpgradeLevel = context.upgrades.sacrifice || 0;
+        if (sacrificeUpgradeLevel < 2) return { showable: true, buyable: false, reason: `'Sacrifice Simplicity' ${sacrificeUpgradeLevel}/2` };
+
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 3 },
     type() { return PipUpgradeTypes.BONUS },

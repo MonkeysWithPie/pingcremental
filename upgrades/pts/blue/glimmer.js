@@ -1,5 +1,6 @@
 const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: budgeUnlockRequirements } = require('./budge.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -29,8 +30,11 @@ module.exports = {
             }
         } else return {};
     },
-    isBuyable(context) {
-        return context.upgrades.budge && context.upgrades.budge > 1 && context.upgrades.blueshift && context.upgrades.blueshift > 3;
+    unlockRequirements(context) {
+        if (!budgeUnlockRequirements(context).buyable) return { showable: false };
+        if (!context.upgrades.budge) return { showable: true, buyable: false, reason: `buy 'budge'` };
+
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 17 },
     type() { return UpgradeTypes.BLUE_PING },

@@ -21,8 +21,10 @@ module.exports = {
             multiply: (context.ping % 10 === 7) ? 1.77 : undefined,
         }
     },
-    isBuyable(context) {
-        return Object.keys(context.upgrades).includes('special');
+    unlockRequirements(context) {
+        if (!context.upgrades.special) return { showable: true, buyable: false, reason: "buy 'i feel special'" };
+
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 101 },
     type() { return UpgradeTypes.ONE_TIME },

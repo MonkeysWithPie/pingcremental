@@ -21,8 +21,9 @@ module.exports = {
             multiply: 1+(level*0.08)
         }
     },
-    isBuyable(context) {
-        return Object.keys(context.upgrades).includes('blue')
+    unlockRequirements(context) {
+        if (!context.upgrades.blue) return { showable: true, buyable: false, reason: "buy 'blue ping'" };
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 12 },
     type() { return UpgradeTypes.BLUE_PING },

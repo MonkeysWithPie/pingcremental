@@ -1,5 +1,6 @@
 const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: luckyUnlockRequirements } = require('../once/lucky.js');
 
 function getMultiplier(level) {
     let mult = 1 + (level * 0.11);
@@ -31,8 +32,11 @@ module.exports = {
             multiply: (pString[pString.length - 1] === pString[pString.length - 2]) ? getMultiplier(level) : 1,
         }
     },
-    isBuyable(context) {
-        return Object.keys(context.upgrades).includes('lucky');
+    unlockRequirements(context) {
+        if (!(luckyUnlockRequirements(context).buyable)) return { showable: false };
+        if (!context.upgrades.lucky) return { showable: true, buyable: false, reason: "buy 'lucky number 7'" };
+
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 102 },
     type() { return UpgradeTypes.MULT_BONUS },

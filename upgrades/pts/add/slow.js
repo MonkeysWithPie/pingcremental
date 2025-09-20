@@ -20,8 +20,8 @@ module.exports = {
             add: level
         }
     },
-    isBuyable(context) {
-        return true;
+    unlockRequirements(context) {
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 1 },
     type() { return UpgradeTypes.ADD_BONUS },

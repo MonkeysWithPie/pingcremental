@@ -1,5 +1,6 @@
 const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: blueshiftUnlockRequirements } = require('../blue/blueshift.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -24,8 +25,15 @@ module.exports = {
         }
         return {};
     },
-    isBuyable(context) {
-        return context.upgrades['blueshift'] && context.upgrades.blueshift > 6;
+    unlockRequirements(context) {
+        if (!(blueshiftUnlockRequirements(context).buyable)) return { showable: false };
+
+        let blueshiftLevel = context.upgrades.blueshift || 0;
+        if (blueshiftLevel < 7) {
+            return { showable: true, buyable: false, reason: `'blueshift' ${blueshiftLevel}/7` };
+        }
+
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 15 },
     type() { return UpgradeTypes.BLUE_PING },

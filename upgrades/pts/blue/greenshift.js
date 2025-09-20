@@ -1,5 +1,6 @@
 const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: redshiftUnlockRequirements } = require('./redshift.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -21,9 +22,13 @@ module.exports = {
             blue: context.blue * level * 0.15
         }
     },
-    isBuyable(context) {
-        if (!context.upgrades['blue'] || !context.upgrades['redshift']) return false;
-        return context.upgrades['redshift'] >= 4;
+    unlockRequirements(context) {
+        if (!(redshiftUnlockRequirements(context).buyable)) return { showable: false };
+
+        let redshiftLevel = context.upgrades.redshift || 0;
+        if (redshiftLevel < 4) return { showable: true, buyable: false, reason: `'redshift' ${redshiftLevel}/4` };
+
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 14 },
     type() { return UpgradeTypes.BLUE_PING },

@@ -22,8 +22,9 @@ module.exports = {
             exponent: level*0.02 + 1
         }
     },
-    isBuyable(context) {
-        return context.fabrics.shopkeeper !== undefined;
+    unlockRequirements(context) {
+        if (!context.fabrics.shopkeeper) return { showable: false };
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 1000 },
     type() { return UpgradeTypes.MULT_BONUS },

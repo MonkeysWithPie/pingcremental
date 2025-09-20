@@ -21,8 +21,8 @@ module.exports = {
             message: context.rare ? "WHOA!" : null,
         }
     },
-    isBuyable(context) {
-        return true;
+    unlockRequirements(context) {
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 100 },
     type() { return UpgradeTypes.ONE_TIME },

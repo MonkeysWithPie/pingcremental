@@ -1,5 +1,6 @@
 const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: slowUnlockRequirements } = require('../add/slow.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -22,10 +23,15 @@ module.exports = {
             add: Math.floor(Math.random() * (level+1))
         }
     },
-    isBuyable(context) {
-        return context.upgrades.slow >= 3;
+    unlockRequirements(context) {
+        if (!(slowUnlockRequirements(context).buyable)) return { showable: false };
+
+        let slowLevel = context.upgrades.slow || 0;
+        if (slowLevel < 3) return { showable: true, buyable: false, reason: `'slow internet' ${slowLevel}/3` };
+
+        return { showable: true, buyable: true };
     },
-    sortOrder() { return 3 },
+    sortOrder() { return 2 },
     type() { return UpgradeTypes.ADD_BONUS },
     section() { return PingCalculationStates.SCORING; },
 }

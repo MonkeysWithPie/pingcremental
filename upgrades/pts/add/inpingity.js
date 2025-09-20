@@ -27,8 +27,14 @@ module.exports = {
             add: Math.round(level * (context.clicks/(maxClicks(level))) * 0.6,2),
         }
     },
-    isBuyable(context) {
-        return context.totalClicks >= 1000;
+    unlockRequirements(context) {
+        if (context.totalClicks >= 1000) {
+            return { showable: true, buyable: true }
+        }
+        if (context.totalClicks <= 300) {
+            return { showable: false }
+        }
+        return { showable: true, buyable: false, reason: `${context.totalClicks}/1,000 clicks`}
     },
     sortOrder() { return 8 },
     type() { return UpgradeTypes.ADD_BONUS },

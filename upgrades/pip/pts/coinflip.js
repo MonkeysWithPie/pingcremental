@@ -1,5 +1,6 @@
 const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: favoredUnlockRequirements } = require('../misc/favored.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -41,8 +42,11 @@ module.exports = {
         }
         return {};
     },
-    upgradeRequirements() {
-        return { favored: 1 };
+    unlockRequirements(context) {
+        if (!(favoredUnlockRequirements(context).buyable)) return { showable: false };
+        if (!context.upgrades.favored) return { showable: true, buyable: false, reason: `buy 'Favored'` };
+
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 4 },
     type() { return PipUpgradeTypes.BONUS },

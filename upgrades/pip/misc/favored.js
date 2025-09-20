@@ -1,5 +1,6 @@
 const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: riggedUnlockRequirements } = require('./rigged.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -23,8 +24,11 @@ module.exports = {
             }
         }
     },
-    upgradeRequirements() {
-        return { rigged: 1 };
+    unlockRequirements(context) {
+        if (!(riggedUnlockRequirements(context).buyable)) return { showable: false };
+        if (!context.upgrades.rigged) return { showable: true, buyable: false, reason: `buy 'Loaded Dice'` };
+        
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 202 }, // NO WAY CELESTE REFERNECE!?!?/
     type() { return PipUpgradeTypes.MISC },

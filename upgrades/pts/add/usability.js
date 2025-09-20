@@ -20,10 +20,10 @@ module.exports = {
             add: context.ping <= 50 ? level*2 : 0,
         }
     },
-    isBuyable(context) {
-        return true;
+    unlockRequirements(context) {
+        return { showable: true, buyable: true };
     },
-    sortOrder() { return 2 },
+    sortOrder() { return 3 },
     type() { return UpgradeTypes.ADD_BONUS },
     section() { return PingCalculationStates.SCORING; },
 }

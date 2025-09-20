@@ -24,8 +24,11 @@ module.exports = {
             blue: (Math.random() * (1.5 + 0.7) - 0.7) * level
         }
     },
-    isBuyable(context) {
-        return context.fabrics.shopkeeper !== undefined && context.upgrades.blue;
+    unlockRequirements(context) {
+        if (!context.fabrics.shopkeeper) return { showable: false };
+        if (!context.upgrades.blue) return { showable: true, buyable: false, reason: "buy 'blue ping'" };
+        
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 1000 },
     type() { return UpgradeTypes.BLUE_PING },

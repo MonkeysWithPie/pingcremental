@@ -23,8 +23,9 @@ module.exports = {
             multiply: (level*0.5) + 1,
         }
     },
-    upgradeRequirements() {
-        return { beginning: 1 };
+    unlockRequirements(context) {
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity\'s Welcome'" };
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 2 },
     type() { return PipUpgradeTypes.BONUS },

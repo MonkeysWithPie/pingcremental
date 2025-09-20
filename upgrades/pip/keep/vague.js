@@ -1,5 +1,6 @@
 const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: memoryUnlockRequirements } = require('./memory.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -21,8 +22,12 @@ module.exports = {
             multiply: (level*0.15*`${context.removedUpgrades}`.length) + 1,
         }
     },
-    upgradeRequirements() {
-        return { memory: 3 };
+    unlockRequirements(context) {
+        if (!memoryUnlockRequirements(context).buyable) return { showable: false };
+        let memoryLevel = context.upgrades.memory || 0;
+        if (memoryLevel < 3) return { showable: true, buyable: false, reason: `'Distant Memories' ${memoryLevel}/3` };
+        
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 303 },
     type() { return PipUpgradeTypes.KEEP },

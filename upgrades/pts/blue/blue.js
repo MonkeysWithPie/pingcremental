@@ -22,8 +22,8 @@ module.exports = {
             blue: 1,
         };
     },
-    isBuyable(context) {
-        return true;
+    unlockRequirements(context) {
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 10 },
     type() { return UpgradeTypes.BLUE_PING },

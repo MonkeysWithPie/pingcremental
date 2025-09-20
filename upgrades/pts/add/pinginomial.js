@@ -23,8 +23,8 @@ module.exports = {
             add: getFib(level+1),
         }
     },
-    isBuyable(context) {
-        return true;
+    unlockRequirements(context) {
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 4 },
     type() { return UpgradeTypes.ADD_BONUS },

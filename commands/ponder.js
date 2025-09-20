@@ -3,6 +3,7 @@ const { upgrades } = require('./../helpers/upgrades.js')
 const database = require('./../helpers/database.js');
 const { PipUpgradeTypes } = require('./../helpers/commonEnums.js');
 const formatNumber = require('../helpers/formatNumber.js');
+const { getEmoji } = require('../helpers/emojis.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -76,38 +77,10 @@ module.exports = {
                 .setStyle(ButtonStyle.Success)
             
             await interaction.update(await getEditMessage(interaction, upgradeClass.type()));
-
-            let unlockMessage = "";
-            for (const [checkedUpgradeId, checkedUpgrade] of Object.entries(upgrades['pip'])) {
-                const req = checkedUpgrade.upgradeRequirements();
-
-                if (playerData.prestigeUpgrades[checkedUpgradeId]) continue; // already unlocked
-                if (!req[upgradeId]) continue; // doesn't require newly unlocked upgrade
-                if (req[upgradeId] > playerUpgradeLevel) continue; // not yet
-
-                let newlyUnlocked = true;
-                for (const [requiredUpgrade, requiredLevel] of Object.entries(req)) {
-                    if (requiredLevel < (playerData.prestigeUpgrades[requiredUpgrade] ?? 0)) {
-                        newlyUnlocked = false;
-                        break;
-                    };
-                }
-                if (!newlyUnlocked) continue;
-
-                unlockMessage += `\n**${checkedUpgrade.getDetails().emoji} ${checkedUpgrade.getDetails().name}**\n${checkedUpgrade.getDetails().description}`
-            }
-            if (unlockMessage !== "") {
-                unlockMessage = "\nYou also unlocked:\n" + unlockMessage;
-                // force show unlock messages
-                if (followupType === 'none') { 
-                    followupType = 'ephemeral';
-                    ephemeral = MessageFlags.Ephemeral;
-                }
-            }
         
             if (followupType !== 'none') {
                 return await interaction.followUp({
-                    content: `**${upgradeClass.getDetails().name}** is now level ${playerUpgradeLevel}. (\`${formatNumber(playerData.pip)} PIP\` left)${unlockMessage}`,
+                    content: `**${upgradeClass.getDetails().name}** is now level ${playerUpgradeLevel}. (\`${formatNumber(playerData.pip)} PIP\` left)`,
                     components: [new ActionRowBuilder().addComponents(button)],
                     flags: ephemeral
                 })
@@ -148,15 +121,18 @@ async function getEditMessage(interaction, category) {
         .setTitle("Ponder")
         .setColor("#162b94")
 
+    const context = { upgrades: pUpgrades };
+
     for (const [upgradeId, upgrade] of Object.entries(upgrades['pip'])) {
         const upgradeLevel = pUpgrades[upgradeId] ?? 0
         if (upgrade.type() != category) continue;
 
-        let canBuy = true;
-        for (const [requiredUpgrade, requiredLevel] of Object.entries(upgrade.upgradeRequirements())) {
-            canBuy = !(pUpgrades[requiredUpgrade] === undefined || pUpgrades[requiredUpgrade] < requiredLevel) && canBuy; // check if upgrade is unlocked
+        const unlocked = upgrade.unlockRequirements(context);
+        if (!unlocked.showable) continue;
+        if (!unlocked.buyable) {
+            description += `\n-# ${getEmoji('locked', '🔒')} locked upgrade | *${unlocked.reason}*`
+            continue;
         }
-        if (!canBuy) continue;
 
         if (upgrade.getPrice(upgradeLevel) === null) {
             description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (MAX)**\n*"${upgrade.getDetails().flavor}"*\n${upgrade.getDetails().description}\nCurrently ${upgrade.getEffectString(upgradeLevel)}` 

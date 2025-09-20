@@ -23,8 +23,9 @@ module.exports = {
             bp: level * 4,
         }
     },
-    isBuyable(context) {
-        return context.upgrades.pingularity;
+    unlockRequirements(context) {
+        if (!context.upgrades.pingularity) return { showable: false };
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 1001 },
     type() { return UpgradeTypes.PRESTIGE },

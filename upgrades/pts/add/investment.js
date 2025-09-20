@@ -33,8 +33,9 @@ module.exports = {
             add: totalPts(level)
         }
     },
-    isBuyable(context) {
-        return context.fabrics.shopkeeper !== undefined;
+    unlockRequirements(context) {
+        if (context.fabrics.shopkeeper) return { showable: true, buyable: true };
+        return { showable: false };
     },
     sortOrder() { return 1000 },
     type() { return UpgradeTypes.ADD_BONUS },

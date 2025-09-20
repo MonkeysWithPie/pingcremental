@@ -19,8 +19,11 @@ module.exports = {
     getEffect(level, context) {
         return {} // nothing; effect is elsewhere
     },
-    isBuyable(context) {
-        return context.upgrades.pingularity && context.upgrades.stars && context.upgrades.stars >= 1;
+    unlockRequirements(context) {
+        if (!context.upgrades.pingularity) return { showable: false };
+        if (!context.upgrades.stars) return { showable: true, buyable: false, reason: "buy 'beyond the stars'" };
+
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 1002 },
     type() { return UpgradeTypes.PRESTIGE },

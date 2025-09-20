@@ -22,8 +22,12 @@ module.exports = {
             multiply: 1,
         }
     },
-    upgradeRequirements() {
-        return { upgrade: 1 };
+    unlockRequirements() {
+        return {
+            showable: true,
+            buyable: false,
+            reason: "not implemented",
+        };
     },
     sortOrder() { return 1000 },
     type() { return PipUpgradeTypes.MISC },

@@ -21,8 +21,8 @@ module.exports = {
             multiply: 2,
         }
     },
-    upgradeRequirements() {
-        return {};
+    unlockRequirements(context) {
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 1 },
     type() { return PipUpgradeTypes.BONUS },

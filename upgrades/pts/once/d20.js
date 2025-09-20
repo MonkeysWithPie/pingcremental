@@ -1,5 +1,6 @@
 const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: luckyUnlockRequirements } = require('./lucky.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -33,8 +34,17 @@ module.exports = {
             multiply: mult,
         }
     },
-    isBuyable(context) {
-        return context.upgrades.lucky && context.totalClicks > 500;
+    unlockRequirements(context) {
+        if (!(luckyUnlockRequirements(context).buyable)) return { showable: false };
+
+        const req1 = context.upgrades.lucky
+        const req2 = context.totalClicks >= 500
+
+        if (!req1 && !req2) return { showable: true, buyable: false, reason: `buy 'lucky number 7', ${context.totalClicks}/500 clicks` };
+        if (!req1) return { showable: true, buyable: false, reason: `buy 'lucky number 7'` };
+        if (!req2) return { showable: true, buyable: false, reason: `${context.totalClicks}/500 clicks` };
+
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 103 },
     type() { return UpgradeTypes.ONE_TIME },

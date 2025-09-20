@@ -19,8 +19,9 @@ module.exports = {
     getEffect(level, context) {
         return {}
     },
-    upgradeRequirements() {
-        return { beginning: 1 };
+    unlockRequirements(context) {
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity\'s Welcome'" };
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 401 },
     type() { return PipUpgradeTypes.PRESTIGE },

@@ -359,6 +359,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     
     let bpMax = ((playerProfile.upgrades.limit || 0) + 1) * 10000;
     bpMax *= (playerProfile.prestigeUpgrades.storage || 0) * 0.2 + 1;
+    bpMax = Math.round(bpMax);
 
     // move all the spare stuff into currentEffects so it's nice and organized
     for (const x of ['spawnedSuper', 'rare', 'blueCombo', 'artisanNextSymbols']) {

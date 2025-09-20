@@ -24,7 +24,7 @@ module.exports = {
     },
     unlockRequirements(context) {
         if (!(hoardUnlockRequirements(context).buyable)) return { showable: false };
-        let stardustLevel = context.upgrades.stardust || 0;
+        let stardustLevel = context.upgrades.hoard || 0;
         if (stardustLevel < 2) return { showable: true, buyable: false, reason: `'Stardust' ${stardustLevel}/2` };
         return { showable: true, buyable: true };
     },

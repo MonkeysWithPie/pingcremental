@@ -7,17 +7,17 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "increase your max bp by __x1.2__",
+            description: "increase your max bp by __x1.25__",
             name: "Stellar Strength",
             emoji: getEmoji('ponder_storage', "🪐"),
             flavor: "carry the weight of the stars.",
         }
     },
     getEffectString(level) {
-        return `x${((level * 0.2) + 1).toFixed(2)}`;
+        return `x${((level * 0.25) + 1).toFixed(3)}`;
     },
     getEffect(level, context) {
-        return {}
+        return { special: { bpStorageMult: ((level ? level : 0) * 0.25) + 1 } }
     },
     unlockRequirements(context) {
         if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity\'s Welcome'" };

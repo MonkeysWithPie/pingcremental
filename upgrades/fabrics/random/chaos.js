@@ -33,7 +33,7 @@ module.exports = {
         }
         else if (roll < 70) {
             return {
-                bp: Math.round(seed.next() * 3000 * level),
+                bp: Math.round(seed.next() * 3500 * level) + 1500,
             }
         }
         else if (roll < 76) {

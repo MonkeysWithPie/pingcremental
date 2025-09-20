@@ -357,8 +357,11 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         }
     }
     
-    let bpMax = ((playerProfile.upgrades.limit || 0) + 1) * 10000;
-    bpMax *= (playerProfile.prestigeUpgrades.storage || 0) * 0.2 + 1;
+    let bpMax = 10000;
+    bpMax += rawUpgrades['limit'].getEffect(playerProfile.prestigeUpgrades?.limit, context).special.bpExtraStorage;
+    bpMax += rawUpgrades['eternityFab'].getEffect(playerProfile.equippedFabrics?.eternityFab, context).special.bpExtraStorage;
+    bpMax *= rawUpgrades['storage'].getEffect(playerProfile.prestigeUpgrades?.storage, context).special.bpStorageMult;
+    bpMax *= rawUpgrades['eternityFab'].getEffect(playerProfile.equippedFabrics?.eternityFab, context).special.bpStorageMult;
     bpMax = Math.round(bpMax);
 
     // move all the spare stuff into currentEffects so it's nice and organized

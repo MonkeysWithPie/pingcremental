@@ -4,7 +4,7 @@ const formatNumber = require('../../../helpers/formatNumber.js');
 
 module.exports = {
     getPrice(currentLevel) {
-        return 123456 * (currentLevel+1)**3;
+        return Math.round(100 * (1.1 ** currentLevel));
     },
     getDetails() {
         return {
@@ -17,7 +17,9 @@ module.exports = {
         return `${formatNumber((level+1)*10000, true, 3)} storage`;
     },
     getEffect(level, context) {
-        return {} // nothing; effect is elsewhere
+        return {
+            special: { bpExtraStorage: (level) * 10000 }
+        }
     },
     unlockRequirements(context) {
         if (!context.upgrades.pingularity) return { showable: false };

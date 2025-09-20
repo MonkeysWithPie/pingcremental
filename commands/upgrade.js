@@ -35,7 +35,10 @@ module.exports = {
             }
             playerData.removedUpgrades += removed;
 
-            const mult = upgrades['pip']['telepathy'].getEffect(playerData.prestigeUpgrades.telepathy).special.pip;
+            let gainedPip = playerData.bp;
+            gainedPip *= upgrades['pip']['telepathy'].getEffect(playerData.prestigeUpgrades.telepathy).special.pip;
+            gainedPip *= upgrades['fabrics']['eternityFab'].getEffect(playerData.equippedFabrics?.eternityFab).special.pip;
+            gainedPip = Math.floor(gainedPip);
 
             playerData.upgrades = {};
             playerData.score = 0;
@@ -43,7 +46,7 @@ module.exports = {
             playerData.glimmerClicks = 0;
             playerData.slumberClicks = 0;
 
-            playerData.pip += Math.floor(playerData.bp * mult);
+            playerData.pip += gainedPip;
             playerData.totalPip += playerData.pip;
             playerData.bp = 0;
             playerData.eternities++;
@@ -62,13 +65,14 @@ module.exports = {
             playerData.changed('upgrades', true) 
 
             await playerData.save();
-            await interaction.update({ content: `*it is done.*\n-# you now have __\`${formatNumber(playerData.pip)} PIP\`__`, components: [] });
+            await interaction.update({ content: `*it is done.*\n-# you gained __\`${formatNumber(gainedPip)} PIP\`__, so you now have __\`${formatNumber(playerData.pip)} PIP\`__`, components: [] });
             if (firstEternity) {
                 await interaction.followUp({ content: `
 *welcome to Eternity. congratulations on making it here.*
-*i suppose you're wondering why you want to be here.*
-*how about... ${getEmbeddedCommand(`ponder`)}? try it out.*
-*good luck, pinger.*`, flags: MessageFlags.Ephemeral });
+*i suppose you're wondering why you would even want to be here.*
+*Eternity brings you the ability to look within yourself, to see your flaws and strengths and to exploit them.*
+*good luck, pinger.*
+${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
                 await awardBadge(interaction.user.id, 'foreverbound', interaction.client);
             }
 

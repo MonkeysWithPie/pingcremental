@@ -4,6 +4,8 @@ const formatNumber = require('../../../helpers/formatNumber.js');
 
 module.exports = {
     getPrice(currentLevel) {
+        if (currentLevel >= 250) return Math.round((currentLevel+1)**(4.2 * currentLevel/250));
+
         return Math.round((currentLevel+1)**4.2);
     },
     getDetails() {

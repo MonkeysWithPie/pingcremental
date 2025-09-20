@@ -20,7 +20,7 @@ module.exports = {
     getEffect(level, context) {
         return {
             special: {
-                "pip": ((level ? level : 0)*0.25) + 1,
+                pipMult: ((level ? level : 0)*0.25) + 1,
             },
         }
     },

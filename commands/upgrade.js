@@ -82,7 +82,8 @@ module.exports = {
                 });
             }
 
-            if (removed === 0) {
+            // minimum 1 because of pingularity
+            if (removed <= 1) {
                 await awardBadge(interaction.user.id, 'purity', interaction.client);
                 await interaction.followUp({ content: "*you've brought yourself back to eternity... without your earthly possessions. impressive.*", flags: MessageFlags.Ephemeral });
             }

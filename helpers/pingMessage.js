@@ -444,6 +444,8 @@ function get(ping, context) {
         "just a ping. nothing behind it. nothing at all. probably",
         "this ping is right behind you, watch out",
         "nya mrrp mrrow :3",
+        "honestly quite incredible", // (honestly quite incredible)
+        "hello everybody, my name is multiplier",
 
         // command-related
         `you should check out our ${getEmbeddedCommand('ping')} command at some point`,

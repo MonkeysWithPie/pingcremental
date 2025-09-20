@@ -85,7 +85,7 @@ module.exports = {
                 desc += `\n**owned pip**: ${formatNumber(breakdown.pip)} (2 per every digit in your owned pip)`;
             }
             if (breakdown.eternities) {
-                desc += `\n**eternities**: ${formatNumber(breakdown.eternities)} (1 per every every eternity beyond the requirement, up to 15)`;
+                desc += `\n**eternities**: ${formatNumber(breakdown.eternities)} (1 per every eternity beyond the requirement, up to 15)`;
             }
             if (breakdown.tears) {
                 desc += `\n**previous tears**: ${formatNumber(breakdown.tears)} (3 per every previous tear, up to 30)`;

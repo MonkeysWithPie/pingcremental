@@ -1,4 +1,5 @@
 const { getEmbeddedCommand } = require('./embedCommand.js');
+const { getEmoji } = require('./emojis.js');
 
 function get(ping, context) {
     // base messages
@@ -445,7 +446,6 @@ function get(ping, context) {
         "this ping is right behind you, watch out",
         "nya mrrp mrrow :3",
         "honestly quite incredible", // (honestly quite incredible)
-        "hello everybody, my name is multiplier",
 
         // command-related
         `you should check out our ${getEmbeddedCommand('ping')} command at some point`,
@@ -473,7 +473,7 @@ function get(ping, context) {
         "silksong is real",
         "don't forget to take a Short Hike every now and then",
         "'One day, somewhere in the future, my work will be quoted!' - minecraft splash screen",
-        context.user ? `${context.user.username.toUpperCase()} IS YOU AND WIN` : "EMPTY IS YOU AND DEFEAT",
+        context.user ? `${context.user.username.toUpperCase()} IS YOU AND WIN` : "EMPTY IS YOU",
         "somewhere, it's raining cats",
         "shouldn't have gone to med school",
         "i just climbed on a plant and it ate me alive. makes sense",
@@ -489,9 +489,9 @@ function get(ping, context) {
         "did that ping just... launch me into space?",
         "you're filled with determination, and",
         "the ping understands you. it refuses to fight",
-        "* you feel your latency crawling on your back",
+        "\\* you feel your latency crawling on your back",
         "i spared the ping. it didn't spare me",
-        "\* the ping is sparing you. mercy?",
+        "\\* the ping is sparing you. mercy?",
         "SOUL not required, just milliseconds",
         "hornet would've dodged this ping",
         "this lag is a test of resolve, little bug",
@@ -501,6 +501,12 @@ function get(ping, context) {
         "wait, how did this ping get Xmult?",
         "ping recruited 1 new millisecond",
         "this ping feels like a big shot",
+        "hello everybody, my name is multiplier",
+        "yo i'm feinberg",
+        "did you know the longest 5-letter word is \"twelfth\"?",
+        `${getEmoji("ping")} You rescued a **Latency**! Hey, wait...`,
+        "the only celery i know is made up of three furries, is that normal",
+        "PING, WHERE THE HELL ARE WE",
     ]
 
     if (new Date().getMonth() === 1 && new Date().getDate() >= 9 && new Date().getDate() <= 19) {

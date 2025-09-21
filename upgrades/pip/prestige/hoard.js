@@ -25,7 +25,7 @@ module.exports = {
         if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity\'s Welcome'" };
         return { showable: true, buyable: true };
     },
-    sortOrder() { return 402 },
+    sortOrder() { return 405 },
     type() { return PipUpgradeTypes.PRESTIGE },
     section() { return PingCalculationStates.SCORING; }
 }

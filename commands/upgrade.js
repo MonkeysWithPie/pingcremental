@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, InteractionContextType, MessageFlags, flatten, ModalBuilder, TextInputAssertions, TextInputBuilder, TextInputStyle } = require('discord.js');
-const { upgrades } = require('./../helpers/upgrades.js')
+const { upgrades, rawUpgrades } = require('./../helpers/upgrades.js')
 const { getEmbeddedCommand } = require('./../helpers/embedCommand.js');
 const database = require('./../helpers/database.js');
 const { UpgradeTypes } = require('./../helpers/commonEnums.js');
@@ -36,8 +36,12 @@ module.exports = {
             playerData.removedUpgrades += removed;
 
             let gainedPip = playerData.bp;
-            if (playerData.prestigeUpgrades.telepathy) gainedPip *= upgrades['pip']['telepathy'].getEffect(playerData.prestigeUpgrades.telepathy).special.pipMult;
-            if (playerData.equippedFabrics.eternityFab) gainedPip *= upgrades['fabrics']['eternityFab'].getEffect(playerData.equippedFabrics.eternityFab).special.pipMult;
+            if (playerData.prestigeUpgrades.telepathy) {
+                gainedPip *= rawUpgrades['telepathy'].getEffect(playerData.prestigeUpgrades.telepathy).special.pipMult;
+            }
+            if (playerData.equippedFabrics.eternityFab) {
+                gainedPip *= rawUpgrades['eternityFab'].getEffect(playerData.equippedFabrics.eternityFab).special.pipMult;
+            }
             gainedPip = Math.floor(gainedPip);
 
             playerData.upgrades = {};
@@ -47,7 +51,7 @@ module.exports = {
             playerData.slumberClicks = 0;
 
             playerData.pip += gainedPip;
-            playerData.totalPip += playerData.pip;
+            playerData.totalPip += gainedPip;
             playerData.bp = 0;
             playerData.eternities++;
             playerData.totalEternities++;

@@ -4,23 +4,23 @@ const { unlockRequirements: storageUnlockRequirements } = require('./storage.js'
 
 module.exports = {
     getPrice(currentLevel) {
-        return 1000 ** (3 * currentLevel);
+        return Math.round(200 ** ((1.5 * currentLevel) + 1));
     },
     getDetails() {
         return {
-            description: "gain __^1.02__ max bp",
+            description: "gain __^1.06__ max bp",
             name: "Interstellar Expansion",
-            emoji: getEmoji('ponder_expostorage'),
+            emoji: getEmoji('ponder_expostorage', "🌌"),
             flavor: "carry the weight of galaxies.",
         }
     },
     getEffectString(level) {
-        return `^${(1.02**level).toFixed(3)}`;
+        return `^${((level*0.06) + 1).toFixed(2)}`;
     },
     getEffect(level, context) {
         return {
             special: {
-                bpStorageExp: 1 + (0.02 * level),
+                bpStorageExp: 1 + (0.06 * level),
             }
         }
     },
@@ -32,6 +32,6 @@ module.exports = {
 
     },
     sortOrder() { return 403 },
-    type() { return PipUpgradeTypes.MISC },
+    type() { return PipUpgradeTypes.PRESTIGE },
     section() { return 0; }
 }

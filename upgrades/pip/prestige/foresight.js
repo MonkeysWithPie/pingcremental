@@ -28,7 +28,7 @@ module.exports = {
         if (stardustLevel < 2) return { showable: true, buyable: false, reason: `'Stardust' ${stardustLevel}/2` };
         return { showable: true, buyable: true };
     },
-    sortOrder() { return 405 }, // upgrade IS found (i'm not using 404 to spite you)
+    sortOrder() { return 406 },
     type() { return PipUpgradeTypes.PRESTIGE },
     section() { return PingCalculationStates.POST_SCORING; }
 }

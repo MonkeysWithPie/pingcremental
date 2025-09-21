@@ -14,7 +14,7 @@ module.exports = {
         }
     },
     getEffectString(level) {
-        return `x${((level * 0.25) + 1).toFixed(3)}`;
+        return `x${((level * 0.25) + 1).toFixed(2)}`;
     },
     getEffect(level, context) {
         return { special: { bpStorageMult: ((level ? level : 0) * 0.25) + 1 } }

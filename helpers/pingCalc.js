@@ -364,6 +364,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         bpMax *= rawUpgrades['eternityFab'].getEffect(playerProfile.equippedFabrics.eternityFab, context).special.bpStorageMult;
     }
     if (playerProfile.prestigeUpgrades.storage) bpMax *= rawUpgrades['storage'].getEffect(playerProfile.prestigeUpgrades.storage, context).special.bpStorageMult;
+    if (playerProfile.prestigeUpgrades.expostorage) bpMax = Math.pow(bpMax, rawUpgrades['expostorage'].getEffect(playerProfile.prestigeUpgrades.expostorage, context).special.bpStorageExp);
     bpMax = Math.round(bpMax);
 
     // move all the spare stuff into currentEffects so it's nice and organized

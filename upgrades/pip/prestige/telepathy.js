@@ -30,7 +30,7 @@ module.exports = {
         if (storageLevel < 2) return { showable: true, buyable: false, reason: `'Stellar Strength' ${storageLevel}/2` };
         return { showable: true, buyable: true };
     },
-    sortOrder() { return 403 },
+    sortOrder() { return 402 },
     type() { return PipUpgradeTypes.PRESTIGE },
     section() { return 0; }
 }

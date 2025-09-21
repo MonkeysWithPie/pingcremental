@@ -22,7 +22,7 @@ module.exports = {
             multiply: 1,
         }
     },
-    unlockRequirements() {
+    unlockRequirements(context) {
         return {
             showable: true,
             buyable: false,

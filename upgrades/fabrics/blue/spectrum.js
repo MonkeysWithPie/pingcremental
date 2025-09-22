@@ -8,7 +8,7 @@ module.exports = {
         return {
             description: 
 `adds **40%** blue ping chance.
-"blueshift" adds a compounding **x1.2** blue ping multiplier instead of adding blue ping chance.`,
+"blueshift" adds **+50%** blue ping multiplier instead of adding blue ping chance.`,
             name: "Spectrum Fabric",
             emoji: "🏳️‍🌈",
         }
@@ -16,7 +16,7 @@ module.exports = {
     getEffect(_level, context) {
         return {
             blue: 40 - (context.upgrades?.blueshift ? 0.6 * context.upgrades.blueshift : 0),
-            blueStrength: (context.upgrades?.blueshift ? 1.2 ** context.upgrades.blueshift : 1) - 1,
+            blueStrength: (context.upgrades?.blueshift ? 0.5 * context.upgrades.blueshift : 1),
         }
     },
     type() { return FabricUpgradeTypes.BLUE_PING },

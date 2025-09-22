@@ -8,6 +8,17 @@ const formatNumber = require('./../helpers/formatNumber.js');
 const { getTearRequirement } = require('./weave.js');
 const { getEmoji } = require('../helpers/emojis.js');
 
+function getEternityPip(playerProfile) {
+    let gainedPip = playerProfile.bp;
+    if (playerProfile.prestigeUpgrades.telepathy) {
+        gainedPip *= rawUpgrades['telepathy'].getEffect(playerProfile.prestigeUpgrades.telepathy).special.pipMult;
+    }
+    if (playerProfile.equippedFabrics.eternityFab) {
+        gainedPip *= rawUpgrades['eternityFab'].getEffect(playerProfile.equippedFabrics.eternityFab).special.pipMult;
+    }
+    return Math.floor(gainedPip);
+}
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('upgrade')
@@ -35,14 +46,7 @@ module.exports = {
             }
             playerData.removedUpgrades += removed;
 
-            let gainedPip = playerData.bp;
-            if (playerData.prestigeUpgrades.telepathy) {
-                gainedPip *= rawUpgrades['telepathy'].getEffect(playerData.prestigeUpgrades.telepathy).special.pipMult;
-            }
-            if (playerData.equippedFabrics.eternityFab) {
-                gainedPip *= rawUpgrades['eternityFab'].getEffect(playerData.equippedFabrics.eternityFab).special.pipMult;
-            }
-            gainedPip = Math.floor(gainedPip);
+            const gainedPip = getEternityPip(playerData);
 
             playerData.upgrades = {};
             playerData.score = 0;
@@ -169,12 +173,11 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
             if (upgradeId === 'eternity') {
                 await interaction.update(await getEditMessage(interaction, upgradeClass.type(), displaySetting)); 
                 if (playerData.bp < 10000) { return await interaction.followUp({ content: `*you shouldn't be here, yet.*`, flags: MessageFlags.Ephemeral }) }
-                const mult = upgrades['pip']['telepathy'].getEffect(playerData.prestigeUpgrades.telepathy).special.pip;
                 return await interaction.followUp({
                     content: 
 `*Eternity calls for you, but you must make sure you're ready.*
 ***are you?***
--# this will **reset** your current upgrades, \`pts\`, and clicks and give you __${formatNumber(Math.floor(playerData.bp*mult))} PIP__ from your __\`${formatNumber(playerData.bp)} BP\`__.`,
+-# this will **reset** your current upgrades, \`pts\`, and clicks and give you __${formatNumber(getEternityPip(playerData))} PIP__ from your __\`${formatNumber(playerData.bp)} BP\`__.`,
                     components: [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder()

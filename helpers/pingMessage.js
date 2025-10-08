@@ -794,8 +794,11 @@ function get(ping, context) {
         ]
     }
 
+    // prevents blue messages showing really frequently
+    const allowBlueMessages = (context.blueCombo || 0) <= 2 || !context.spawnedSuper || Math.random() * 100 <= 20;
+
     // blue ping just spawned
-    if (context.spawnedSuper) {
+    if (context.spawnedSuper && allowBlueMessages) {
         messagesList = [
             `hey, look at that!`,
             `whoa... it's blue now!?`,
@@ -859,7 +862,7 @@ function get(ping, context) {
     }
 
     // blue ping just clicked
-    if (context.isSuper) {
+    if (context.isSuper && allowBlueMessages) {
         const mult = (15 * (context.blueStrength)).toFixed(2);
         messagesList = [
             `that's a lot of \`pts\`!`,

@@ -4,7 +4,7 @@ const formatNumber = require('../../../helpers/formatNumber.js');
 
 module.exports = {
     getPrice(currentLevel) {
-        return Math.round(123456 * (currentLevel + 1) ** (3 + currentLevel/1000));
+        return Math.round((123456 * (currentLevel+1)**3) * 1.0002 ** currentLevel);
     },
     getDetails() {
         return {

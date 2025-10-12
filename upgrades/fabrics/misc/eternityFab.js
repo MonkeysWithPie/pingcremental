@@ -22,7 +22,6 @@ gain **x1.5** pip.`,
                 bpStorageMult: 2,
                 pipMult: 1.5,
             },
-            exponent: 0.95,
         }
     },
     type() { return FabricUpgradeTypes.MISC },

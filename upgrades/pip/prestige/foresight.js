@@ -8,18 +8,22 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "gain 2.5 bp for every 1 million pts in your ping (rounded up)",
+            description: "gain bp based on the amount of `pts` gained in a ping (softcapped)",
             name: "Foresight",
             emoji: getEmoji('ponder_foresight', "🔮"),
             flavor: "know before you go.",
         }
     },
     getEffectString(level) {
-        return `+${(2.5*level).toFixed(1)} bp`
+        return `x${level} bp`
     },
     getEffect(level, context) {
+        const nonCapped = level * context.score / 1e6;
+        if (nonCapped < 1000) return { bp: Math.ceil(nonCapped * 2.5) };
+        const capped = 1000 + (nonCapped - 1000)**0.8;
+
         return {
-            bp: Math.ceil(level * 2.5 * context.score / 1e6),
+            bp: Math.ceil(capped * 2.5),
         }
     },
     unlockRequirements(context) {

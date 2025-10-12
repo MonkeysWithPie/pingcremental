@@ -77,7 +77,7 @@ async function doAutoping(interaction, count) {
         });
     }
 
-    const player = await database.Player.findByPk(interaction.user.id);
+    let player = await database.Player.findByPk(interaction.user.id);
 
     let pings;
     if (count === "all") {
@@ -174,6 +174,9 @@ async function doAutoping(interaction, count) {
 
     const endTime = process.hrtime.bigint();
 
+    // re-fetch in case stats changed while autoping was active
+    player = await database.Player.findByPk(interaction.user.id);
+
     // wow that's a lot of stats
     player.apt -= pings;
 
@@ -196,7 +199,6 @@ async function doAutoping(interaction, count) {
 
     await player.save();
     await refreshAPT(player);
-
 
     let finalDescription =
         `**${formatNumber(pings)}** pings completed, which...

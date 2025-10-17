@@ -19,7 +19,7 @@ module.exports = {
     },
     getEffect(level, context) {
         return {
-            special: { "bully": context.spawnedSuper },
+            special: { "bully": true },
         }
     },
     unlockRequirements(context) {

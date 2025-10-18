@@ -13,7 +13,8 @@ function formatNumber(num, shortHand = false, decimalPlaces = 2) {
                       'Sxg', 'USxg', 'DSxg', 'TSxg', 'QaSxg', 'QiSxg', 'SxSxg', 'SpSxg', 'OcSxg', 'NoSxg', // 10^210
                       'Spg', 'USpg', 'DSpg', 'TSpg', 'QaSpg', 'QiSpg', 'SxSpg', 'SpSpg', 'OcSpg', 'NoSpg', // 10^240
                       'Ocg', 'UOcg', 'DOcg', 'TOcg', 'QaOcg', 'QiOcg', 'SxOcg', 'SpOcg', 'OcOcg', 'NoOcg', // 10^270
-                      'Nog', 'UNog', 'DNog', 'TNog', 'QaNog', 'QiNog', 'SxNog', 'SpNog', 'OcNog', 'NoNog'];  // 10^300
+                      'Nog', 'UNog', 'DNog', 'TNog', 'QaNog', 'QiNog', 'SxNog', 'SpNog', 'OcNog', 'NoNog' // 10^300
+                      'Ce', 'UCe', 'DCe']; // 10^309
 
     //get magnitude
     const magnitude = Math.floor(Math.log10(num));

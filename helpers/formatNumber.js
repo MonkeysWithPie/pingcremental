@@ -19,8 +19,7 @@ function formatNumber(num, shortHand = false, decimalPlaces = 2) {
     //get magnitude
     const magnitude = Math.floor(Math.log10(num));
 
-    //if number is above e100 then just use exponent
-    if (magnitude >= 100) {
+    if (magnitude >= suffixes.length * 3) {
         return num.toExponential(decimalPlaces);
     }
 

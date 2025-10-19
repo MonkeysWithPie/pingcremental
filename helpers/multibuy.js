@@ -1,3 +1,5 @@
+import { MessageFlags } from "discord.js";
+
 function getMultiBuyCost(buySetting, upgrade, score, playerUpgradeLevel) {
     let price = 0;
     let levels = 0;

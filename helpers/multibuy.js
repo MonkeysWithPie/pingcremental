@@ -1,4 +1,4 @@
-import { MessageFlags } from "discord.js";
+const { MessageFlags } = require("discord.js");
 
 function getMultiBuyCost(buySetting, upgrade, score, playerUpgradeLevel) {
     let price = 0;

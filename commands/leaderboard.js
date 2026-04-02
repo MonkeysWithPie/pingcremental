@@ -2,7 +2,6 @@ const { SlashCommandBuilder, EmbedBuilder, InteractionContextType, ButtonBuilder
 const database = require('./../helpers/database.js')
 const formatNumber = require('./../helpers/formatNumber.js');
 const { getEmoji } = require('../helpers/emojis.js');
-const { Sequelize } = require('sequelize');
 
 let leaderboardTypes = null;
 
@@ -22,7 +21,7 @@ module.exports = {
         }),
         ac: (async (interaction, leaderboard) => {
             await interaction.deferUpdate();
-            await interaction.editReply(await getMessage(interaction, leaderboard, !isAutoclickerShown(interaction.message.components)));
+            await interaction.editReply(await getMessage(interaction, leaderboard));
         })
     },
     dropdowns: {
@@ -34,28 +33,14 @@ module.exports = {
     }
 }
 
-function isAutoclickerShown(components) {
-    return components[0].components[1].label.endsWith('shown');
-}
-
-async function getMessage(interaction, leaderboardType, autoclickOverride = null) {
+async function getMessage(interaction, leaderboardType) {
     if (!leaderboardTypes) initTypes();
     if (!leaderboardType) leaderboardType = "totalScore";
-
-    let showAutoclicker;
-    if (autoclickOverride !== null) showAutoclicker = autoclickOverride;
-    else if (!interaction.message) {
-        const [playerProfile, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
-        showAutoclicker = playerProfile.settings.usesAutoclicker === 'yes';
-    } else {
-        showAutoclicker = isAutoclickerShown(interaction.message.components);
-    }
 
     let description = "";
     const topPlayers = await database.Player.findAll({
         order: [[leaderboardType, 'DESC']], // highest first
         attributes: ['userId', leaderboardType], // only get userId and totalScore
-        where: showAutoclicker ? {} : Sequelize.literal(`JSON_EXTRACT(settings, '$.usesAutoclicker') IS NOT 'yes'`)
     })
 
     const leaderboardEmojis = []
@@ -110,13 +95,8 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
         .setCustomId(`leaderboard:refresh-${leaderboardType}`)
         .setLabel('refresh')
         .setStyle(ButtonStyle.Secondary)
-    const autoclickButton = new ButtonBuilder()
-        .setCustomId(`leaderboard:ac-${leaderboardType}`)
-        .setLabel(`${showAutoclicker ? 'shown' : 'hidden'}`)
-        .setStyle(ButtonStyle.Secondary)
-        .setEmoji(getEmoji('autoclicker'))
     const row = new ActionRowBuilder()
-        .addComponents(refreshButton, autoclickButton)
+        .addComponents(refreshButton)
 
     const select = new StringSelectMenuBuilder()
         .setCustomId(`leaderboard:select`)

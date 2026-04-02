@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags } = require('discord.js');
 const pingMessages = require('./../helpers/pingMessage.js')
 const ownerId = process.env.OWNER_ID
 const formatNumber = require('./../helpers/formatNumber.js')
@@ -6,25 +6,6 @@ const ping = require('./../helpers/pingCalc.js');
 const awardBadge = require('../helpers/awardBadge.js');
 const { getEmbeddedCommand } = require('../helpers/embedCommand.js');
 const database = require('../helpers/database.js');
-
-const recentPingCache = {};
-const checkinDisableList = {};
-const shutoutList = {};
-
-const RECENT_PING_THRESHOLD = 2500;
-const VERIFICATION_TIMEOUT = 1000 * 60 * 2; // 2 mins
-const CHECKIN_DISABLE_TIME = 1000 * 60 * 10; // 10 mins
-const BLOCK_DURATION = 1000 * 60 * 60 * 2; // 2 hours
-
-// don't leak memory! isn't that smart
-setInterval(() => {
-    const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
-    for (const [userId, lastPingTime] of Object.entries(recentPingCache)) {
-        if (lastPingTime < tenMinutesAgo) {
-            delete recentPingCache[userId];
-        }
-    }
-}, 10 * 60 * 1000);
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -59,21 +40,7 @@ module.exports = {
         }),
         "unknown": (async interaction => {
             await interaction.reply({ content: "unknown ping occurs when the bot just restarted. either something has gone horribly wrong, or something was changed! maybe some new stuff was added, maybe a bug was fixed. you can check the [github](<https://github.com/MonkeysWithPie/pingcremental/>) if you're curious. if you wait a few seconds, the ping will come back to normal.", flags: MessageFlags.Ephemeral })
-        }),
-        "alive": (async interaction => {
-            if (Date.now() > shutoutList[interaction.user.id]) {
-                return await interaction.update({
-                    content: "bad news... you were too slow. check the ping message for more details.",
-                    components: [],
-                    embeds: [],
-                });
-            }
-            delete shutoutList[interaction.user.id]; 
-            delete recentPingCache[interaction.user.id];
-            checkinDisableList[interaction.user.id] = Date.now() + CHECKIN_DISABLE_TIME;
-
-            await interaction.update({ content: "thanks for checking in!", components: [], embeds: [] });
-        }),
+        })
     }
 };
 
@@ -95,30 +62,6 @@ async function pingResponse(interaction, isSuper = false) {
                     .setStyle(ButtonStyle.Secondary))
             ],
         })
-    }
-
-    if (shutoutList[interaction.user.id] && Date.now() > shutoutList[interaction.user.id]) {
-        const allowTime = shutoutList[interaction.user.id] + BLOCK_DURATION;
-        if (allowTime < Date.now()) { // blockout is over
-            delete shutoutList[interaction.user.id];
-            delete recentPingCache[interaction.user.id];
-        } else {
-            return await interaction.update({
-                components: [],
-                embeds: [new EmbedBuilder()
-                    .setColor("#c92222")
-                    .setTitle('autoclicking detected...')
-                    .setDescription(`
-sorry, but it seems like you were autoclicking, which is **against the rules** when you're not opted in. 
-if this was a mistake, it's best to wait it out. maybe you could go out for a walk? (it really is nice! i did it once, like, five months ago.)
-if you were using an autoclicker, you can avoid timeouts like these in the future with ${getEmbeddedCommand('settings')}.
-
-you can ping again **<t:${Math.floor(allowTime/1000)}:R>**. *(you'll need to run /ping again.)*`
-                    )
-                ],
-                content: ""
-            })   
-        }
     }
 
     if (interaction.client.ws.ping === -1 && !developmentMode) { // bot just restarted
@@ -298,56 +241,6 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
         } else {
             throw error; // rethrow if not automod 
         }
-    }
-
-    // autoclicker check
-    const last = playerProfile.lastPing || 0;
-    if ((last > 0 && Date.now() - last < RECENT_PING_THRESHOLD) && checkinDisableList[interaction.user.id] < Date.now() && !(playerProfile.settings.usesAutoclicker === 'yes')) { 
-        recentPingCache[interaction.user.id] = (recentPingCache[interaction.user.id] || 0) + 1;
-        const recentPings = recentPingCache[interaction.user.id];
-
-        if (recentPings >= 100 && (Math.random() < 0.001) && !shutoutList[interaction.user.id]) {
-            shutoutList[interaction.user.id] = Date.now() + VERIFICATION_TIMEOUT;
-
-            const userAliveEmbed = new EmbedBuilder()
-                .setColor("#b97f11")
-                .setTitle('you still there?')
-                .setDescription(
-`just making sure you're still paying attention! 
-you have until **<t:${Math.floor((shutoutList[interaction.user.id] / 1000))}:R>** to respond to this message by clicking the button below.
-
--# if you want to use an autoclicker, please opt in using ${getEmbeddedCommand('settings')}.
--# don't worry if you've come across this normally, there's no penalty unless you don't respond!`)
-
-            const row = new ActionRowBuilder()
-            const leftPad = Math.floor((Math.random() * 4) + 1); // random left padding
-            for (let i = 0; i < leftPad; i++) {
-                row.addComponents(new ButtonBuilder()
-                    .setCustomId(`ping:align${i}`)
-                    .setLabel('-->')
-                    .setStyle(ButtonStyle.Secondary)
-                    .setDisabled(true));
-            }
-            row.addComponents(new ButtonBuilder()
-                .setCustomId('ping:alive')
-                .setLabel('yep!')
-                .setStyle(ButtonStyle.Secondary));
-            for (let i = leftPad + 1; i < 5; i++) {
-                row.addComponents(new ButtonBuilder()
-                    .setCustomId(`ping:align${i}`)
-                    .setLabel('<--')
-                    .setStyle(ButtonStyle.Secondary)
-                    .setDisabled(true));
-            }
-
-            await interaction.followUp({
-                embeds: [userAliveEmbed],
-                components: [row],
-                flags: MessageFlags.Ephemeral
-            })
-        }
-    } else {
-        delete recentPingCache[interaction.user.id];
     }
 
     if (currentEffects.rare) {

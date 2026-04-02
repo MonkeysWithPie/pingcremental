@@ -7,7 +7,7 @@ module.exports = {
     getDetails() {
         return {
             description: 
-`gain **^1.01** pts per blue ping in a chain, up to a max of **^1.5** (e.g. 2 in a row gives ^1.02 pts).
+`gain **^1.01** pts per blue ping in a chain, up to a max of **^1.4** (e.g. 2 in a row gives ^1.02 pts).
 increases the blue ping chance after another blue ping by **10%** (NOT bypassing the cap).`,
             name: "Cascading Fabric",
             emoji: "🌊",
@@ -16,7 +16,7 @@ increases the blue ping chance after another blue ping by **10%** (NOT bypassing
     getEffect(_level, context) {
         if (context.blueCombo > 0) {
             return {
-                exponent: Math.min(1 + (0.01 * context.blueCombo), 1.5),
+                exponent: Math.min(1 + (0.01 * context.blueCombo), 1.4),
                 blue: 10,
             }
         }

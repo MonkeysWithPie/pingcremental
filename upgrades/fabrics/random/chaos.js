@@ -28,7 +28,7 @@ module.exports = {
         }
         else if (roll < 56) {
             return {
-                exponent: (1 + (seed.next() * 0.15)) ** level,
+                exponent: (1 + (seed.next() * 0.25)) ** level,
             }
         }
         else if (roll < 70) {

@@ -6,7 +6,7 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "rare pings give a bonus **^1.3** pts.",
+            description: "rare pings give a bonus **^1.25** pts.",
             name: "Elusive Fabric",
             emoji: "💍",
         }
@@ -14,7 +14,7 @@ module.exports = {
     getEffect(level, context) {
         if (context.rare) {
             return {
-                exponent: 1.3 ** level,
+                exponent: 1.25 ** level,
             }
         }
 

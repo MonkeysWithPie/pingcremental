@@ -9,7 +9,7 @@ module.exports = {
             description: 
 `makes slumber only take **1 minute** per charge.
 increases the maximum amount of slumber charges to **300**.
-adds an additional **x15** multiplier to slumber (e.g. x1.1 \\* x15 = x16.5 total multiplier).`,
+slumber gives a **^1.03** bonus per level in addition to its multiplier (e.g. ^1.06 at level 2).`,
             name: "Soporific Fabric",
             emoji: "🛌",
         }

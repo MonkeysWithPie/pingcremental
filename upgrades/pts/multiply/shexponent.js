@@ -2,7 +2,7 @@ const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/common
 
 module.exports = {
     getPrice(currentLevel) {
-        return Math.round(1000 * (100 ** (currentLevel ** 1.2)));
+        return Math.round(1000 * (100 ** (currentLevel ** 1.25)));
     },
     getDetails() {
         return {

@@ -8,10 +8,10 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "gain __^1.06__ max bp",
+            description: "increase your max bp by __^1.06__",
             name: "Interstellar Expansion",
             emoji: getEmoji('ponder_expostorage', "🌌"),
-            flavor: "carry the weight of galaxies.",
+            flavor: "carry the weight of entire galaxies.",
         }
     },
     getEffectString(level) {

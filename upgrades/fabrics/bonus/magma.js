@@ -6,7 +6,7 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "gives a **x0.4** debuff, then grants a **^1.2** bonus.",
+            description: "gives a **x0.4** debuff, then grants a **^1.15** bonus.",
             name: "Magmatic Fabric",
             emoji: "🌋",
         }
@@ -14,7 +14,7 @@ module.exports = {
     getEffect(level) {
         return {
             multiply: 0.4 ** level,
-            exponent: 1.2 ** level,
+            exponent: 1.15 ** level,
         }
     },
     type() { return FabricUpgradeTypes.FLAT_BONUS },

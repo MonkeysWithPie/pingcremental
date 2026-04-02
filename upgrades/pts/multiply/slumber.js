@@ -39,7 +39,8 @@ module.exports = {
 
         if (clicks > 0) {
             return {
-                multiply: (1 + (level * 0.1)) * (context.specials.superSlumber ? 15 : 1),
+                multiply: 1 + (level * 0.1),
+                exponent: context.specials.superSlumber ? (1 + (level * 0.03)) : 1,
                 special: { "slumber": clicks - context.slumberClicks - 1 },
                 message: `(${clicks} left)`,
             }

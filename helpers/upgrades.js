@@ -3,7 +3,7 @@ const path = require('path');
 
 const upgradeFolderPath = path.join(__dirname, '../upgrades');
 const upgradeCurrencyFolders = fs.readdirSync(upgradeFolderPath);
-var list = {}; // list of all upgrades
+const list = {}; // list of all upgrades
 
 for (const folder of upgradeCurrencyFolders) {
     list[folder] = {}; // Initialize the folder in the list
@@ -22,7 +22,7 @@ for (const folder of upgradeCurrencyFolders) {
     }
 }
 
-var sortedList = {}; // sorted list of all upgrades
+const sortedList = {}; // sorted list of all upgrades
 for (const folder of Object.keys(list)) {
     sortedList[folder] = {}; // Initialize the folder in the sorted list
     sortedList[folder] = Object.entries(list[folder])
@@ -39,7 +39,7 @@ for (const folder of Object.keys(list)) {
         }, {});
 }
 
-var rawUpgrades = {}; // raw list of all upgrades
+const rawUpgrades = {}; // raw list of all upgrades
 for (const folder of Object.keys(list)) {
     for (const upgrade of Object.keys(list[folder])) {
         rawUpgrades[upgrade] = list[folder][upgrade];

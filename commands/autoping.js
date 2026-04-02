@@ -114,7 +114,7 @@ async function doAutoping(interaction, count) {
     let updateEmbedEvery = Math.ceil(pings / (4 + (Math.random() * Math.log10(pings))));
     if (updateEmbedEvery <= 1) updateEmbedEvery = pings;
 
-    let pingDataTotal = {
+    const pingDataTotal = {
         score: 0,
         highestScore: 0,
         worstScore: Infinity,
@@ -271,7 +271,7 @@ missed **${pingDataTotal.bluesMissed}** blue ping${pingDataTotal.bluesMissed ===
 }
 
 async function getAutopingEmbed(interaction) {
-    const [player, _created] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
+    const [player,] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
 
     await refreshAPT(player);
 

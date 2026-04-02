@@ -15,12 +15,12 @@ module.exports = {
     getEffectString(level) {
         return `+${level} \`pts\``
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             add: level
         }
     },
-    unlockRequirements(context) {
+    unlockRequirements() {
         return { showable: true, buyable: true };
     },
     sortOrder() { return 1 },

@@ -13,7 +13,7 @@ function getMultiplier(level) {
 
 module.exports = {
     getPrice(currentLevel) {
-        let origPrice = 888 * (2.6**(currentLevel)) // split for sake of being readable
+        const origPrice = 888 * (2.6**(currentLevel)) // split for sake of being readable
         return Math.round(origPrice/1000)*1000 + 888
     },
     getDetails() {

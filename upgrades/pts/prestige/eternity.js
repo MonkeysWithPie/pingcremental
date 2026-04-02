@@ -16,8 +16,8 @@ module.exports = {
     getEffectString(level) {
         return level === 1 ? "released" : `constrained`
     },
-    getEffect(level, context) {
-        return {} // nothing; effect is elsewhere
+    getEffect() {
+        return {}
     },
     unlockRequirements(context) {
         if (!context.upgrades.pingularity) return { showable: false };

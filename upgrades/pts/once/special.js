@@ -21,7 +21,7 @@ module.exports = {
             message: context.rare ? "WHOA!" : null,
         }
     },
-    unlockRequirements(context) {
+    unlockRequirements() {
         return { showable: true, buyable: true };
     },
     sortOrder() { return 100 },

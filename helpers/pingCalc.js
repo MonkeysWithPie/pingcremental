@@ -21,7 +21,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         // console.log("using prefetched profile");
         playerProfile = overrides.cache.profile;
     } else {
-        [playerProfile, _created] = await database.Player.findOrCreate({ where: { userId: overrides.userId || interaction.user.id } })
+        [playerProfile, ] = await database.Player.findOrCreate({ where: { userId: overrides.userId || interaction.user.id } })
     }
 
     measureTimeSegment("profile fetch")
@@ -162,7 +162,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     currentEffects.blue = Math.min(currentEffects.blue, currentEffects.blueCap, 90); // hard cap at 90% chance or whatever the blue cap is
 
     if (isSuper) {
-        let blueStrength = (currentEffects.blueStrength) * 15;
+        const blueStrength = (currentEffects.blueStrength) * 15;
         currentEffects.mults.push(blueStrength);
         if (pingFormat === "expanded") {
             displays.mult.push(`${getEmoji('upgrade_blue')} __\`x${blueStrength.toFixed(2)}\`__`)
@@ -222,8 +222,6 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         const upgradeClass = rawUpgrades[upgradeId];
         effect = upgradeClass.getEffect(level,context);
 
-        let effectString = upgradeClass.getDetails().emoji;
-
         // apply effects where appropriate
         if (effect.add && effect.add !== 0) {
             score += effect.add;
@@ -244,7 +242,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
             context.specials = currentEffects.specials;
         }
 
-        effectString = formatEffect(effect, upgradeClass, pingFormat);
+        const effectString = formatEffect(effect, upgradeClass, pingFormat);
 
         // add to display
         if (effectString) {
@@ -353,18 +351,18 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         context.state = PingCalculationStates.NON_REPEAT_FINISH;
         for (const [upgradeId, level] of Object.entries(allUpgrades[context.state])) {
             const upgradeClass = rawUpgrades[upgradeId];
-            effect = upgradeClass.getEffect(level, context);
+            upgradeClass.getEffect(level, context);
         }
     }
     
     let bpMax = 10000;
-    if (playerProfile.upgrades.limit) bpMax += rawUpgrades['limit'].getEffect(playerProfile.upgrades.limit, context).special.bpExtraStorage;
+    if (playerProfile.upgrades.limit) bpMax += rawUpgrades.limit.getEffect(playerProfile.upgrades.limit, context).special.bpExtraStorage;
     if (playerProfile.equippedFabrics.eternityFab) {
-        bpMax += rawUpgrades['eternityFab'].getEffect(playerProfile.equippedFabrics.eternityFab, context).special.bpExtraStorage;
-        bpMax *= rawUpgrades['eternityFab'].getEffect(playerProfile.equippedFabrics.eternityFab, context).special.bpStorageMult;
+        bpMax += rawUpgrades.eternityFab.getEffect(playerProfile.equippedFabrics.eternityFab, context).special.bpExtraStorage;
+        bpMax *= rawUpgrades.eternityFab.getEffect(playerProfile.equippedFabrics.eternityFab, context).special.bpStorageMult;
     }
-    if (playerProfile.prestigeUpgrades.storage) bpMax *= rawUpgrades['storage'].getEffect(playerProfile.prestigeUpgrades.storage, context).special.bpStorageMult;
-    if (playerProfile.prestigeUpgrades.expostorage) bpMax = Math.pow(bpMax, rawUpgrades['expostorage'].getEffect(playerProfile.prestigeUpgrades.expostorage, context).special.bpStorageExp);
+    if (playerProfile.prestigeUpgrades.storage) bpMax *= rawUpgrades.storage.getEffect(playerProfile.prestigeUpgrades.storage, context).special.bpStorageMult;
+    if (playerProfile.prestigeUpgrades.expostorage) bpMax = Math.pow(bpMax, rawUpgrades.expostorage.getEffect(playerProfile.prestigeUpgrades.expostorage, context).special.bpStorageExp);
     bpMax = Math.round(bpMax);
 
     // move all the spare stuff into currentEffects so it's nice and organized

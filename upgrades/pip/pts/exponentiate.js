@@ -17,14 +17,14 @@ module.exports = {
     getEffectString(level) {
         return `^${((level*0.02)+1).toFixed(2)}`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             exponent: (level*0.02) + 1,
         }
     },
     unlockRequirements(context) {
         if (!(sacrificeUnlockRequirements(context).buyable)) return { showable: false };
-        let sacrificeUpgradeLevel = context.upgrades.sacrifice || 0;
+        const sacrificeUpgradeLevel = context.upgrades.sacrifice || 0;
         if (sacrificeUpgradeLevel < 2) return { showable: true, buyable: false, reason: `'Sacrifice Simplicity' ${sacrificeUpgradeLevel}/2` };
 
         return { showable: true, buyable: true };

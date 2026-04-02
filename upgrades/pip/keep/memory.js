@@ -16,7 +16,7 @@ module.exports = {
     getEffectString(level) {
         return `${level*10}K \`pts\``
     },
-    getEffect(level, context) {
+    getEffect() {
         return {
             special: {
                 startPts: 10000,
@@ -24,7 +24,7 @@ module.exports = {
         }
     },
     unlockRequirements(context) {
-        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity\'s Welcome'" };
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity's Welcome'" };
         return { showable: true, buyable: true };
     },
     sortOrder() { return 301 },

@@ -14,7 +14,7 @@ adds an additional **x15** multiplier to slumber (e.g. x1.1 \\* x15 = x16.5 tota
             emoji: "🛌",
         }
     },
-    getEffect(_level, context) {
+    getEffect() {
         return {
             special: {
                 superSlumber: true,

@@ -13,7 +13,7 @@ module.exports = {
             emoji: "🪶", 
         }
     },
-    getEffect(level, context) {
+    getEffect(level) {
         let roll;
         let hits = 0;
         

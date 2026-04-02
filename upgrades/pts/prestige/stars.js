@@ -10,7 +10,7 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "gain \`bp\`",
+            description: "gain `bp`",
             name: "beyond the stars",
             emoji: getEmoji('upgrade_stars', "💫"),
         }

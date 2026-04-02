@@ -16,13 +16,13 @@ module.exports = {
     getEffectString(level) {
         return `+${level*20}%`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             blueStrength: (level*0.2),
         }
     },
     unlockRequirements(context) {
-        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity\'s Welcome'" };
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity's Welcome'" };
         return { showable: true, buyable: true };
     },
     sortOrder() { return 103 },

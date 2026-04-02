@@ -17,7 +17,7 @@ module.exports = {
     getEffectString(level) {
         return `${(level*0.5).toFixed(1)} pings`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             special: {
                 "rerolls": level * 0.5,

@@ -45,7 +45,7 @@ async function getMessage(interaction, leaderboardType, autoclickOverride = null
     let showAutoclicker;
     if (autoclickOverride !== null) showAutoclicker = autoclickOverride;
     else if (!interaction.message) {
-        const [playerProfile, _created] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
+        const [playerProfile, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
         showAutoclicker = playerProfile.settings.usesAutoclicker === 'yes';
     } else {
         showAutoclicker = isAutoclickerShown(interaction.message.components);
@@ -58,7 +58,7 @@ async function getMessage(interaction, leaderboardType, autoclickOverride = null
         where: showAutoclicker ? {} : Sequelize.literal(`JSON_EXTRACT(settings, '$.usesAutoclicker') IS NOT 'yes'`)
     })
 
-    let leaderboardEmojis = []
+    const leaderboardEmojis = []
     for (let i = 0; i < 10; i++) {
         leaderboardEmojis.push(getEmoji(`rank_${i + 1}`)); // get the emoji for the position
     }
@@ -67,19 +67,19 @@ async function getMessage(interaction, leaderboardType, autoclickOverride = null
     let position = 0;
     let showedSelf = false;
 
-    for (player of topPlayers) {
+    for (const player of topPlayers) {
         position++;
         if (position > 10) break; // only show the top 10 players
 
         description +=
             `
 ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await formatPlayer(player.userId, player[leaderboardType], leaderboardType, interaction)}`
-        showedSelf = showedSelf || (interaction.user.id == player.userId);
+        showedSelf = showedSelf || (interaction.user.id === player.userId);
     }
 
     if (!showedSelf) {
         // find position of the user
-        const userIndex = topPlayers.findIndex(player => player.userId == interaction.user.id);
+        const userIndex = topPlayers.findIndex(player => player.userId === interaction.user.id);
 
         // user may not be displayed because of autoclicker filter
         if (userIndex !== -1) {
@@ -129,7 +129,7 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
             value: key,
             emoji: value.emoji,
         })
-        needReInit = needReInit || (value.emoji == '🟥');
+        needReInit = needReInit || (value.emoji === '🟥');
     }
     if (needReInit) initTypes();
 
@@ -208,7 +208,7 @@ async function formatPlayer(userId, score, leaderboard, interaction) {
     const player = await database.Player.findByPk(`${userId}`);
 
     let userDisplay = await player.getUserDisplay(interaction.client, database);
-    if (interaction.user.id == userId) {
+    if (interaction.user.id === userId) {
         userDisplay = `__${userDisplay}__` // highlight the user's own score
     }
     return `**${userDisplay}** - \`${formatNumber(score, true, 5)}\` ${leaderboardTypes[leaderboard].metric}`

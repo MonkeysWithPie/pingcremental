@@ -11,7 +11,7 @@ module.exports = {
             emoji: "☀️",
         }
     },
-    getEffect(level, context) {
+    getEffect(level, ) {
         if (level >= 3) {
             return {
                 exponent: 1.5,

@@ -23,7 +23,7 @@ module.exports = {
             add: getFib(level+1),
         }
     },
-    unlockRequirements(context) {
+    unlockRequirements() {
         return { showable: true, buyable: true };
     },
     sortOrder() { return 4 },

@@ -17,14 +17,14 @@ module.exports = {
     getEffectString(level) {
         return `x${((level*0.5) + 1).toFixed(1)}`;
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             add: -20,
             multiply: (level*0.5) + 1,
         }
     },
     unlockRequirements(context) {
-        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity\'s Welcome'" };
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity's Welcome'" };
         return { showable: true, buyable: true };
     },
     sortOrder() { return 2 },

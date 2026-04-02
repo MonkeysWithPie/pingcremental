@@ -1,5 +1,4 @@
 const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
-const { getEmoji } = require('../../../helpers/emojis.js');
 const formatNumber = require('../../../helpers/formatNumber.js');
 
 module.exports = {

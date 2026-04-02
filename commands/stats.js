@@ -38,9 +38,9 @@ module.exports = {
             if (userId === 'global') {
                 await interaction.update(await getGlobalMessage());
                 return;
-            } else {
+            } 
                 await interaction.update(await getUserMessage(userId || interaction.user.id, interaction));
-            }
+            
         })
     },
 }

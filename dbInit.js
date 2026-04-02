@@ -13,7 +13,7 @@ async function run() {
 	
 	const modelsPath = path.join(__dirname, 'models');
 	const modelFiles = fs.readdirSync(modelsPath).filter(file => file.endsWith('.js'));
-	var list = {}; // list of all models
+	const list = {}; // list of all models
 	
 	for (const file of modelFiles) {
 		const filePath = path.join(modelsPath, file);

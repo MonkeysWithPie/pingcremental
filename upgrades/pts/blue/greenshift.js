@@ -25,7 +25,7 @@ module.exports = {
     unlockRequirements(context) {
         if (!(redshiftUnlockRequirements(context).buyable)) return { showable: false };
 
-        let redshiftLevel = context.upgrades.redshift || 0;
+        const redshiftLevel = context.upgrades.redshift || 0;
         if (redshiftLevel < 4) return { showable: true, buyable: false, reason: `'redshift' ${redshiftLevel}/4` };
 
         return { showable: true, buyable: true };

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, InteractionContextType, MessageFlags, flatten, ModalBuilder, TextInputAssertions, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, InteractionContextType, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { upgrades, rawUpgrades } = require('./../helpers/upgrades.js')
 const { getEmbeddedCommand } = require('./../helpers/embedCommand.js');
 const database = require('./../helpers/database.js');
@@ -12,10 +12,10 @@ const { getBuySetting, getMultiBuyCost, customMultibuyModalSubmit } = require('.
 function getEternityPip(playerProfile) {
     let gainedPip = playerProfile.bp;
     if (playerProfile.prestigeUpgrades.telepathy) {
-        gainedPip *= rawUpgrades['telepathy'].getEffect(playerProfile.prestigeUpgrades.telepathy).special.pipMult;
+        gainedPip *= rawUpgrades.telepathy.getEffect(playerProfile.prestigeUpgrades.telepathy).special.pipMult;
     }
     if (playerProfile.equippedFabrics.eternityFab) {
-        gainedPip *= rawUpgrades['eternityFab'].getEffect(playerProfile.equippedFabrics.eternityFab).special.pipMult;
+        gainedPip *= rawUpgrades.eternityFab.getEffect(playerProfile.equippedFabrics.eternityFab).special.pipMult;
     }
     return Math.floor(gainedPip);
 }
@@ -42,7 +42,7 @@ module.exports = {
 
             // add removed upgrade levels, for "vague" upgrade
             let removed = 0;
-            for (const [_upgrade, level] of Object.entries(playerData.upgrades)) {
+            for (const [, level] of Object.entries(playerData.upgrades)) {
                 removed += level;
             }
             playerData.removedUpgrades += removed;
@@ -66,7 +66,7 @@ module.exports = {
                 playerData.score += (10000 * playerData.prestigeUpgrades.memory);
             }
             if (playerData.prestigeUpgrades.remnants) {
-                for (const ptUpgrade of upgrades['pip']['remnants'].getEffect(playerData.prestigeUpgrades.remnants).special.upgrades) {
+                for (const ptUpgrade of upgrades.pip.remnants.getEffect(playerData.prestigeUpgrades.remnants).special.upgrades) {
                     playerData.upgrades[ptUpgrade] = playerData.prestigeUpgrades.remnants;
                 }
             }
@@ -140,7 +140,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
             if (buySetting < 1 && buySetting !== 'MAX') buySetting = 1;
 
             const playerUpgradeLevel = playerData.upgrades[upgradeId] ?? 0;
-            const upgradeClass = upgrades['pts'][upgradeId];
+            const upgradeClass = upgrades.pts[upgradeId];
             let price = 1;
             let levels = 1;
 
@@ -247,7 +247,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
 }
 
 async function getEditMessage(interaction, category, buySetting) {
-    const [playerData, _created] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
+    const [playerData, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
     if (playerData.totalClicks < 150 && !playerData.clicks >= 150) { // prevent upgrading before 150 clicks
         const button = new ButtonBuilder()
             .setCustomId('upgrade:delete')
@@ -261,7 +261,7 @@ async function getEditMessage(interaction, category, buySetting) {
 
     const buttonRow = new ActionRowBuilder();
     // loop through all upgrade categories and add buttons for each one
-    for (const [_key, cat] of Object.entries(UpgradeTypes)) {
+    for (const [, cat] of Object.entries(UpgradeTypes)) {
         if (cat === UpgradeTypes.PRESTIGE && !playerData.upgrades?.pingularity) continue; // prevent seing prestige tab before unlock
         const button = new ButtonBuilder()
             .setCustomId(`upgrade:category-${cat}`)
@@ -306,10 +306,10 @@ async function getEditMessage(interaction, category, buySetting) {
 
     const context = { upgrades: pUpgrades, clicks: playerData.clicks, totalClicks: playerData.totalClicks, bp: playerData.bp, fabrics: playerData.equippedFabrics };
 
-    for (const [upgradeId, upgrade] of Object.entries(upgrades['pts'])) {
+    for (const [upgradeId, upgrade] of Object.entries(upgrades.pts)) {
         // go through each upgrade and check if should be displayed
         const upgradeLevel = pUpgrades[upgradeId] ?? 0
-        if (upgrade.type() != category) continue; // wrong category
+        if (upgrade.type() !== category) continue; // wrong category
         
         const unlocked = upgrade.unlockRequirements(context);
         if (!unlocked.showable) continue; // hidden

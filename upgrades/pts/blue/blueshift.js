@@ -15,7 +15,7 @@ module.exports = {
     getEffectString(level) {
         return `+${(0.6*level).toFixed(1)}%`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             blue: level*0.6
         }

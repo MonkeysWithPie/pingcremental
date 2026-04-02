@@ -17,7 +17,7 @@ module.exports = {
     getEffectString(level) {
         return `lv${level}`
     },
-    getEffect(level, context) {
+    getEffect() {
         return {
             special: {
                 upgrades: ['slow','usability','multiplier','blueshift','pipiping',]
@@ -26,7 +26,7 @@ module.exports = {
     },
     unlockRequirements(context) {
         if (!(memoryUnlockRequirements(context).buyable)) return { showable: false };
-        let memoryLevel = context.upgrades.memory || 0;
+        const memoryLevel = context.upgrades.memory || 0;
         if (memoryLevel < 2) return { showable: true, buyable: false, reason: `'Distant Memories' ${memoryLevel}/2` };
         
         return { showable: true, buyable: true };

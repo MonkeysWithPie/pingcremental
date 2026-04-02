@@ -17,7 +17,7 @@ module.exports = {
     getEffectString(level) {
         return `x${((level*0.25) + 1).toFixed(2)}`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             special: {
                 pipMult: ((level ? level : 0)*0.25) + 1,
@@ -26,7 +26,7 @@ module.exports = {
     },
     unlockRequirements(context) {
         if (!(storageUnlockRequirements(context).buyable)) return { showable: false };
-        let storageLevel = context.upgrades.storage || 0;
+        const storageLevel = context.upgrades.storage || 0;
         if (storageLevel < 2) return { showable: true, buyable: false, reason: `'Stellar Strength' ${storageLevel}/2` };
         return { showable: true, buyable: true };
     },

@@ -1,5 +1,4 @@
 const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
-const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
     getPrice(currentLevel) {

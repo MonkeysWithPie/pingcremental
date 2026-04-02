@@ -14,7 +14,7 @@ gain **x1.5** pip.`,
             emoji: "♾️",
         }
     },
-    getEffect(_level, context) {
+    getEffect() {
         return {
             bp: 1000,
             special: {

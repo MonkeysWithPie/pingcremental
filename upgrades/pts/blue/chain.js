@@ -29,7 +29,7 @@ module.exports = {
     unlockRequirements(context) {
         if (!(blueshiftUnlockRequirements(context).buyable)) return { showable: false };
 
-        let blueshiftLevel = context.upgrades.blueshift || 0;
+        const blueshiftLevel = context.upgrades.blueshift || 0;
         if (blueshiftLevel < 3) return { showable: true, buyable: false, reason: `'blueshift' ${blueshiftLevel}/3` };
         
         return { showable: true, buyable: true };

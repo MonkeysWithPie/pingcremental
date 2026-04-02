@@ -16,7 +16,7 @@ module.exports = {
     getEffectString(level) {
         return `up to ${level} \`pts\``
     },
-    getEffect(level, context) {
+    getEffect(level) {
         if (level <= 0) return {};
 
         return {
@@ -26,7 +26,7 @@ module.exports = {
     unlockRequirements(context) {
         if (!(slowUnlockRequirements(context).buyable)) return { showable: false };
 
-        let slowLevel = context.upgrades.slow || 0;
+        const slowLevel = context.upgrades.slow || 0;
         if (slowLevel < 3) return { showable: true, buyable: false, reason: `'slow internet' ${slowLevel}/3` };
 
         return { showable: true, buyable: true };

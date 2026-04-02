@@ -16,7 +16,7 @@ module.exports = {
     getEffectString(level) {
         return `+${level} d20`;
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             special: {
                 "extraDice": level,
@@ -24,7 +24,7 @@ module.exports = {
         }
     },
     unlockRequirements(context) {
-        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity\'s Welcome'" };
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity's Welcome'" };
         return { showable: true, buyable: true };
     },
     sortOrder() { return 201 },

@@ -1,6 +1,5 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, EmbedBuilder } = require('discord.js');
 const database = require('./../helpers/database.js');
-const log = require('./../helpers/log.js');
 
 const settings = {
     'upgradeFollowup': {
@@ -61,7 +60,7 @@ module.exports = {
         },
         'switch': async (interaction, setting) => {
             const playerData = await database.Player.findByPk(`${interaction.user.id}`);
-            if (setting === 'usesAutoclicker' && playerData.settings['usesAutoclicker'] === 'no') {
+            if (setting === 'usesAutoclicker' && playerData.settings.usesAutoclicker === 'no') {
                 await interaction.reply({ embeds:
                     [new EmbedBuilder()
                         .setColor('#b10f0f')
@@ -90,7 +89,7 @@ these are meant to discourage autoclicker use, but i know that some people have 
                 })
 
                 return;
-            } else if (setting === 'usesAutoclicker' && playerData.settings['usesAutoclicker'] === 'yes') {
+            } else if (setting === 'usesAutoclicker' && playerData.settings.usesAutoclicker === 'yes') {
                 return await interaction.update(await getMessage(interaction)); // embed was out of date
             }
 
@@ -108,7 +107,7 @@ these are meant to discourage autoclicker use, but i know that some people have 
         },
         'yesautoclicker': async (interaction) => {
             const playerData = await database.Player.findByPk(`${interaction.user.id}`);
-            playerData.settings['usesAutoclicker'] = 'yes';
+            playerData.settings.usesAutoclicker = 'yes';
             playerData.changed('settings', true);
             await playerData.save();
             await interaction.update({ content: `you've opted in to using an autoclicker. thank you for being honest!`, components: [], embeds: [] });
@@ -128,7 +127,7 @@ async function getMessage(interaction) {
             settingsUpdated = true;
         }
 
-        let button = new ButtonBuilder()
+        const button = new ButtonBuilder()
                 .setCustomId(`settings:switch-${key}`)
                 .setLabel(value.name)
                 .setStyle(ButtonStyle.Secondary);

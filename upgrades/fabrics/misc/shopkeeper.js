@@ -13,7 +13,7 @@ module.exports = {
             emoji: "🛍️",
         }
     },
-    getEffect(_level, context) {
+    getEffect() {
         return {
             special: {
                 allowShopkeeperUpgrades: true,

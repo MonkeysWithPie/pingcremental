@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder, StringSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder, StringSelectMenuBuilder } = require('discord.js');
 const database = require('./../helpers/database.js');
 const { getEmoji } = require('./../helpers/emojis.js')
 const { getEmbeddedCommand } = require('../helpers/embedCommand.js');
@@ -86,7 +86,7 @@ module.exports = {
 
             const player = await database.Player.findByPk(user.id.toString());
             const badge = getBadgeByName(badgeName);
-            let dmMessage = '';
+            let dmMessage;
             let playerDisplayedBadges = player.displayedBadges;
             let playerBadges = player.badges; // because sequelize doesn't like it when you try to modify the array directly
 
@@ -171,7 +171,7 @@ module.exports = {
     }
 }
 
-async function getListPage(interaction, tier, page = 1) {
+function getListPage(interaction, tier, page = 1) {
     let badges = getAllBadges().filter(b => b.tier === tier);
     const badgeCount = badges.length;
 
@@ -242,7 +242,7 @@ async function getShowcaseDisplay(interaction) {
     }
 
     const displayedBadges = player.displayedBadges;
-    let badges = getBadgesByName(...player.badges);
+    const badges = getBadgesByName(...player.badges);
 
     if (badges.length === 0) {
         return { content: `${getEmoji('badge_empty')} you don't have any badges...`, flags: MessageFlags.Ephemeral };

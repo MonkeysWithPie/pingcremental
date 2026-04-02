@@ -4,7 +4,7 @@ const { getEmoji } = require('../../../helpers/emojis.js');
 module.exports = {
     getPrice(currentLevel) {
         if (currentLevel === 0) return 1000
-        else return null;
+        return null;
     },
     getDetails() {
         return {
@@ -16,13 +16,13 @@ module.exports = {
     getEffectString(level) {
         return level === 0 ? "not discoverable" : "discoverable"
     },
-    getEffect(level, context) {
+    getEffect() {
         return {
             special: { "blueping" : true },
             blue: 1,
         };
     },
-    unlockRequirements(context) {
+    unlockRequirements() {
         return { showable: true, buyable: true };
     },
     sortOrder() { return 10 },

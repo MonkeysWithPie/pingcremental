@@ -4,7 +4,7 @@ const { getBadgesByName } = require('../helpers/badgeUtils.js');
 
 module.exports = (sequelize) => {
 	class User extends Model {
-		async getUserDisplay(client, database) {
+		async getUserDisplay(client) {
 			const user = await client.users.fetch(this.userId);
 			let display = user ? user.username : this.userId;
 			display = display.replaceAll("_", "\\_")

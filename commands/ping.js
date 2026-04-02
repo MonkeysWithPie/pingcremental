@@ -7,9 +7,9 @@ const awardBadge = require('../helpers/awardBadge.js');
 const { getEmbeddedCommand } = require('../helpers/embedCommand.js');
 const database = require('../helpers/database.js');
 
-let recentPingCache = {};
-let checkinDisableList = {};
-let shutoutList = {};
+const recentPingCache = {};
+const checkinDisableList = {};
+const shutoutList = {};
 
 const RECENT_PING_THRESHOLD = 2500;
 const VERIFICATION_TIMEOUT = 1000 * 60 * 2; // 2 mins
@@ -39,7 +39,7 @@ module.exports = {
         const row = new ActionRowBuilder()
             .addComponents(again);
 
-        let pingmessage = pingMessages(interaction.client.ws.ping, { user: interaction.user })
+        const pingmessage = pingMessages(interaction.client.ws.ping, { user: interaction.user })
 
         await interaction.reply({
             content: `${pingmessage}`,
@@ -138,7 +138,7 @@ you can ping again **<t:${Math.floor(allowTime/1000)}:R>**. *(you'll need to run
         })
     }
 
-    let {score, displays, currentEffects, context} = await ping(interaction, isSuper, { developmentMode });
+    const {score, displays, currentEffects, context} = await ping(interaction, isSuper, { developmentMode });
 
     const playerProfile = await database.Player.findByPk(`${interaction.user.id}`);
     const pingFormat = playerProfile.settings.pingFormat || "expanded";
@@ -287,7 +287,7 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
         });
     } catch (error) {
         // automod error, since it doesn't like some messages
-        if (error.code == 200000) {
+        if (error.code === 200000) {
             await interaction.update({
                 content:
                     `this ping message is non-offensive, and contains nothing that will anger AutoMod! (${ping}ms)

@@ -31,15 +31,15 @@ module.exports = {
                 multiply: 1.2 + seed.next()*0.7,
                 message: "mrrp!",
             }
-        } else { // 10%
+        }  // 10%
             return {
                 apt: 1 + Math.floor(seed.next()*5),
                 message: "purrrr!",
             }
-        }
+        
     },
     unlockRequirements(context) {
-        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity\'s Welcome'" };
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity's Welcome'" };
         return { showable: true, buyable: true };
     },
     sortOrder() { return 203 },

@@ -103,7 +103,7 @@ module.exports = {
             const value = interaction.options.getString('value');
 
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-            let userData = await database.Player.findByPk(user.id);
+            const userData = await database.Player.findByPk(user.id);
             if (!userData) {
                 return await interaction.editReply({ content: `no data found for ${user.username}`, flags: MessageFlags.Ephemeral });
             }

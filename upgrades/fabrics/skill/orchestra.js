@@ -1,9 +1,9 @@
 const { FabricUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 
-let recentPingTimes = {}
-let nextPingLeniency = []
-let bonusCache = {}
-let comboCache = {}
+const recentPingTimes = {}
+const nextPingLeniency = []
+const bonusCache = {}
+const comboCache = {}
 
 const COMBO_WINDOW = 300;
 const GREAT_WINDOW = 150;
@@ -132,7 +132,7 @@ function addBonus(userId, amount, state) {
     if (!bonusCache[userId]) {
         bonusCache[userId] = 1;
     }
-    let exp = Math.min(bonusCache[userId] + amount, 1.15);
+    const exp = Math.min(bonusCache[userId] + amount, 1.15);
     if (state !== PingCalculationStates.NON_REPEAT_FINISH) {
         return exp;
     }

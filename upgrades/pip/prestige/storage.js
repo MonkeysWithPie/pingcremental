@@ -16,11 +16,11 @@ module.exports = {
     getEffectString(level) {
         return `x${((level * 0.25) + 1).toFixed(2)}`;
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return { special: { bpStorageMult: ((level ? level : 0) * 0.25) + 1 } }
     },
     unlockRequirements(context) {
-        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity\'s Welcome'" };
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity's Welcome'" };
         return { showable: true, buyable: true };
     },
     sortOrder() { return 401 },

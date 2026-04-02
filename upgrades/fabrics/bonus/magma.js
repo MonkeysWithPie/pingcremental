@@ -11,7 +11,7 @@ module.exports = {
             emoji: "🌋",
         }
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             multiply: 0.4 ** level,
             exponent: 1.2 ** level,

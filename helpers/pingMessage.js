@@ -988,7 +988,7 @@ function get(ping, context) {
         ]
     }
 
-    let message = messagesList[Math.floor(Math.random() * messagesList.length)]; // pick a random one and return it
+    const message = messagesList[Math.floor(Math.random() * messagesList.length)]; // pick a random one and return it
 
     return `${message} (${ping}ms)`
 }

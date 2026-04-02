@@ -13,7 +13,7 @@ inpingity will give an additional **x1.08** bonus per **888** total clicks you h
             emoji: "🎱",
         }
     },
-    getEffect(_level, context) {
+    getEffect() {
         return {
             special: {
                 superInpingity: true,

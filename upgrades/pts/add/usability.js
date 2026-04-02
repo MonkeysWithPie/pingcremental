@@ -20,7 +20,7 @@ module.exports = {
             add: context.ping <= 50 ? level*2 : 0,
         }
     },
-    unlockRequirements(context) {
+    unlockRequirements() {
         return { showable: true, buyable: true };
     },
     sortOrder() { return 3 },

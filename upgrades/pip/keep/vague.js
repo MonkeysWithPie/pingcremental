@@ -24,7 +24,7 @@ module.exports = {
     },
     unlockRequirements(context) {
         if (!memoryUnlockRequirements(context).buyable) return { showable: false };
-        let memoryLevel = context.upgrades.memory || 0;
+        const memoryLevel = context.upgrades.memory || 0;
         if (memoryLevel < 3) return { showable: true, buyable: false, reason: `'Distant Memories' ${memoryLevel}/3` };
         
         return { showable: true, buyable: true };

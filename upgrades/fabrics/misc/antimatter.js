@@ -13,7 +13,7 @@ gives a passive **^0.8** pts debuff.`,
             emoji: "🌑",
         }
     },
-    getEffect(_level, context) {
+    getEffect() {
         return {
             exponent: 0.8,
             special: {

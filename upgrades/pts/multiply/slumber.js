@@ -50,7 +50,7 @@ module.exports = {
     unlockRequirements(context) {
         if (!(multiplierUnlockRequirements(context).buyable)) return { showable: false };
 
-        let multiplierLevel = context.upgrades.multiplier || 0;
+        const multiplierLevel = context.upgrades.multiplier || 0;
         if (multiplierLevel < 10) return { showable: true, buyable: false, reason: `'fine, just have a multiplier' ${multiplierLevel}/10` };
         
         return { showable: true, buyable: true };

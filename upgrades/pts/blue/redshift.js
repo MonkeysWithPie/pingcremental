@@ -15,7 +15,7 @@ module.exports = {
     getEffectString(level) {
         return `-${(0.3*level).toFixed(1)}% chance, x${(1+level*0.08).toFixed(2)} \`pts\``
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             blue: level*-0.3,
             multiply: 1+(level*0.08)

@@ -71,7 +71,7 @@ module.exports = {
             if (buySetting < 1 && buySetting !== 'MAX') buySetting = 1;
 
             let playerUpgradeLevel = playerData.prestigeUpgrades[upgradeId] ?? 0;
-            const upgradeClass = upgrades['pip'][upgradeId];
+            const upgradeClass = upgrades.pip[upgradeId];
             const mbr = getMultiBuyCost(buySetting, upgradeClass, playerData.pip, playerUpgradeLevel);
             const price = mbr.price;
             const levels = mbr.levels;
@@ -112,8 +112,8 @@ module.exports = {
             await playerData.save();
 
             const msg = ['alright', 'sure', 'okay', 'uh-huh', 'sure thing'];
-            let followupType = playerData.settings.upgradeFollowup;
-            let ephemeral = followupType === 'ephemeral' || followupType === 'none' ? MessageFlags.Ephemeral : null;
+            const followupType = playerData.settings.upgradeFollowup;
+            const ephemeral = followupType === 'ephemeral' || followupType === 'none' ? MessageFlags.Ephemeral : null;
 
             const button = new ButtonBuilder()
                 .setCustomId('ponder:delete')
@@ -134,7 +134,7 @@ module.exports = {
 }
 
 async function getEditMessage(interaction, category, buySetting) {
-    const [playerData, _created] = await database.Player.findOrCreate({ where: { userId: interaction.user.id }})
+    const [playerData, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id }})
     if (!playerData.prestigeUpgrades.beginning && !playerData.pip) {
         const button = new ButtonBuilder()
             .setCustomId('ponder:delete')
@@ -147,7 +147,7 @@ async function getEditMessage(interaction, category, buySetting) {
     }
 
     const buttonRow = new ActionRowBuilder();
-    for (const [_key, cat] of Object.entries(PipUpgradeTypes)) {
+    for (const [, cat] of Object.entries(PipUpgradeTypes)) {
         const button = new ButtonBuilder()
             .setCustomId(`ponder:category-${cat}`)
             .setLabel(cat)
@@ -190,9 +190,9 @@ async function getEditMessage(interaction, category, buySetting) {
 
     const context = { upgrades: pUpgrades };
 
-    for (const [upgradeId, upgrade] of Object.entries(upgrades['pip'])) {
+    for (const [upgradeId, upgrade] of Object.entries(upgrades.pip)) {
         const upgradeLevel = pUpgrades[upgradeId] ?? 0
-        if (upgrade.type() != category) continue;
+        if (upgrade.type() !== category) continue;
 
         const unlocked = upgrade.unlockRequirements(context);
         if (!unlocked.showable) continue;

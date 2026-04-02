@@ -12,7 +12,7 @@ module.exports = {
             emoji: "🧿",
         }
     },
-    getEffect(level, context) {
+    getEffect(level, ) {
         return {
             blueCap: 15 * level,
         }

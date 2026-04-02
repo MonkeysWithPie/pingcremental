@@ -15,10 +15,10 @@ module.exports = {
     getEffectString(level) {
         return level === 0 ? "inactive" : "active";
     },
-    getEffect(level, context) {
+    getEffect() {
         return {}
     },
-    unlockRequirements(context) {
+    unlockRequirements() {
         return { showable: true, buyable: true };
     },
     sortOrder() { return 1000 },

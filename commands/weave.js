@@ -2,7 +2,6 @@ const formatNumber = require("../helpers/formatNumber");
 const { rawUpgrades, upgrades } = require("../helpers/upgrades");
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, InteractionContextType } = require("discord.js");
 const database = require("../helpers/database");
-const { FabricUpgradeTypes } = require("../helpers/commonEnums.js");
 const RandSeed = require("rand-seed").default;
 const awardBadge = require("../helpers/awardBadge.js");
 
@@ -250,7 +249,7 @@ module.exports = {
 }
 
 async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
-    const [player, _created] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
+    const [player, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
 
     if (player.tears <= 0 && player.eternities < getTearRequirement(0)) {
         return { 
@@ -265,7 +264,7 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
         .setColor('#120830')
 
     const row = new ActionRowBuilder();
-    let extraRows = [];
+    const extraRows = [];
     
     if (player.tears > 0) {
         availableSections.push(WEAVE_SECTION.Shop);
@@ -599,7 +598,7 @@ async function getSewEmbed(interaction, equippedFabrics) {
 }
 
 function getEquippedFromSewMessage(message) {
-    let equippedFabrics = {};
+    const equippedFabrics = {};
     let removeComponent;
 
     for (const row of message.components) {
@@ -629,7 +628,7 @@ function getNewSeed() {
 function getShopStock(seed) {
     const rng = new RandSeed(seed);
     const stock = [];
-    const fabrics = Object.keys(upgrades['fabrics']);
+    const fabrics = Object.keys(upgrades.fabrics);
 
     if (seed === "TUTORIAL") {
         return ["goldlace", "elusive", "azure"]
@@ -655,20 +654,20 @@ function getShopStock(seed) {
 }
 
 function getGainedThread(player, simplify = true) {
-    let gain = {};
-    gain['base'] = 100;
+    const gain = {};
+    gain.base = 100;
     
     if (player.score > 0) {
-        gain['pts'] = Math.floor(Math.log10(player.score));
+        gain.pts = Math.floor(Math.log10(player.score));
     }
     if (player.pip > 0) {
-        gain['pip'] = Math.floor(Math.log10(player.pip) * 2);
+        gain.pip = Math.floor(Math.log10(player.pip) * 2);
     }
     if (player.eternities > getTearRequirement(player.tears)) {
-        gain['eternities'] = Math.min(player.eternities - getTearRequirement(player.tears), 15);
+        gain.eternities = Math.min(player.eternities - getTearRequirement(player.tears), 15);
     }
     if (player.tears > 0) {
-        gain['tears'] = Math.min(player.tears * 3, 30);
+        gain.tears = Math.min(player.tears * 3, 30);
     }
 
     if (simplify) {

@@ -16,12 +16,12 @@ module.exports = {
     getEffectString(level) {
         return level === 0 ? "x1" : "x2";
     },
-    getEffect(level, context) {
+    getEffect() {
         return {
             multiply: 2,
         }
     },
-    unlockRequirements(context) {
+    unlockRequirements() {
         return { showable: true, buyable: true };
     },
     sortOrder() { return 1 },

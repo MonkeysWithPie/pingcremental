@@ -16,12 +16,12 @@ module.exports = {
     getEffectString(level) {
         return `${level}%`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             multiply: Math.random()*1000 <= (level*10) ? 3 : undefined,
         }
     },
-    unlockRequirements(context) {
+    unlockRequirements() {
         return { showable: true, buyable: true };
     },
     sortOrder() { return 5 },

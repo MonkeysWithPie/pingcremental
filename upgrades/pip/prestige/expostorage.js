@@ -1,4 +1,4 @@
-const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
+const { PipUpgradeTypes } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 const { unlockRequirements: storageUnlockRequirements } = require('./storage.js');
 
@@ -17,7 +17,7 @@ module.exports = {
     getEffectString(level) {
         return `^${((level*0.06) + 1).toFixed(2)}`;
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             special: {
                 bpStorageExp: 1 + (0.06 * level),
@@ -26,7 +26,7 @@ module.exports = {
     },
     unlockRequirements(context) {
         if (!(storageUnlockRequirements(context).buyable)) return { showable: false };
-        let storageLevel = context.upgrades.storage || 0;
+        const storageLevel = context.upgrades.storage || 0;
         if (storageLevel < 4) return { showable: true, buyable: false, reason: `'Stellar Strength' ${storageLevel}/4` };
         return { showable: true, buyable: true };
 

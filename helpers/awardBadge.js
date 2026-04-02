@@ -13,18 +13,16 @@ async function awardBadge(userId, badge, client) {
         await log(`[WARN] tried to award badge ${badge} to user ${userId} but the user somehow doesn't exist`, client);
         return false;
     }
-
-    let badgeObj = null;
     
     // allow for badge name or id to be passed in
-    badgeObj = getBadgeByName(badge);
+    const badgeObj = getBadgeByName(badge);
 
     if (!badgeObj) {
         await log(`[WARN] tried to award badge ${badge} but it doesn't exist`, client);
         return false;
     }
 
-    let ownedBadges = player.badges || [];
+    const ownedBadges = player.badges || [];
 
     if (ownedBadges.includes(badgeObj.name)) { // already owned
         return false;

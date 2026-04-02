@@ -8,7 +8,7 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "increase \`bp\` storage",
+            description: "increase `bp` storage",
             name: "beyond the limit",
             emoji: getEmoji('upgrade_limit', "🔏"),
         }
@@ -16,7 +16,7 @@ module.exports = {
     getEffectString(level) {
         return `${formatNumber((level+1)*10000, true, 3)} storage`;
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             special: { bpExtraStorage: (level) * 10000 }
         }

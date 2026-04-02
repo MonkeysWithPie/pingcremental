@@ -28,7 +28,7 @@ module.exports = {
                 multiply: 1.2,
                 message: `(${context.glimmerClicks} left)`,
             }
-        } else return {};
+        } return {};
     },
     unlockRequirements(context) {
         if (!budgeUnlockRequirements(context).buyable) return { showable: false };

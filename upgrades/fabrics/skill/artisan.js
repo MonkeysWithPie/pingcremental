@@ -2,9 +2,9 @@ const { FabricUpgradeTypes, PingCalculationStates } = require('../../../helpers/
 
 const artisanSymbols = ["✿", "✦", "⁂"]
 
-let lastClickedSymbolCache = {}
-let bonusCache = {}
-let comboCache = {}
+const lastClickedSymbolCache = {}
+const bonusCache = {}
+const comboCache = {}
 
 module.exports = {
     getPrice() {

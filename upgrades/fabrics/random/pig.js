@@ -14,8 +14,8 @@ gain a compounding **x1.07** \`pts\` for every score.`,
             emoji: "🐖",
         }
     },
-    getEffect(_level, context) {
-        let roll = 0;
+    getEffect() {
+        let roll;
         let score = 0;
 
         while (true) {

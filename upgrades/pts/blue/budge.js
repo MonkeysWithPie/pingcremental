@@ -17,7 +17,7 @@ module.exports = {
     getEffectString(level) {
         return `${level*15}%`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         if (Math.random()*100 <= level*15) {
             return {
                 special: { "budge": true },
@@ -28,7 +28,7 @@ module.exports = {
     unlockRequirements(context) {
         if (!(blueshiftUnlockRequirements(context).buyable)) return { showable: false };
 
-        let blueshiftLevel = context.upgrades.blueshift || 0;
+        const blueshiftLevel = context.upgrades.blueshift || 0;
         if (blueshiftLevel < 7) {
             return { showable: true, buyable: false, reason: `'blueshift' ${blueshiftLevel}/7` };
         }

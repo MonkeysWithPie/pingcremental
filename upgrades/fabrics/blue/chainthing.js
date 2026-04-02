@@ -13,7 +13,7 @@ increases the blue ping chance after another blue ping by **10%** (NOT bypassing
             emoji: "🌊",
         }
     },
-    getEffect(level, context) {
+    getEffect(_level, context) {
         if (context.blueCombo > 0) {
             return {
                 exponent: Math.min(1 + (0.01 * context.blueCombo), 1.5),

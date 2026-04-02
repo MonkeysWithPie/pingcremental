@@ -41,12 +41,12 @@ module.exports = {
                 apt: Math.round(seed.next() * 15 * level),
             }
         }
-        else {
+        
             const msg = [`nah`, `not feelin it`, `forget it`, `no thanks`, `not today`, `nuh uh`, `ehh`, `maybe later`, `nope`, `not right now`]
             return {
                 message: msg[Math.floor(Math.random() * msg.length)],
             }
-        }
+        
     },
     type() { return FabricUpgradeTypes.PURE_RANDOM },
     isUnique() { return false; },

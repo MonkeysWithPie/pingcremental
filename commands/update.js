@@ -122,7 +122,7 @@ module.exports = {
                 description: description,
             })
 
-            let allowedSettings = ["always"];
+            const allowedSettings = ["always"];
             if (type === 'major') {
                 allowedSettings.push("major only", "minor and major only", "everything but hotfixes");
             }
@@ -145,7 +145,7 @@ module.exports = {
             });
 
             await interaction.reply({ content: `announcing \`v${newVersion.verNum}\` to ${usersToNotify.length} users...`, flags: MessageFlags.Ephemeral });
-            let alerts = { success: 0, noUser: 0, dmFailed: 0 };
+            const alerts = { success: 0, noUser: 0, dmFailed: 0 };
 
             await Promise.all(usersToNotify.map(async (user) => {
                 const userToDm = await interaction.client.users.fetch(user.userId).catch(() => null);

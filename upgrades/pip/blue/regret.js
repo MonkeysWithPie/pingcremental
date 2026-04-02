@@ -24,7 +24,7 @@ module.exports = {
     },
     unlockRequirements(context) {
         if (!indigoUnlockRequirements(context).buyable) return { showable: false };
-        let indigoLevel = context.upgrades.indigo || 0;
+        const indigoLevel = context.upgrades.indigo || 0;
         if (indigoLevel < 3) return { showable: true, buyable: false, reason: `'Indigo Vision' ${indigoLevel}/3` };
         
         return { showable: true, buyable: true };

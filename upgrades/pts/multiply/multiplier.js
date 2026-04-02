@@ -16,7 +16,7 @@ module.exports = {
     getEffectString(level) {
         return `x${(1+level*0.02).toFixed(2)}`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             multiply: 1+level*0.02,
         }

@@ -1,4 +1,7 @@
-function formatNumber(num, shortHand = false, decimalPlaces = 2) {
+function formatNumber(num, shortHand = false, decimalPlaces = 2, options = {
+    formatMode: 'standard',
+    swapCommas: false,
+}) {
     if (num === null || num === undefined) return '0'; // handle null or undefined values
     if (!isFinite(num)) return num === Infinity ? 'Infinity' : 'NaN'; // handle special values
 
@@ -16,7 +19,6 @@ function formatNumber(num, shortHand = false, decimalPlaces = 2) {
                       'Nog', 'UNog', 'DNog', 'TNog', 'QaNog', 'QiNog', 'SxNog', 'SpNog', 'OcNog', 'NoNog', // 10^300
                       'Ce', 'UCe', 'DCe']; // 10^309
 
-    //get magnitude
     const magnitude = Math.floor(Math.log10(num));
 
     if (magnitude >= suffixes.length * 3) {
@@ -38,13 +40,15 @@ function formatNumber(num, shortHand = false, decimalPlaces = 2) {
     }
 
     if (!shortHand) {
-        return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return numStr.replace('.', options.swapCommas ? ',' : '.').replace(/\B(?=(\d{3})+(?!\d))/g, options.swapCommas ? '.' : ',');
     }
 
-    const baseNum = (
+    let baseNum = (
         Math.ceil((num * (10 ** (decimalPlaces + 1)) / Math.pow(10, suffixIndex * 3))) /
         (10 ** (decimalPlaces + 1))
     ).toFixed(decimalPlaces);
+
+    if (options.swapCommas) baseNum = baseNum.replace(".", ",");
 
     return baseNum + suffixes[suffixIndex];
 }

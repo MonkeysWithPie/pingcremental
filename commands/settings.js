@@ -25,16 +25,24 @@ const settings = {
             "always", "everything but hotfixes", "minor and major only", "major only", "never"
         ],
         default: "major only",
-    }
-    // future settings:
+    },
+    // TODO: add this and use https://www.npmjs.com/package/@antimatter-dimensions/notations
     // 'numberFormat': {
     //     name: 'number format',
-    //     description: 'how should large numbers be formatted by default?',
+    //     description: 'how should large numbers be formatted?',
     //     options: [
-    //         "suffix", "full", "scientific"
+    //         "standard", "scientific", "engineering", "letters"
     //     ],
-    //     default: "suffix",
+    //     default: "standard",
     // },
+    'swapCommas': {
+        name: 'swap commas and periods',
+        description: 'should commas be used instead of periods and vice versa when formatting numbers?',
+        options: [
+            "yes", "no"
+        ],
+        default: "no",
+    }
 }
 
 module.exports = {

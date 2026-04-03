@@ -1,5 +1,4 @@
 const { DataTypes, Model } = require('sequelize');
-const { getEmoji } = require('./../helpers/emojis.js');
 const { getBadgesByName } = require('../helpers/badgeUtils.js');
 
 module.exports = (sequelize) => {
@@ -14,10 +13,6 @@ module.exports = (sequelize) => {
 				const badges = getBadgesByName(...this.displayedBadges);
 
 				display += ' ' + badges.map(badge => badge.emoji).join('');
-			}
-
-			if (this.settings.usesAutoclicker === 'yes') {
-				display += ' ' + getEmoji('autoclicker');
 			}
 
 			return display;
@@ -108,6 +103,18 @@ module.exports = (sequelize) => {
 			type: DataTypes.JSON,
 			allowNull: false,
 			defaultValue: {},
+		},
+		formatSettings: {
+			type: DataTypes.VIRTUAL,
+			get() {
+				return {
+					formatMode: this.settings.formatMode || 'standard',
+					swapCommas: this.settings.swapCommas || false,
+				}
+			},
+			set() {
+				throw new Error('formatSettings is virtual and shouldn\'t be set directly');
+			}
 		},
 
 		bluePings: {

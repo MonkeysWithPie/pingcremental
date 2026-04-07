@@ -86,7 +86,7 @@ module.exports = {
 
                 await interaction.update(await getEditMessage(interaction, upgradeClass.type())); // fix dropdown remaining after failed upgrade
                 return await interaction.followUp({
-                    content: `You can't afford that. (Missing \`${formatNumber(price-playerData.pip)} PIP\`)`,
+                    content: `You can't afford that. (Missing \`${formatNumber(price-playerData.pip, { options: playerData.formatSettings })} PIP\`)`,
                     components: [new ActionRowBuilder().addComponents(button)]
                 })
             }
@@ -124,7 +124,7 @@ module.exports = {
         
             if (followupType !== 'none') {
                 return await interaction.followUp({
-                    content: `**${upgradeClass.getDetails().name}** is now level ${playerUpgradeLevel}. (\`${formatNumber(playerData.pip)} PIP\` left)`,
+                    content: `**${upgradeClass.getDetails().name}** is now level ${playerUpgradeLevel}. (\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\` left)`,
                     components: [new ActionRowBuilder().addComponents(button)],
                     flags: ephemeral
                 })
@@ -159,7 +159,7 @@ async function getEditMessage(interaction, category, buySetting) {
     const select = new StringSelectMenuBuilder()
         .setCustomId('ponder:buy')
         .setPlaceholder('pick an upgrade')
-    let description = `You have **__\`${formatNumber(playerData.pip)} PIP\`__**. Spend wisely.\nYou're buying **x${buySetting}** upgrades at a time.`
+    let description = `You have **__\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\`__**. Spend wisely.\nYou're buying **x${buySetting}** upgrades at a time.`
     const embed = new EmbedBuilder()
         .setTitle("Ponder")
         .setColor("#162b94")
@@ -208,14 +208,14 @@ async function getEditMessage(interaction, category, buySetting) {
 
         const {price, levels} = getMultiBuyCost(buySetting, upgrade, playerData.pip, upgradeLevel);
 
-        description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel)})**
+        description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatSettings })})**
 *"${upgrade.getDetails().flavor}"*
 ${upgrade.getDetails().description}
-${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, true, 4)} PIP\`` 
+${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, { decimalPlaces: 3, options: playerData.formatSettings })} PIP\`` 
 
         select.addOptions(
             new StringSelectMenuOptionBuilder()
-                .setLabel(`${upgrade.getDetails().name} | ${formatNumber(price, true)} PIP`)
+                .setLabel(`${upgrade.getDetails().name} | ${formatNumber(price, { options: playerData.formatSettings })} PIP`)
                 .setValue(upgradeId)
         )
     }

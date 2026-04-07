@@ -74,7 +74,7 @@ module.exports = {
             playerData.changed('upgrades', true) 
 
             await playerData.save();
-            await interaction.update({ content: `*it is done.*\n-# you gained __\`${formatNumber(gainedPip)} PIP\`__, so you now have __\`${formatNumber(playerData.pip)} PIP\`__`, components: [] });
+            await interaction.update({ content: `*it is done.*\n-# you gained __\`${formatNumber(gainedPip, { options: playerData.formatOptions })} PIP\`__, so you now have __\`${formatNumber(playerData.pip, { options: playerData.formatOptions })} PIP\`__`, components: [] });
             if (firstEternity) {
                 await interaction.followUp({ content: `
 *welcome to Eternity. congratulations on making it here.*
@@ -165,7 +165,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
 
                 await interaction.update(await getEditMessage(interaction, upgradeClass.type(), displaySetting)); // fix dropdown remaining after failed upgrade
                 return await interaction.followUp({
-                    content: `you dont have enough \`pts\` to afford that! (missing \`${formatNumber(price - playerData.score, true)} pts\`)`,
+                    content: `you dont have enough \`pts\` to afford that! (missing \`${formatNumber(price - playerData.score, { options: playerData.formatOptions })} pts\`)`,
                     components: [new ActionRowBuilder().addComponents(button)],
                     flags: ephemeral
                 })
@@ -178,7 +178,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
                     content: 
 `*Eternity calls for you, but you must make sure you're ready.*
 ***are you?***
--# this will **reset** your current upgrades, \`pts\`, and clicks and give you __${formatNumber(getEternityPip(playerData))} PIP__ from your __\`${formatNumber(playerData.bp)} BP\`__.`,
+-# this will **reset** your current upgrades, \`pts\`, and clicks and give you __${formatNumber(getEternityPip(playerData, { options: playerData.formatOptions }))} PIP__ from your __\`${formatNumber(playerData.bp, { options: playerData.formatOptions })} BP\`__.`,
                     components: [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder()
@@ -275,7 +275,10 @@ async function getEditMessage(interaction, category, buySetting) {
     const select = new StringSelectMenuBuilder()
         .setCustomId('upgrade:buy')
         .setPlaceholder('pick an upgrade')
-    let description = `you have **__\`${formatNumber(playerData.score, true, 4)} pts\`__** to spend...\nbuying **x${buySetting}** upgrade${buySetting === 1 ? '' : 's'} per click...\n`
+    let description = 
+`you have **__\`${formatNumber(playerData.score, { options: playerData.formatOptions, decimalPlaces: 4 })} pts\`__** to spend...
+buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerData.formatOptions }) : buySetting}** upgrade${buySetting === 1 ? '' : 's'} per click...\n`
+    
     const embed = new EmbedBuilder()
         .setTitle("upgrades")
         .setColor("#73c9ae")
@@ -324,13 +327,13 @@ async function getEditMessage(interaction, category, buySetting) {
         
         const {price, levels} = getMultiBuyCost(buySetting, upgrade, playerData.score, upgradeLevel);
 
-        description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, true, 6)})**
+        description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatOptions, decimalPlaces: 6 })})**
 ${upgrade.getDetails().description}
-${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, true)} pts\`${levels > 1 ? ` (*${formatNumber(levels, true)} levels*)` : ''}`
+${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, { options: playerData.formatOptions })} pts\`${levels > 1 ? ` (*${formatNumber(levels, { options: playerData.formatOptions })} levels*)` : ''}`
 
         select.addOptions(
             new StringSelectMenuOptionBuilder()
-                .setLabel(`${upgrade.getDetails().name} | ${formatNumber(price, true)} pts`)
+                .setLabel(`${upgrade.getDetails().name} | ${formatNumber(price, { options: playerData.formatOptions })} pts`)
                 .setValue(upgradeId)
         )
     }

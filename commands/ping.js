@@ -209,12 +209,12 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
     displayDisplay = displayDisplay.substring(2); // remove first comma and space
 
     if (currentEffects.bp) {
-        displayDisplay += `\n-# \`${formatNumber(Math.ceil(playerProfile.bp))}/${formatNumber(currentEffects.bpMax)} bp\`${playerProfile.bp >= currentEffects.bpMax ? " **(MAX)**" : ""} `
+        displayDisplay += `\n-# \`${formatNumber(Math.ceil(playerProfile.bp)), { options: playerProfile.formatSettings }}/${formatNumber(currentEffects.bpMax, { options: playerProfile.formatSettings })} bp\`${playerProfile.bp >= currentEffects.bpMax ? " **(MAX)**" : ""} `
         displayDisplay += formatDisplay(displays.bp, pingFormat);
     }
 
     if (currentEffects.apt) {
-        displayDisplay += `\n-# \`${formatNumber(playerProfile.apt)} APT\` `
+        displayDisplay += `\n-# \`${formatNumber(playerProfile.apt, { options: playerProfile.formatSettings })} APT\` `
         displayDisplay += formatDisplay(displays.apt, pingFormat);
     }
 
@@ -224,7 +224,7 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
         await interaction.update({
             content:
                 `${pingMessage}
-\`${formatNumber(playerProfile.score, true, 4)} pts\` (**\`+${formatNumber(score, true, 3)}\`**)\n-# ${displayDisplay}`,
+\`${formatNumber(playerProfile.score, { decimalPlaces: 4, options: playerProfile.formatSettings })} pts\` (**\`+${formatNumber(score, { decimalPlaces: 3, options: playerProfile.formatSettings })}\`**)\n-# ${displayDisplay}`,
             components: components,
             embeds: [],
         });

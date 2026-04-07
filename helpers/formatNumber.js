@@ -1,11 +1,12 @@
-function formatNumber(num, shortHand = false, decimalPlaces = 2, options = {
-    formatMode: 'standard',
+function formatNumber(num, { decimalPlaces = 2, shortHand = true, options = {
     swapCommas: false,
-}) {
+    formatMode: "standard",
+} } = {}) {
     if (num === null || num === undefined) return '0'; // handle null or undefined values
     if (!isFinite(num)) return num === Infinity ? 'Infinity' : 'NaN'; // handle special values
 
     const numStr = num.toString();
+    const integerPart = numStr.split(".")[0];
 
     const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', // 10^30
                       'Dc', 'UDc', 'DDc', 'TDc', 'QaDc', 'QiDc', 'SxDc', 'SpDc', 'OcDc', 'NoDc', // 10^60
@@ -31,16 +32,22 @@ function formatNumber(num, shortHand = false, decimalPlaces = 2, options = {
         return baseNum + (suffixes[suffixIndex] || '');
     }
 
-    if (numStr.length < 4) return numStr;
+    if (integerPart.length < 4) {
+        const decimalPart = numStr.split(".")[1] || "";
+        const roundedDecimal = decimalPart.slice(0, decimalPlaces);
+        return integerPart + (roundedDecimal ? "." + roundedDecimal : "");
+    }
 
-    const suffixIndex = Math.floor((numStr.length - 1) / 3);
+    const suffixIndex = Math.floor((integerPart.length - 1) / 3);
     if (decimalPlaces >= suffixIndex * 3) {
         decimalPlaces = suffixIndex * 3;
         shortHand = false;
     }
 
     if (!shortHand) {
-        return numStr.replace('.', options.swapCommas ? ',' : '.').replace(/\B(?=(\d{3})+(?!\d))/g, options.swapCommas ? '.' : ',');
+        return numStr
+            .replaceAll('.', options.swapCommas ? ',' : '.')
+            .replace(/\B(?=(\d{3})+(?!\d))/g, options.swapCommas ? '.' : ',')
     }
 
     let baseNum = (

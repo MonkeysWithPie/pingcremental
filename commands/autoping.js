@@ -55,7 +55,7 @@ module.exports = {
                             .setCustomId("value")
                             .setLabel("autoping count")
                             .setStyle(TextInputStyle.Short)
-                            .setPlaceholder(`input a number up to ${player.apt} or "ALL"...`)
+                            .setPlaceholder(`input a number up to ${formatNumber(player.apt, { shortHand: false, options: player.formatOptions })} or "ALL"...`)
                     )
                 );
             await interaction.showModal(modal);
@@ -94,14 +94,14 @@ async function doAutoping(interaction, count) {
     }
     if (pings < 1 || pings > player.apt) {
         return interaction.reply({
-            content: `please input a number between 1 and ${player.apt}.`,
+            content: `please input a number between 1 and ${formatNumber(player.apt, { options: player.formatOptions })}.`,
             flags: MessageFlags.Ephemeral,
         });
     }
 
     const embed = new EmbedBuilder()
         .setTitle("autopinging...")
-        .setDescription(`autoping is running!\n**0**/${formatNumber(pings)}...`)
+        .setDescription(`autoping is running!\n**0**/${formatNumber(pings, { shortHand: false, options: player.formatOptions })}...`)
         .setColor("#c4bf18")
 
     await interaction.update({
@@ -137,7 +137,7 @@ async function doAutoping(interaction, count) {
 
     for (let i = 0; i < pings; i++) {
         if (i === nextUpdate) {
-            embed.setDescription(`autoping is running!\n**${formatNumber(i)}**/${formatNumber(pings)}...`);
+            embed.setDescription(`autoping is running!\n**${formatNumber(i, { shortHand: false, options: player.formatOptions })}**/${formatNumber(pings, { shortHand: false, options: player.formatOptions })}...`);
             await interaction.editReply({ embeds: [embed] });
             await new Promise(r => setTimeout(r, 400)); // short delay to avoid rate limits
             nextUpdate += updateEmbedEvery + Math.ceil(Math.random() - 0.5 * pings / 1000);
@@ -200,20 +200,22 @@ async function doAutoping(interaction, count) {
     await player.save();
     await refreshAPT(player);
 
-    let finalDescription =
-        `**${formatNumber(pings)}** pings completed, which...
+    const formatOptions = { decimalPlaces: 4, options: player.formatOptions }
 
-__gained **\`${formatNumber(pingDataTotal.score, true, 4)} pts\`**__
-got **\`${formatNumber(pingDataTotal.highestScore, true, 3)} pts\`** at most, **\`${formatNumber(pingDataTotal.worstScore, true, 3)} pts\`** at worst`;
+    let finalDescription =
+        `**${formatNumber(pings, { shortHand: false, options: player.formatOptions })}** pings completed, which...
+
+__gained **\`${formatNumber(pingDataTotal.score, formatOptions)} pts\`**__
+got **\`${formatNumber(pingDataTotal.highestScore, { decimalPlaces: 3, options: player.formatOptions })} pts\`** at most, **\`${formatNumber(pingDataTotal.worstScore, { decimalPlaces: 3, options: player.formatOptions })} pts\`** at worst`;
 
     if (pingDataTotal.bp > 0) {
         if (player.bp >= finalEffects.bpMax) {
-            finalDescription += `\ngained **${formatNumber(pingDataTotal.bp, true, 4)}** BP (hit MAX of ${formatNumber(finalEffects.bpMax, true, 4)})`;
+            finalDescription += `\ngained **${formatNumber(pingDataTotal.bp, formatOptions)}** BP (hit MAX of ${formatNumber(finalEffects.bpMax, formatOptions)})`;
         } else {
-            finalDescription += `\ngained **${formatNumber(pingDataTotal.bp, true, 4)}** BP`
+            finalDescription += `\ngained **${formatNumber(pingDataTotal.bp, formatOptions)}** BP`
         }
     }
-    if (pingDataTotal.apt > 0) finalDescription += `\nwould've found **${formatNumber(pingDataTotal.apt, true, 5)}** APT`
+    if (pingDataTotal.apt > 0) finalDescription += `\nwould've found **${formatNumber(pingDataTotal.apt, { decimalPlaces: 5, options: player.formatOptions })}** APT`
 
     if (pingDataTotal.blues > 0 || pingDataTotal.bluesMissed > 0) {
         finalDescription += `
@@ -231,7 +233,7 @@ missed **${pingDataTotal.bluesMissed}** blue ping${pingDataTotal.bluesMissed ===
 
     let footer = `finished in ${(Number(endTime - startTime) / 1e9).toFixed(3)}s `;
     if (player.apt > 0) {
-        footer = `${formatNumber(player.apt)} APT remaining | ` + footer;
+        footer = `${formatNumber(player.apt, { options: player.formatOptions })} APT remaining | ` + footer;
     }
     finalEmbed.setFooter({ text: footer });
 
@@ -282,7 +284,7 @@ autoping pings for you automatically and quickly! all you need is some APT to ru
 autoping will always press the simulated **left-most** button.
 APT **cannot** be gained through autopinging, so you'll need to find it on your own.
 
-you currently have **${formatNumber(player.apt)} APT**.`)
+you currently have **${formatNumber(player.apt, { options: player.formatOptions })} APT**.`)
         .setColor("#46b019")
 
     const button = new ButtonBuilder()

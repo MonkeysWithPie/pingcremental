@@ -242,7 +242,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
             context.specials = currentEffects.specials;
         }
 
-        const effectString = formatEffect(effect, upgradeClass, pingFormat);
+        const effectString = formatEffect(effect, upgradeClass, pingFormat, { options: playerProfile.formatOptions });
 
         // add to display
         if (effectString) {
@@ -271,7 +271,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     score *= totalMult;
 
     if (totalMult > 1 && pingFormat !== "expanded") {
-        displays.mult.push(`__\`x${formatNumber(Math.floor(totalMult))}${(totalMult % 1).toFixed(2).slice(1)}\`__`);
+        displays.mult.push(`__\`x${formatNumber(totalMult, { options: playerProfile.formatOptions })}\`__`);
     }
 
     let totalExp = 1;
@@ -281,7 +281,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     score = Math.pow(score, totalExp);
 
     if (totalExp > 1 && pingFormat !== "expanded") {
-        displays.exponents.push(`**__\`^${totalExp.toFixed(3)}\`__**`);
+        displays.exponents.push(`**__\`^${formatNumber(totalExp, { options: playerProfile.formatOptions })}\`__**`);
     }
 
     score = Math.round(score);
@@ -302,21 +302,21 @@ async function ping(interaction, isSuper = false, overrides = {}) {
 
         if (effect.bp) { 
             currentEffects.bp += effect.bp;
-            displays.bp.push(formatEffect(effect, upgradeClass, pingFormat));
+            displays.bp.push(formatEffect(effect, upgradeClass, pingFormat, { options: playerProfile.formatOptions }));
         }
         if (effect.apt) {
             currentEffects.apt += effect.apt;
-            displays.apt.push(formatEffect(effect, upgradeClass, pingFormat))
+            displays.apt.push(formatEffect(effect, upgradeClass, pingFormat, { options: playerProfile.formatOptions }))
         }
     }
     
     if (pingFormat !== "expanded") {
-        displays.add.push(`\`+${formatNumber(score)}\``);
+        displays.add.push(`\`+${formatNumber(score, { options: playerProfile.formatOptions })}\``);
         if (currentEffects.bp) {
-            displays.bp.push(`\`+${formatNumber(currentEffects.bp)} bp\``);
+            displays.bp.push(`\`+${formatNumber(currentEffects.bp, { options: playerProfile.formatOptions })} bp\``);
         }
         if (currentEffects.apt) {
-            displays.apt.push(`\`+${formatNumber(currentEffects.apt)} APT\``);
+            displays.apt.push(`\`+${formatNumber(currentEffects.apt, { options: playerProfile.formatOptions })} APT\``);
         }
     }
 
@@ -409,23 +409,23 @@ function measureTimeSegment(segmentName, finish = false) {
     }
 }
 
-function formatEffect(effect, upgradeClass, format) {
+function formatEffect(effect, upgradeClass, format, formatOptions) {
     let effectString = upgradeClass.getDetails().emoji;
 
     if (effect.add && effect.add !== 0) {
-        effectString += ` \`${effect.add >= 0 ? "+" : ""}${formatNumber(effect.add)}\``;
+        effectString += ` \`${effect.add >= 0 ? "+" : ""}${formatNumber(effect.add, formatOptions)}\``;
     }
     if (effect.multiply && effect.multiply !== 1) {
-        effectString += ` __\`x${formatNumber(Math.floor(effect.multiply))}${(effect.multiply % 1).toFixed(2).slice(1)}\`__`;
+        effectString += ` __\`x${formatNumber(effect.multiply, formatOptions)}\`__`;
     }
     if (effect.exponent && effect.exponent !== 1) {
-        effectString += ` **__\`^${effect.exponent.toFixed(3)}\`__**`;
+        effectString += ` **__\`^${formatNumber(effect.exponent, formatOptions)}\`__**`;
     }
     if (effect.bp) {
-        effectString += ` \`+${formatNumber(effect.bp)} bp\``;
+        effectString += ` \`+${formatNumber(effect.bp, formatOptions)} bp\``;
     }
     if (effect.apt) {
-        effectString += ` \`+${formatNumber(effect.apt)} APT\``;
+        effectString += ` \`+${formatNumber(effect.apt, formatOptions)} APT\``;
     }
 
     if (format === "compact" && effectString !== upgradeClass.getDetails().emoji) {

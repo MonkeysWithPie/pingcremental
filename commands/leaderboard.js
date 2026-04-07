@@ -191,5 +191,7 @@ async function formatPlayer(userId, score, leaderboard, interaction) {
     if (interaction.user.id === userId) {
         userDisplay = `__${userDisplay}__` // highlight the user's own score
     }
-    return `**${userDisplay}** - \`${formatNumber(score, true, 5)}\` ${leaderboardTypes[leaderboard].metric}`
+    
+    // TODO: format options
+    return `**${userDisplay}** - \`${formatNumber(score, { decimalPlaces: 5 })}\` ${leaderboardTypes[leaderboard].metric}`
 }

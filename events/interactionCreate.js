@@ -28,9 +28,13 @@ module.exports = {
                     if (!buttonCommand) {
                         await log(`No command for button ${buttonId} (command ${buttonCommand}) was found.`, interaction.client)
                         return;
-                    } 
-                    await buttonCommand.buttons[split[1].split('-')[0]](interaction, split[1].split('-')[1]);
-                    
+                    }
+                    const [buttonType, ...buttonArgs] = split[1].split('-');
+                    if (buttonArgs.length === 1) {
+                        await buttonCommand.buttons[buttonType](interaction, buttonArgs[0]);
+                    } else {
+                        await buttonCommand.buttons[buttonType](interaction, buttonArgs);
+                    }
                 }
             } else if (interaction.isStringSelectMenu()) {
                 if (interaction.message.interaction && interaction.user.id !== interaction.message.interaction.user.id) {

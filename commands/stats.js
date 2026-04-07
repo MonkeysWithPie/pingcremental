@@ -25,7 +25,7 @@ module.exports = {
         ),
     async execute(interaction) {
         if (interaction.options.getSubcommand() === 'global') {
-            await interaction.reply(await getGlobalMessage());
+            await interaction.reply(await getGlobalMessage(interaction.user.id));
             return;
         } else if (interaction.options.getSubcommand() === 'user') {
             const user = interaction.options.getUser('user') || interaction.user;
@@ -34,18 +34,18 @@ module.exports = {
         }
     },
     buttons: {
-        refresh: (async (interaction, userId) => {
-            if (userId === 'global') {
-                await interaction.update(await getGlobalMessage());
+        refresh: (async (interaction, [type, selfId]) => {
+            if (type === 'global') {
+                await interaction.update(await getGlobalMessage(selfId.replace("global", "") || interaction.user.id));
                 return;
             } 
-                await interaction.update(await getUserMessage(userId || interaction.user.id, interaction));
-            
+
+            await interaction.update(await getUserMessage(type || interaction.user.id, interaction, selfId));
         })
     },
 }
 
-async function getGlobalMessage() {
+async function getGlobalMessage(selfId) {
     const globalPings = await Promise.all([
         database.Player.count(),
         database.Player.sum('totalScore'),
@@ -56,18 +56,20 @@ async function getGlobalMessage() {
         database.Player.sum('luckyPings'),
     ]);
     const [count, totalScore, ownedScore, totalClicks, blueClicked, blueMissed, luckyFound] = globalPings;
+    const selfData = await database.Player.findByPk(selfId);
+    const formatOptions = { options: selfData.formatOptions }
 
     const embed = new EmbedBuilder()
         .setTitle(`global stats`)
         .setColor('#bd6fb8')
         .setDescription(
-                `${formatNumber(count)} people have pinged at least once\n` +
-                `\`${formatNumber(totalScore)} pts\` gained in total\n` +
-                `\`${formatNumber(ownedScore)} pts\` currently owned\n` +
-                `${formatNumber(totalClicks)} pings dealt with\n` +
-                `${formatNumber(blueClicked)} blue pings clicked\n` +
-                `${formatNumber(blueMissed)} blue pings missed\n` +
-                `${formatNumber(luckyFound)} lucky pings found`
+                `${formatNumber(count, formatOptions)} people have pinged at least once\n` +
+                `\`${formatNumber(totalScore, formatOptions)} pts\` gained in total\n` +
+                `\`${formatNumber(ownedScore, formatOptions)} pts\` currently owned\n` +
+                `${formatNumber(totalClicks, formatOptions)} pings dealt with\n` +
+                `${formatNumber(blueClicked, formatOptions)} blue pings clicked\n` +
+                `${formatNumber(blueMissed, formatOptions)} blue pings missed\n` +
+                `${formatNumber(luckyFound, formatOptions)} lucky pings found`
         )
         .setTimestamp();
     
@@ -77,7 +79,7 @@ async function getGlobalMessage() {
             new ActionRowBuilder()
                 .addComponents(
                     new ButtonBuilder()
-                        .setCustomId(`stats:refresh-global`)
+                        .setCustomId(`stats:refresh-global-${selfId}`)
                         .setLabel('refresh')
                         .setStyle(ButtonStyle.Secondary)
                 )
@@ -85,10 +87,13 @@ async function getGlobalMessage() {
     };
 }
 
-async function getUserMessage(userId, interaction) {
+async function getUserMessage(userId, interaction, selfId) {
     const player = await database.Player.findByPk(userId);
     if (!player) return { content: `<@${userId}> hasn't pinged yet.`, allowedMentions: { parse: [] }, flags: MessageFlags.Ephemeral };
     
+    const self = await database.Player.findByPk(selfId);
+    const formatOptions = { options: self.formatOptions }
+
     const upgrades = player.upgrades;
 
     const simulatedPing = await ping(interaction, false, { forceNoRNG: true, userId: userId });
@@ -99,35 +104,35 @@ async function getUserMessage(userId, interaction) {
     let desc = `viewing stats for **${await player.getUserDisplay(interaction.client, database)}**\n` +
     
             `\n__the basics__\n` +
-            `${formatNumber(player.totalClicks)} total ping${player.totalClicks === 1 ? '' : 's'}\n` +
-            `${player.totalClicks !== player.clicks ? `${formatNumber(player.clicks)} ping${player.clicks === 1 ? '' : 's'} this eternity\n` : ''}` +
-            `\`${formatNumber(player.totalScore)} pts\` in total\n` +
+            `${formatNumber(player.totalClicks, formatOptions)} total ping${player.totalClicks === 1 ? '' : 's'}\n` +
+            `${player.totalClicks !== player.clicks ? `${formatNumber(player.clicks, formatOptions)} ping${player.clicks === 1 ? '' : 's'} this eternity\n` : ''}` +
+            `\`${formatNumber(player.totalScore, formatOptions)} pts\` in total\n` +
             `${player.totalPip ? 
-                `${formatNumber(player.totalPip)} total PIP obtained\n` +
-                `${formatNumber(player.totalEternities)} total eternit${player.totalEternities === 1 ? 'y' : 'ies'}\n` +
-                `${player.totalEternities !== player.eternities ? `${formatNumber(player.eternities)} eternit${player.eternities === 1 ? 'y' : 'ies'} this tear\n` : ''}`
+                `${formatNumber(player.totalPip, formatOptions)} total PIP obtained\n` +
+                `${formatNumber(player.totalEternities, formatOptions)} total eternit${player.totalEternities === 1 ? 'y' : 'ies'}\n` +
+                `${player.totalEternities !== player.eternities ? `${formatNumber(player.eternities, formatOptions)} eternit${player.eternities === 1 ? 'y' : 'ies'} this tear\n` : ''}`
             : ''}` +
             `${player.totalTears ? 
-                `${formatNumber(player.totalTears)} total tear${player.totalTears === 1 ? '' : 's'}\n` +
-                `${formatNumber(player.totalThread)} total thread gained\n`
+                `${formatNumber(player.totalTears, formatOptions)} total tear${player.totalTears === 1 ? '' : 's'}\n` +
+                `${formatNumber(player.totalThread, formatOptions)} total thread gained\n`
             : ''}` +
 
             `\n__blue pings__\n` +
-            `${formatNumber(player.bluePings)} blue ping${player.bluePings === 1 ? '' : 's'} clicked\n` +
-            `${formatNumber(player.bluePingsMissed)} missed blue ping${player.bluePingsMissed === 1 ? '' : 's'} (${player.bluePingMissRate}% miss rate)\n` +
-            `${upgrades.bluePingChance < 0 ? `0%` : `${(bluePingChance).toFixed(1)}%`} blue ping chance\n` + 
-            `${blueMult.toFixed(2)}x blue ping strength = ${(blueMult*15).toFixed(2)}x \`pts\` on a blue ping\n` +
+            `${formatNumber(player.bluePings, formatOptions)} blue ping${player.bluePings === 1 ? '' : 's'} clicked\n` +
+            `${formatNumber(player.bluePingsMissed, formatOptions)} missed blue ping${player.bluePingsMissed === 1 ? '' : 's'} (${player.bluePingMissRate}% miss rate)\n` +
+            `${upgrades.bluePingChance < 0 ? `0%` : `${formatNumber(bluePingChance, { options: self.formatOptions, decimalPlaces: 1 })}%`} blue ping chance\n` + 
+            `${blueMult.toFixed(2)}x blue ping strength = ${formatNumber(blueMult*15, formatOptions)}x \`pts\` on a blue ping\n` +
 
             `\n__rarities__\n` +
-            `\`${formatNumber(player.highestScore)} pts\` in one ping\n` +
-            `${formatNumber(player.highestBlueStreak)} blue ping${player.highestBlueStreak === 1 ? '' : 's'} in a row\n` +
-            `${formatNumber(player.luckyPings)} lucky ping${player.luckyPings === 1 ? '' : 's'}\n` +
-            `${player.highestCoinflipCount ? `${formatNumber(player.highestCoinflipCount)} coinflip${player.highestCoinflipCount === 1 ? '' : 's'} in one ping\n` : ''}` +
-            `${player.highestPigScore ? `${formatNumber(player.highestPigScore)} pig score in one ping\n` : ''}`;
+            `\`${formatNumber(player.highestScore, formatOptions)} pts\` in one ping\n` +
+            `${formatNumber(player.highestBlueStreak, formatOptions)} blue ping${player.highestBlueStreak === 1 ? '' : 's'} in a row\n` +
+            `${formatNumber(player.luckyPings, formatOptions)} lucky ping${player.luckyPings === 1 ? '' : 's'}\n` +
+            `${player.highestCoinflipCount ? `${formatNumber(player.highestCoinflipCount, formatOptions)} coinflip${player.highestCoinflipCount === 1 ? '' : 's'} in one ping\n` : ''}` +
+            `${player.highestPigScore ? `${formatNumber(player.highestPigScore, formatOptions)} pig score in one ping\n` : ''}`;
 
     if (player.highestArtisanCombo || player.highestOrchestraCombo) desc += `\n__skill combos__\n` +
-            `${player.highestArtisanCombo ? `${formatNumber(player.highestArtisanCombo)} artisan combo at once\n` : ''}` +
-            `${player.highestOrchestraCombo ? `${formatNumber(player.highestOrchestraCombo)} orchestra combo at once\n` : ''}`;
+            `${player.highestArtisanCombo ? `${formatNumber(player.highestArtisanCombo, formatOptions)} artisan combo at once\n` : ''}` +
+            `${player.highestOrchestraCombo ? `${formatNumber(player.highestOrchestraCombo, formatOptions)} orchestra combo at once\n` : ''}`;
 
     const embed = new EmbedBuilder()
         .setTitle(`personal stats`)
@@ -140,7 +145,7 @@ async function getUserMessage(userId, interaction) {
             new ActionRowBuilder()
                 .addComponents(
                     new ButtonBuilder()
-                        .setCustomId(`stats:refresh-${userId}`)
+                        .setCustomId(`stats:refresh-${userId}-${selfId}`)
                         .setLabel('refresh')
                         .setStyle(ButtonStyle.Secondary)
                 )

@@ -49,29 +49,6 @@ module.exports = (sequelize) => {
 			defaultValue: {},
 		},
 
-		totalScore: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-
-		highestScore: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-
-		totalClicks: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		totalAptClicks: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-
 		badges: {
 			type: DataTypes.STRING,
 			allowNull: false,
@@ -117,53 +94,11 @@ module.exports = (sequelize) => {
 			}
 		},
 
-		bluePings: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		bluePingsMissed: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		bluePingRate: {
-			type: DataTypes.VIRTUAL,
-			get() {
-				if (this.bluePings + this.bluePingsMissed === 0) return undefined;
-				return Math.round((this.bluePings / (this.bluePings + this.bluePingsMissed)) * 10000) / 100;
-			},
-			set() {
-				throw new Error('bluePingRate is virtual and shouldn\'t be set directly');
-			}
-		},
-		bluePingMissRate: {
-			type: DataTypes.VIRTUAL,
-			get() {
-				if (this.bluePings + this.bluePingsMissed === 0) return undefined;
-				return Math.round((this.bluePingsMissed / (this.bluePings + this.bluePingsMissed)) * 10000) / 100;
-			},
-			set() {
-				throw new Error('bluePingMissRate is virtual and shouldn\'t be set directly');
-			}
-		},
-		luckyPings: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		highestBlueStreak: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-
 		removedUpgrades: {
 			type: DataTypes.NUMBER,
 			defaultValue: 0,
 			allowNull: false,
 		},
-		
 
 		// prestige data
 		bp: {
@@ -181,39 +116,20 @@ module.exports = (sequelize) => {
 			defaultValue: 0,
 			allowNull: false,
 		},
-		totalPip: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
 		eternities: {
 			type: DataTypes.NUMBER,
 			defaultValue: 0,
 			allowNull: false,
 		},
-		totalEternities: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
 
+		
 		// fabric data
 		tears: {
 			type: DataTypes.NUMBER,
 			defaultValue: 0,
 			allowNull: false,
 		},
-		totalTears: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
 		thread: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		totalThread: {
 			type: DataTypes.NUMBER,
 			defaultValue: 0,
 			allowNull: false,
@@ -279,6 +195,95 @@ module.exports = (sequelize) => {
 			allowNull: false,
 		},
 
+		// TODO: move the below stats to a separate model w/ stats for each prestige stage
+		// see also: https://sequelize.org/docs/v6/advanced-association-concepts/creating-with-associations/#belongsto--hasmany--hasone-association		
+
+		totalScore: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+
+		highestScore: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+
+		totalClicks: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+		totalAptClicks: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+
+		bluePings: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+		bluePingsMissed: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+		bluePingRate: {
+			type: DataTypes.VIRTUAL,
+			get() {
+				if (this.bluePings + this.bluePingsMissed === 0) return undefined;
+				return Math.round((this.bluePings / (this.bluePings + this.bluePingsMissed)) * 10000) / 100;
+			},
+			set() {
+				throw new Error('bluePingRate is virtual and shouldn\'t be set directly');
+			}
+		},
+		bluePingMissRate: {
+			type: DataTypes.VIRTUAL,
+			get() {
+				if (this.bluePings + this.bluePingsMissed === 0) return undefined;
+				return Math.round((this.bluePingsMissed / (this.bluePings + this.bluePingsMissed)) * 10000) / 100;
+			},
+			set() {
+				throw new Error('bluePingMissRate is virtual and shouldn\'t be set directly');
+			}
+		},
+		luckyPings: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+		highestBlueStreak: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+		
+
+		totalPip: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+		totalEternities: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+
+		totalTears: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
+		totalThread: {
+			type: DataTypes.NUMBER,
+			defaultValue: 0,
+			allowNull: false,
+		},
 
 		// upgrade effect records
 		// note: cannot be set with autopings

@@ -21,4 +21,6 @@ for (const file of modelFiles) {
 
 database.Player.hasMany(database.PlayerStat, { as: 'rawStats' });
 
+database.sequelize = sequelize;
+
 module.exports = database

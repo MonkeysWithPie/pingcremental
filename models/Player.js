@@ -1,5 +1,7 @@
 const { DataTypes, Model } = require('sequelize');
 const { getBadgesByName } = require('../helpers/badgeUtils.js');
+const { PrestigeLayers } = require('../helpers/commonEnums.js');
+const PlayerStat = require('./PlayerStat.js');
 
 module.exports = (sequelize) => {
 	class User extends Model {
@@ -16,6 +18,35 @@ module.exports = (sequelize) => {
 			}
 
 			return display;
+		}
+		async stats() {
+			const stats = await this.getRawStats();
+			for (const layer of PrestigeLayers) {
+				stats[layer] = stats.find(stat => stat.layer === layer) || null;
+			}
+
+			for (const layer of PrestigeLayers) {
+				if (!stats[layer]) {
+					let newStat = stats.total.get({ plain: true });
+					delete newStat.id;
+					newStat.layer = layer;
+					newStat = await PlayerStat(sequelize).create(newStat);
+					stats[layer] = newStat;
+					await this.addRawStat(newStat);
+				}
+			}
+
+			return stats;
+		}
+		async increaseStat(key, count = 1) {
+			if (count < 0) return;
+			await this.stats(); // refresh layers in case one is missing
+
+			const stats = await this.getRawStats();
+			for (const stat of stats) {
+				stat[key] += count;
+				await stat.save();
+			}
 		}
 	}
 
@@ -195,7 +226,7 @@ module.exports = (sequelize) => {
 			allowNull: false,
 		},
 
-		// TODO: move the below stats to a separate model w/ stats for each prestige stage
+		// TODO: move the below stats to PlayerStat.js
 		// see also: https://sequelize.org/docs/v6/advanced-association-concepts/creating-with-associations/#belongsto--hasmany--hasone-association		
 
 		totalScore: {
@@ -311,6 +342,10 @@ module.exports = (sequelize) => {
 		sequelize,
 		timestamps: true,
 		modelName: 'User',
+
+		defaultScope: {
+			include: 'rawStats',
+		}
 	})
 
 	return User;

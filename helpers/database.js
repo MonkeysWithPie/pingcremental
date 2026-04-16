@@ -12,13 +12,13 @@ const sequelize = new Sequelize('database', 'user', 'password', {
 
 const modelsPath = path.join(__dirname, '../models');
 const modelFiles = fs.readdirSync(modelsPath).filter(file => file.endsWith('.js'));
-const list = {}; // list of all models
+const database = {}; // list of all models
 
 for (const file of modelFiles) {
 	const filePath = path.join(modelsPath, file);
-	list[file.replace('.js','')] = require(filePath)(sequelize);
+	database[file.replace('.js','')] = require(filePath)(sequelize);
 }
 
-const database = list
+database.Player.hasMany(database.PlayerStat, { as: 'rawStats' });
 
 module.exports = database

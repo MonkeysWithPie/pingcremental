@@ -27,11 +27,17 @@ const FabricUpgradeTypes = {
     PURE_RANDOM: 'Random Chance',
     SKILL_BASED: 'Skill-Based',
     MISC: 'Miscellaneous',
-}   
+}
+
+const PrestigeLayers = [
+    "eternity", 
+    "tear", 
+    "total"
+]
 
 Object.freeze(UpgradeTypes);
 Object.freeze(PipUpgradeTypes);
 Object.freeze(FabricUpgradeTypes);
 Object.freeze(PingCalculationStates);
 
-module.exports = { UpgradeTypes, PipUpgradeTypes, FabricUpgradeTypes, PingCalculationStates };
+module.exports = { UpgradeTypes, PipUpgradeTypes, FabricUpgradeTypes, PingCalculationStates, PrestigeLayers };

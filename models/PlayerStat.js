@@ -55,9 +55,7 @@ module.exports = (sequelize) => {
 				if (this.bluePings + this.bluePingsMissed === 0) return undefined;
 				return this.bluePings / (this.bluePings + this.bluePingsMissed);
 			},
-			set() {
-				throw new Error('bluePingRate is virtual and shouldn\'t be set directly');
-			}
+			set() { return }
 		},
 		bluePingMissRate: {
 			type: DataTypes.VIRTUAL,
@@ -65,9 +63,7 @@ module.exports = (sequelize) => {
 				if (this.bluePings + this.bluePingsMissed === 0) return undefined;
 				return this.bluePingsMissed / (this.bluePings + this.bluePingsMissed);
 			},
-			set() {
-				throw new Error('bluePingMissRate is virtual and shouldn\'t be set directly');
-			}
+			set() { return }
 		},
         bluePingAppearRate: {
             type: DataTypes.VIRTUAL,
@@ -76,9 +72,7 @@ module.exports = (sequelize) => {
                 if (clicks === 0) return undefined;
                 return this.bluePings / clicks;
             },
-            set() {
-                throw new Error('bluePingAppearRate is virtual and shouldn\'t be set directly');
-            }
+            set() { return }
         },
 
         luckyPings: {
@@ -86,6 +80,10 @@ module.exports = (sequelize) => {
             defaultValue: 0,
         },
         
+        bp: {
+            type: DataTypes.NUMBER,
+            defaultValue: 0,
+        },
         pip: {
             type: DataTypes.NUMBER,
             defaultValue: 0,

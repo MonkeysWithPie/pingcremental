@@ -11,8 +11,8 @@ module.exports = {
         .setDescription('check who\'s best')
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
     async execute(interaction) {
-        await interaction.reply({ embeds: [new EmbedBuilder().setDescription('one sec...')] });
-        await interaction.editReply(await getMessage(interaction, 'totalScore')); // add (edited) so it doesn't move after refresh
+        await interaction.deferReply();
+        await interaction.editReply(await getMessage(interaction, 'score'));
     },
     buttons: {
         refresh: (async (interaction, leaderboard) => {
@@ -35,12 +35,15 @@ module.exports = {
 
 async function getMessage(interaction, leaderboardType) {
     if (!leaderboardTypes) initTypes();
-    if (!leaderboardType) leaderboardType = "totalScore";
+    if (!leaderboardType) leaderboardType = "score";
 
     let description = "";
-    const topPlayers = await database.Player.findAll({
+    const topStats = await database.PlayerStat.findAll({
         order: [[leaderboardType, 'DESC']], // highest first
-        attributes: ['userId', leaderboardType], // only get userId and totalScore
+        attributes: [leaderboardType, 'player'], // only get userId and totalScore
+        where: {
+            layer: 'total',
+        }
     })
 
     const leaderboardEmojis = []
@@ -52,38 +55,36 @@ async function getMessage(interaction, leaderboardType) {
     let position = 0;
     let showedSelf = false;
 
-    for (const player of topPlayers) {
+    for (const stats of topStats) {
+        const player = stats.getPlayer();
         position++;
         if (position > 10) break; // only show the top 10 players
 
         description +=
             `
-${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await formatPlayer(player.userId, player[leaderboardType], leaderboardType, interaction)}`
+${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await formatPlayer(player, stats[leaderboardType], leaderboardType, interaction)}`
         showedSelf = showedSelf || (interaction.user.id === player.userId);
     }
 
     if (!showedSelf) {
         // find position of the user
-        const userIndex = topPlayers.findIndex(player => player.userId === interaction.user.id);
+        const userIndex = topStats.findIndex(player => player.getPlayer().userId === interaction.user.id);
 
-        // user may not be displayed because of autoclicker filter
-        if (userIndex !== -1) {
-            // show next user and user below
-            if (userIndex >= 12) {
-                description += `\n...`
-            }
+        // show next user and user below
+        if (userIndex >= 12) {
+            description += `\n...`
+        }
 
-            if (userIndex >= 11) {
-                const userBelow = topPlayers[userIndex - 1];
-                description += `\n#${userIndex} ${await formatPlayer(userBelow.userId, userBelow[leaderboardType], leaderboardType, interaction)}`
-            }
+        if (userIndex >= 11) {
+            const userBelow = topStats[userIndex - 1];
+            description += `\n#${userIndex} ${await formatPlayer(userBelow.getPlayer(), userBelow[leaderboardType], leaderboardType, interaction)}`
+        }
 
-            description += `\n#${userIndex + 1} ${await formatPlayer(interaction.user.id, topPlayers[userIndex][leaderboardType], leaderboardType, interaction)}`
+        description += `\n#${userIndex + 1} ${await formatPlayer(interaction.user.id, topStats[userIndex][leaderboardType], leaderboardType, interaction)}`
 
-            if (userIndex !== topPlayers.length - 1) {
-                const userAbove = topPlayers[userIndex + 1];
-                description += `\n#${userIndex + 2} ${await formatPlayer(userAbove.userId, userAbove[leaderboardType], leaderboardType, interaction)}`
-            }
+        if (userIndex !== topStats.length - 1) {
+            const userAbove = topStats[userIndex + 1];
+            description += `\n#${userIndex + 2} ${await formatPlayer(userAbove.getPlayer(), userAbove[leaderboardType], leaderboardType, interaction)}`
         }
     }
 
@@ -126,17 +127,17 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
 // funky leaderboard caching in case getEmoji() returns a placeholder
 function initTypes() {
     leaderboardTypes = {
-        totalScore: {
+        score: {
             name: 'total pts',
             emoji: '✨',
             metric: "`pts` total"
         },
-        totalClicks: {
+        clicks: {
             name: 'total clicks',
             emoji: '🖱️',
             metric: "clicks"
         },
-        highestScore: {
+        highScore: {
             name: 'highest score',
             emoji: getEmoji('ponder_favored', '🏆'),
             metric: "`pts` in best ping"
@@ -146,22 +147,22 @@ function initTypes() {
             emoji: getEmoji('upgrade_blue', '🔵'),
             metric: "blue pings clicked"
         },
-        totalEternities: {
+        eternities: {
             name: 'total eternities',
             emoji: getEmoji('upgrade_pingularity', '♾️'),
             metric: "eternities"
         },
-        totalTears: {
+        tears: {
             name: 'total tears',
             emoji: '🌆',
             metric: "tears"
         },
-        totalPip: {
+        pip: {
             name: 'total pip',
             emoji: '🟣',
             metric: "pip total"
         },
-        totalThread: {
+        thread: {
             name: 'total thread',
             emoji: '🧵',
             metric: "thread total"
@@ -171,7 +172,7 @@ function initTypes() {
             emoji: getEmoji('ponder_regret', '😔'),
             metric: "blue pings missed"
         },
-        highestBlueStreak: {
+        blueStreak: {
             name: 'highest blue streak',
             emoji: getEmoji('upgrade_chain', '🔗'),
             metric: "blue pings in a row"
@@ -184,11 +185,9 @@ function initTypes() {
     }
 }
 
-async function formatPlayer(userId, score, leaderboard, interaction) {
-    const player = await database.Player.findByPk(`${userId}`);
-
-    let userDisplay = await player.getUserDisplay(interaction.client, database);
-    if (interaction.user.id === userId) {
+async function formatPlayer(player, score, leaderboard, interaction) {
+    let userDisplay = await player.getUserDisplay(interaction.client);
+    if (interaction.user.id === player.userId) {
         userDisplay = `__${userDisplay}__` // highlight the user's own score
     }
     

@@ -614,13 +614,14 @@ function get(ping, context) {
 
     // only if player was clicking (can't appear with /ping, only on button press)
     if (context.score) {
+        const totalClicks = context.stats.total.clicks;
         if (Math.random() * 100 <= 7) messagesList = [
             `i don't know if i made this clicking too addictive. sorry in advance`,
             `number go up!`,
             `did you know \`1,000,000 pts\` is called a megapt?`,
             `if you keep clicking like this, you'll be the next clicker extraordinaire`,
             "i'm glad it's a button and not a command",
-            context.totalClicks >= 150 ? `there's no... upgrades...? oh, wait` : `there's no upgrades for this, by the way`,
+            totalClicks >= 150 ? `there's no... upgrades...? oh, wait` : `there's no upgrades for this, by the way`,
             `hopefully this ping isn't too much to deal with while you click away`,
             `how come you like clicking this so much?`,
             `i mean, i get it, clicking can be fun, but don't you have other things to do? like sleep? eat?`,
@@ -632,16 +633,16 @@ function get(ping, context) {
             `i'm so glad they let you ping eternally`,
             `you're currently #4 in the world! just kidding, i can't be bothered to check, you can check the leaderboard though`,
             `do you actually care about my ping? or do you just want \`pts\`?`,
-            context.totalClicks >= 100 ? `${context.totalClicks} is a pretty big amount of pings` : `you've pinged me ${context.totalClicks} times`,
-            context.totalClicks >= 1000 ? `is the carpal tunnel setting in yet? with your ${context.totalClicks} pings?` : `you've pinged me ${context.totalClicks} times`,
+            totalClicks >= 100 ? `${totalClicks} is a pretty big amount of pings` : `you've pinged me ${totalClicks} times`,
+            totalClicks >= 1000 ? `is the carpal tunnel setting in yet? with your ${totalClicks} pings?` : `you've pinged me ${totalClicks} times`,
             `points and \`pts\` are not the same, do NOT confuse them`,
             `"\`pts\`" is pronounced like "points" but remember they're not the same`,
             `that ping scored you a full \`${context.score} pts\`.`,
             `what if i gave you another \`${context.score * 2} pts\`? you can probably get that by just clicking a bit more`,
             `you got \`${context.score} pts\` just then, which is like, a lot. probably`,
-            context.totalClicks >= 500 ? `you've clicked ${context.totalClicks} times. is your mouse okay?` : `you've clicked ${context.totalClicks} times. that's like, medium pinger level`,
+            totalClicks >= 500 ? `you've clicked ${totalClicks} times. is your mouse okay?` : `you've clicked ${totalClicks} times. that's like, medium pinger level`,
             `you've earned \`${context.score} pts\` from this one ping, and not a single one was a tax write-off`,
-            `click count: ${context.totalClicks}. you should probably stretch your fingers`,
+            `click count: ${totalClicks}. you should probably stretch your fingers`,
             `that button click sounded expensive`,
             `at this rate, you'll hit escape velocity`,
             `ping economy in shambles (you clicked too hard)`,

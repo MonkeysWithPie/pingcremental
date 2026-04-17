@@ -135,7 +135,8 @@ module.exports = {
 
 async function getEditMessage(interaction, category, buySetting) {
     const [playerData, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id }})
-    if (!playerData.prestigeUpgrades.beginning && !playerData.pip) {
+    const stats = await playerData.stats();
+    if (stats.total.eternities === 0) {
         const button = new ButtonBuilder()
             .setCustomId('ponder:delete')
             .setLabel('oh... okay')

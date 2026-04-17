@@ -38,28 +38,29 @@ module.exports = {
         }),
         eternity: (async interaction => {
             const playerData = await database.Player.findByPk(`${interaction.user.id}`);
-            const firstEternity = playerData.pip === 0;
+            const stats = await playerData.stats();
+            const firstEternity = stats.total.eternities === 0;
 
             // add removed upgrade levels, for "vague" upgrade
             let removed = 0;
             for (const [, level] of Object.entries(playerData.upgrades)) {
                 removed += level;
             }
-            playerData.removedUpgrades += removed;
+            playerData.increaseStat("removedUpgrades", removed);
 
             const gainedPip = getEternityPip(playerData);
 
             playerData.upgrades = {};
             playerData.score = 0;
-            playerData.clicks = 0;
             playerData.glimmerClicks = 0;
             playerData.slumberClicks = 0;
 
             playerData.pip += gainedPip;
-            playerData.totalPip += gainedPip;
             playerData.bp = 0;
-            playerData.eternities++;
-            playerData.totalEternities++;
+            playerData.increaseStat("eternities", 1);
+
+            await playerData.save();
+            await playerData.layerReset('eternity');
 
             // memory effects
             if (playerData.prestigeUpgrades.memory) {
@@ -73,7 +74,6 @@ module.exports = {
             
             playerData.changed('upgrades', true) 
 
-            await playerData.save();
             await interaction.update({ content: `*it is done.*\n-# you gained __\`${formatNumber(gainedPip, { options: playerData.formatOptions })} PIP\`__, so you now have __\`${formatNumber(playerData.pip, { options: playerData.formatOptions })} PIP\`__`, components: [] });
             if (firstEternity) {
                 await interaction.followUp({ content: `
@@ -85,7 +85,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
                 await awardBadge(interaction.user.id, 'foreverbound', interaction.client);
             }
 
-            if (playerData.tears < 1 && getTearRequirement(playerData.tears) === playerData.eternities) {
+            if (stats.total.tears < 1 && getTearRequirement(playerData.tears) === playerData.eternities) {
                 await interaction.followUp({
                     content: 
 `*you've been looking for something more, haven't you...?*
@@ -248,13 +248,14 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
 
 async function getEditMessage(interaction, category, buySetting) {
     const [playerData, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
-    if (playerData.totalClicks < 150 && !playerData.clicks >= 150) { // prevent upgrading before 150 clicks
+    const stats = await playerData.stats();
+    if (stats.total.clicks < 150) { // prevent upgrading before 150 clicks
         const button = new ButtonBuilder()
             .setCustomId('upgrade:delete')
             .setLabel('oh... okay')
             .setStyle(ButtonStyle.Secondary)
         return {
-            content: `*upgrades? what upgrades? you should go back to pinging.*\n-# (${playerData.clicks}/150)`,
+            content: `*upgrades? what upgrades? you should go back to pinging.*\n-# (${stats.total.clicks}/150)`,
             components: [new ActionRowBuilder().addComponents(button)]
         }
     }
@@ -307,7 +308,12 @@ buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerDat
         buySetting = 1;
     }
 
-    const context = { upgrades: pUpgrades, clicks: playerData.clicks, totalClicks: playerData.totalClicks, bp: playerData.bp, fabrics: playerData.equippedFabrics };
+    const context = { 
+        upgrades: pUpgrades, 
+        stats,
+        bp: playerData.bp, 
+        fabrics: playerData.equippedFabrics 
+    };
 
     for (const [upgradeId, upgrade] of Object.entries(upgrades.pts)) {
         // go through each upgrade and check if should be displayed

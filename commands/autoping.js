@@ -180,21 +180,26 @@ async function doAutoping(interaction, count) {
     // wow that's a lot of stats
     player.apt -= pings;
 
+    const stats = await player.stats();
+
     player.score += pingDataTotal.score;
-    player.totalScore += pingDataTotal.score;
-    if (pingDataTotal.highestScore > player.highestScore) {
-        player.highestScore = pingDataTotal.highestScore;
+
+    for (const layerStat of Object.values(stats)) {
+        if (pingDataTotal.highestScore > layerStat.highestScore)
+            layerStat.highScore = pingDataTotal.highestScore;
+        
+        if (pingDataTotal.highestBlueCombo > layerStat.highestBlueStreak)
+            layerStat.blueStreak = pingDataTotal.highestBlueCombo;
+        
+        if (layerStat.changed()) await layerStat.save();
     }
-    player.clicks += pings;
-    player.totalClicks += pings;
-    player.totalAptClicks += pings;
+
+    player.increaseStat('clicks', pings);
+    player.increaseStat('aptClicks', pings);
     player.bp = Math.min(player.bp + pingDataTotal.bp, finalEffects.bpMax);
     player.luckyPings += pingDataTotal.rares;
     player.bluePings += pingDataTotal.blues;
     player.bluePingsMissed += pingDataTotal.bluesMissed;
-    if (pingDataTotal.highestBlueCombo > player.highestBlueStreak) {
-        player.highestBlueStreak = pingDataTotal.highestBlueCombo;
-    }
     player.lastPing = Date.now();
 
     await player.save();

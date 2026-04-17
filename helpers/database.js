@@ -19,7 +19,8 @@ for (const file of modelFiles) {
 	database[file.replace('.js','')] = require(filePath)(sequelize);
 }
 
-database.Player.hasMany(database.PlayerStat, { as: 'rawStats' });
+database.Player.hasMany(database.PlayerStat, { as: 'rawStat' });
+database.PlayerStat.belongsTo(database.Player, { as: 'player' });
 
 database.sequelize = sequelize;
 

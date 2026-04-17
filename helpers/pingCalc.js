@@ -63,14 +63,11 @@ async function ping(interaction, isSuper = false, overrides = {}) {
 
         // player profile bits
         score: playerProfile.score,
-        clicks: playerProfile.clicks,
-        totalClicks: playerProfile.totalClicks,
         lastPing: playerProfile.lastPing,
         pip: playerProfile.pip,
-        removedUpgrades: playerProfile.removedUpgrades,
         upgrades: playerProfile.upgrades,
-        missedBluePings: playerProfile.bluePingsMissed,
         totalFabrics: Object.keys(playerProfile.ownedFabrics).length,
+        stats: await playerProfile.stats(),
 
         // per-upgrade vars
         slumberClicks: playerProfile.slumberClicks,

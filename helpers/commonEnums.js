@@ -29,6 +29,7 @@ const FabricUpgradeTypes = {
     MISC: 'Miscellaneous',
 }
 
+// sort by earliest to latest activation! e.g. tears after eternity b/c tears also reset eternity
 const PrestigeLayers = [
     "eternity", 
     "tear", 

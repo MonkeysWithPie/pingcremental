@@ -96,16 +96,14 @@ async function pingResponse(interaction, isSuper = false) {
     }
 
     /* SAVE STATS */
-
     context.totalScore = playerProfile.score + score;
     const pingMessage = pingMessages(context.ping, context); // get the ping message
+    
+    const stats = await playerProfile.stats();
 
     // click saving
-    playerProfile.clicks += 1;
-    playerProfile.totalClicks += 1;
-    if (playerProfile.clicks > playerProfile.totalClicks) playerProfile.totalClicks = playerProfile.clicks; // make sure total clicks is always higher than clicks
+    playerProfile.increaseStat('clicks', 1);
     if (currentEffects.rare) playerProfile.luckyPings += 1;
-    if (currentEffects.blueCombo > playerProfile.highestBlueStreak) playerProfile.highestBlueStreak = currentEffects.blueCombo;
     if (!isSuper) {
         let missed = false;
         for (const row of interaction.message.components) {
@@ -120,25 +118,29 @@ async function pingResponse(interaction, isSuper = false) {
     }
     if (isSuper) playerProfile.bluePings += 1;
 
+    // high score and streak saving
+    for (const layerStat of Object.values(stats)) {
+        if (currentEffects.blueCombo > layerStat.blueStreak) 
+            layerStat.blueStreak = currentEffects.blueCombo;
+
+        if (score > layerStat.highScore)
+            layerStat.highScore = score;
+        
+        if (currentEffects.specials.artisanCombo > layerStat.highestArtisanCombo)
+            layerStat.highestArtisanCombo = currentEffects.specials.artisanCombo;
+        if (currentEffects.specials.orchestraCombo > layerStat.highestOrchestraCombo)
+            layerStat.highestOrchestraCombo = currentEffects.specials.orchestraCombo;
+        if (currentEffects.specials.coinflipCount > layerStat.highestCoinflipCount)
+            layerStat.highestCoinflipCount = currentEffects.specials.coinflipCount;
+        if (currentEffects.specials.pigScore > layerStat.highestPigScore)
+            layerStat.highestPigScore = currentEffects.specials.pigScore;
+        
+        if (layerStat.changed) await layerStat.save();
+    }
+
     // score saving
     playerProfile.score += score;
-    playerProfile.totalScore += score;
-    if (playerProfile.highestScore < score) playerProfile.highestScore = score;
-
-    // upgrade-specific
-    if (context.specials.artisanCombo && context.specials.artisanCombo > playerProfile.highestArtisanCombo) {
-        playerProfile.highestArtisanCombo = context.specials.artisanCombo;
-    }
-    if (context.specials.coinflipCount && context.specials.coinflipCount > playerProfile.highestCoinflipCount) {
-        playerProfile.highestCoinflipCount = context.specials.coinflipCount;
-    }
-    if (context.specials.orchestraCombo && context.specials.orchestraCombo > playerProfile.highestOrchestraCombo) {
-        playerProfile.highestOrchestraCombo = context.specials.orchestraCombo;
-    }
-    if (context.specials.pigScore && context.specials.pigScore > playerProfile.highestPigScore) {
-        playerProfile.highestPigScore = context.specials.pigScore;
-    }
-
+    
     // etc
     playerProfile.bp = Math.min(currentEffects.bp + playerProfile.bp, currentEffects.bpMax);
     playerProfile.apt += currentEffects.apt || 0;
@@ -152,10 +154,10 @@ async function pingResponse(interaction, isSuper = false) {
     if (currentEffects.rare) {
         await awardBadge(interaction.user.id, 'lucky', interaction.client);
     }
-    if (playerProfile.totalClicks >= 10000) {
+    if (stats.total.clicks >= 10000) {
         await awardBadge(interaction.user.id, 'heavy hands', interaction.client);
     }
-    if (playerProfile.clicks === 1 && score > 100000) {
+    if (stats.eternity.clicks === 1 && score > 100000) {
         await awardBadge(interaction.user.id, 'jumpstart', interaction.client);
     }
     if (currentEffects.specials.glimmer <= -5) {
@@ -171,7 +173,7 @@ async function pingResponse(interaction, isSuper = false) {
     await playerProfile.save();
 
     // show upgrade popup after 150 clicks
-    if (playerProfile.totalClicks === 150) {
+    if (stats.total.clicks === 150) {
         const button = new ButtonBuilder()
             .setLabel('that looks important...')
             .setStyle(ButtonStyle.Secondary)
@@ -209,7 +211,7 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
     displayDisplay = displayDisplay.substring(2); // remove first comma and space
 
     if (currentEffects.bp) {
-        displayDisplay += `\n-# \`${formatNumber(Math.ceil(playerProfile.bp)), { options: playerProfile.formatSettings }}/${formatNumber(currentEffects.bpMax, { options: playerProfile.formatSettings })} bp\`${playerProfile.bp >= currentEffects.bpMax ? " **(MAX)**" : ""} `
+        displayDisplay += `\n-# \`${formatNumber(Math.ceil(playerProfile.bp, { options: playerProfile.formatSettings }))}/${formatNumber(currentEffects.bpMax, { options: playerProfile.formatSettings })} bp\`${playerProfile.bp >= currentEffects.bpMax ? " **(MAX)**" : ""} `
         displayDisplay += formatDisplay(displays.bp, pingFormat);
     }
 

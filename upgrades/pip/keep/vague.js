@@ -19,7 +19,7 @@ module.exports = {
     },
     getEffect(level, context) {
         return {
-            multiply: (level*0.15*`${context.removedUpgrades}`.length) + 1,
+            multiply: (level*0.15*`${context.stats.total.removedUpgrades}`.length) + 1,
         }
     },
     unlockRequirements(context) {

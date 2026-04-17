@@ -1,7 +1,6 @@
 const { DataTypes, Model } = require('sequelize');
 const { getBadgesByName } = require('../helpers/badgeUtils.js');
 const { PrestigeLayers } = require('../helpers/commonEnums.js');
-const PlayerStat = require('./PlayerStat.js');
 
 module.exports = (sequelize) => {
 	class User extends Model {
@@ -20,33 +19,47 @@ module.exports = (sequelize) => {
 			return display;
 		}
 		async stats() {
-			const stats = await this.getRawStats();
+			await this.refreshStats();
+			const stats = await this.getRawStat();
 			for (const layer of PrestigeLayers) {
 				stats[layer] = stats.find(stat => stat.layer === layer) || null;
 			}
 
-			for (const layer of PrestigeLayers) {
-				if (!stats[layer]) {
-					let newStat = stats.total.get({ plain: true });
-					delete newStat.id;
-					newStat.layer = layer;
-					newStat = await PlayerStat(sequelize).create(newStat);
-					stats[layer] = newStat;
-					await this.addRawStat(newStat);
-				}
-			}
-
 			return stats;
 		}
-		async increaseStat(key, count = 1) {
-			if (count < 0) return;
-			await this.stats(); // refresh layers in case one is missing
+		async refreshStats() {
+			const stats = await this.getRawStat();
+			if (stats.length === PrestigeLayers.length) return;
 
-			const stats = await this.getRawStats();
-			for (const stat of stats) {
-				stat[key] += count;
-				await stat.save();
+			let total = stats.find(stat => stat.layer === 'total');
+			if (!total) {
+				total = await this.createRawStat({ layer: 'total' });
 			}
+
+			for (const layer of PrestigeLayers) {
+				if (!stats.find(stat => stat.layer === layer) && layer !== 'total') {
+					const newStat = total.get({ plain: true });
+					delete newStat.id;
+					newStat.layer = layer;
+					await this.createRawStat(newStat);
+				}
+			}
+		}
+		async layerReset(layer) {
+			const stats = await this.getRawStat();
+			const index = PrestigeLayers.indexOf(layer);
+
+			for (let i = 0; i <= index; i++) {
+				const layer = PrestigeLayers[i];
+				const stat = stats.find(stat => stat.layer === layer);
+				await this.createRawStat({ layer: stat.layer });
+				await stat.destroy();
+			}
+		}
+		increaseStat(key, count = 1) {
+			if (count <= 0) return;
+			this._pendingStatIncreases ??= {};
+			this._pendingStatIncreases[key] = (this._pendingStatIncreases[key] || 0) + count;
 		}
 	}
 
@@ -60,15 +73,13 @@ module.exports = (sequelize) => {
 			type: DataTypes.NUMBER,
 			defaultValue: 0,
 			allowNull: false,
+			set(val) {
+				this.increaseStat('score', val - this.getDataValue('score'));
+				this.setDataValue('score', val);
+			}
 		},
 		
 		apt: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-
-		clicks: {
 			type: DataTypes.NUMBER,
 			defaultValue: 0,
 			allowNull: false,
@@ -120,15 +131,7 @@ module.exports = (sequelize) => {
 					swapCommas: this.settings.swapCommas || false,
 				}
 			},
-			set() {
-				throw new Error('formatSettings is virtual and shouldn\'t be set directly');
-			}
-		},
-
-		removedUpgrades: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
+			set() { return; }
 		},
 
 		// prestige data
@@ -136,6 +139,10 @@ module.exports = (sequelize) => {
 			type: DataTypes.NUMBER,
 			defaultValue: 0,
 			allowNull: false,
+			set(val) {
+				this.increaseStat('bp', val - this.getDataValue('bp'));
+				this.setDataValue('bp', val);
+			}
 		},
 		prestigeUpgrades: {
 			type: DataTypes.JSON,
@@ -146,11 +153,19 @@ module.exports = (sequelize) => {
 			type: DataTypes.NUMBER,
 			defaultValue: 0,
 			allowNull: false,
+			set(val) {
+				this.increaseStat('pip', val - this.getDataValue('pip'));
+				this.setDataValue('pip', val);
+			}
 		},
 		eternities: {
 			type: DataTypes.NUMBER,
 			defaultValue: 0,
 			allowNull: false,
+			set(val) {
+				this.increaseStat('eternities', val - this.getDataValue('eternities'));
+				this.setDataValue('eternities', val);
+			}
 		},
 
 		
@@ -159,11 +174,19 @@ module.exports = (sequelize) => {
 			type: DataTypes.NUMBER,
 			defaultValue: 0,
 			allowNull: false,
+			set(val) {
+				this.increaseStat('tears', val - this.getDataValue('tears'));
+				this.setDataValue('tears', val);
+			}
 		},
 		thread: {
 			type: DataTypes.NUMBER,
 			defaultValue: 0,
 			allowNull: false,
+			set(val) {
+				this.increaseStat('thread', val - this.getDataValue('thread'));
+				this.setDataValue('thread', val);
+			}
 		},
 		shopSeed: {
 			type: DataTypes.STRING,
@@ -225,107 +248,24 @@ module.exports = (sequelize) => {
 			defaultValue: 0,
 			allowNull: false,
 		},
-
-		// TODO: move the below stats to PlayerStat.js
-		// see also: https://sequelize.org/docs/v6/advanced-association-concepts/creating-with-associations/#belongsto--hasmany--hasone-association		
-
-		totalScore: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-
-		highestScore: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-
-		totalClicks: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		totalAptClicks: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-
-		bluePings: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		bluePingsMissed: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		luckyPings: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		highestBlueStreak: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		
-
-		totalPip: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		totalEternities: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-
-		totalTears: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		totalThread: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-
-		// upgrade effect records
-		// note: cannot be set with autopings
-		highestArtisanCombo: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		highestOrchestraCombo: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		highestCoinflipCount: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-		highestPigScore: {
-			type: DataTypes.NUMBER,
-			defaultValue: 0,
-			allowNull: false,
-		},
 	}, {
 		sequelize,
 		timestamps: true,
 		modelName: 'User',
 
 		defaultScope: {
-			include: 'rawStats',
+			include: 'rawStat',
 		}
+	})
+
+	User.addHook("afterSave", async (user, options) => {
+		const pending = user._pendingStatIncreases;
+		if (!pending) return;
+
+		await user.refreshStats();
+		const stats = await user.getRawStat({ transaction: options.transaction });
+  		await Promise.all(stats.map(stat => stat.increment(pending, { transaction: options.transaction })));
+ 		user._pendingStatIncreases = null;
 	})
 
 	return User;

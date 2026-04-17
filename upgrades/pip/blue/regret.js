@@ -19,7 +19,7 @@ module.exports = {
     },
     getEffect(level, context) {
         return {
-            blueStrength: (level*0.002)*context.missedBluePings,
+            blueStrength: (level*0.002)*context.stats.total.bluePingsMissed,
         }
     },
     unlockRequirements(context) {

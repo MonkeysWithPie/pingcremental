@@ -26,8 +26,9 @@ module.exports = {
         },
         reset: async (interaction) => {
             const player = await database.Player.findByPk(interaction.user.id);
+            const stats = await player.stats();
 
-            if (player.eternities < getTearRequirement(player.tears)) {
+            if (stats.tear.eternities < getTearRequirement(stats.total.tears)) {
                 return await interaction.reply({
                     content: `you can't.... what?`,
                     flags: MessageFlags.Ephemeral
@@ -37,10 +38,8 @@ module.exports = {
             const gainedThread = getGainedThread(player);
             const gainedThreadDetailed = getGainedThread(player, false);
 
-            player.tears++;
-            player.totalTears++;
+            player.increaseStat("tears");
             player.thread += gainedThread;
-            player.totalThread += gainedThread;
             player.cloakModificationsAllowed = 1;
             player.shopSeed = getNewSeed();
             player.shopEmptySlots = [];
@@ -48,16 +47,15 @@ module.exports = {
 
             player.upgrades = {};
             player.score = 0;
-            player.clicks = 0;
             player.glimmerClicks = 0;
             player.slumberClicks = 0;
 
             player.bp = 0;
             player.pip = 0;
             player.prestigeUpgrades = {};
-            player.eternities = 0;
-
+            
             await player.save();
+            await player.layerReset('tear');
 
             await awardBadge(interaction.user.id, 'interwoven', interaction.client);
 

@@ -7,14 +7,14 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "roll __1__ extra d20, take the higher result",
+            description: "roll __1__ extra d20 in \"actually roll a d20\" and take the higher result",
             name: "Loaded Dice",
             emoji: getEmoji('ponder_rigged', "🎲"),
             flavor: "maybe the house doesn't always win.",
         }
     },
     getEffectString(level) {
-        return `+${level} d20`;
+        return `+${level} roll${level > 1 ? "s" : ""}`;
     },
     getEffect(level) {
         return {

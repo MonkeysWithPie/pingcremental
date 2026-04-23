@@ -160,7 +160,7 @@ async function getEditMessage(interaction, category, buySetting) {
     const select = new StringSelectMenuBuilder()
         .setCustomId('ponder:buy')
         .setPlaceholder('pick an upgrade')
-    let description = `You have **__\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\`__**. Spend wisely.\nYou're buying **x${buySetting}** upgrades at a time.`
+    let description = `You have **__\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\`__**. Spend wisely.\nYou're buying **x${buySetting}** upgrades at a time.\n`
     const embed = new EmbedBuilder()
         .setTitle("Ponder")
         .setColor("#162b94")

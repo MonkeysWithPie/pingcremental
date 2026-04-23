@@ -35,9 +35,16 @@ module.exports = {
                 });
             }
 
-            if (interaction.client.ws.ping === -1) {
+            const developmentMode = process.argv.includes('--dev') || process.argv.includes('-d');
+            if (interaction.client.ws.ping === -1 && !developmentMode) {
                 return interaction.reply({
                     content: "the bot just restarted! wait just a moment before you autoping...",
+                    flags: MessageFlags.Ephemeral,
+                });
+            }
+            if (developmentMode && interaction.user.id !== process.env.OWNER_ID) {
+                return interaction.reply({
+                    content: "not right now!",
                     flags: MessageFlags.Ephemeral,
                 });
             }
@@ -254,7 +261,7 @@ missed **${pingDataTotal.bluesMissed}** blue ping${pingDataTotal.bluesMissed ===
         components.push(
             new ButtonBuilder()
                 .setCustomId(`autoping:run-${pings}`)
-                .setLabel("repeat autoping!")
+                .setLabel(`${formatNumber(pings, { options: player.formatNumber })}x more!`)
                 .setStyle(ButtonStyle.Secondary)
         );
     }

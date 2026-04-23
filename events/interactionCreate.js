@@ -30,7 +30,7 @@ module.exports = {
                         return;
                     }
                     const [buttonType, ...buttonArgs] = split[1].split('-');
-                    if (buttonArgs.length === 1) {
+                    if (buttonArgs.length <= 1) {
                         await buttonCommand.buttons[buttonType](interaction, buttonArgs[0]);
                     } else {
                         await buttonCommand.buttons[buttonType](interaction, buttonArgs);
@@ -50,8 +50,13 @@ module.exports = {
                         await log(`No command for dropdown ${dropdownId} (command ${buttonCommand}) was found.`, interaction.client)
                         return;
                     } 
-                    await buttonCommand.dropdowns[split[1].split('-')[0]](interaction, split[1].split('-')[1]);
-                    
+                    const [buttonType, ...buttonArgs] = split[1].split('-');
+
+                    if (buttonArgs.length <= 1) {
+                        await buttonCommand.dropdowns[buttonType](interaction, buttonArgs[0]);
+                    } else {
+                        await buttonCommand.dropdowns[buttonType](interaction, buttonArgs);
+                    }
                 }
             } else if (interaction.isAutocomplete()) {
                 const command = interaction.client.commands.get(interaction.commandName);

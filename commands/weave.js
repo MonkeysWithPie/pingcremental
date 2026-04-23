@@ -41,7 +41,7 @@ module.exports = {
             player.increaseStat("tears");
             player.thread += gainedThread;
             player.cloakModificationsAllowed = 1;
-            player.shopSeed = getNewSeed();
+            if (stats.total.tears !== 0) player.shopSeed = getNewSeed();
             player.shopEmptySlots = [];
             player.shopRerolls = 0;
 
@@ -65,7 +65,7 @@ module.exports = {
 
             await interaction.update(await getEmbed(interaction, WEAVE_SECTION.Tear));
             return await interaction.followUp({
-                content: `you tear the universe, and gained **${formatNumber(getGainedThread(player), { options: player.formatOptions })}** thread (now ${formatNumber(player.thread, { options: player.formatOptions })} total).`,
+                content: `you tear the universe, and gained **${formatNumber(gainedThread, { options: player.formatOptions })}** thread (now ${formatNumber(player.thread, { options: player.formatOptions })} total).`,
                 flags: MessageFlags.Ephemeral
             });
         },
@@ -248,11 +248,17 @@ module.exports = {
 
 async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
     const [player, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
+    const stats = await player.stats();
 
-    if (player.tears <= 0 && player.eternities < getTearRequirement(0)) {
+    if (stats.total.tears <= 0 && stats.tear.eternities < getTearRequirement(0)) {
         return { 
-            content: "you'd love to try weaving... but regular old cloaks and quilts aren't going to do you any good in your pts gathering. maybe there's something more fundamental you're missing?", 
-            flags: MessageFlags.Ephemeral 
+            content: "*you'd love to try weaving... but regular old cloaks and quilts aren't going to do you any good in your pts gathering. maybe there's something more fundamental you're missing?*", 
+            components: [new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`weave:delete`)
+                    .setLabel("hm...!")
+                    .setStyle(ButtonStyle.Secondary)
+            )],
         };
     }
 
@@ -264,7 +270,7 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
     const row = new ActionRowBuilder();
     const extraRows = [];
     
-    if (player.tears > 0) {
+    if (stats.total.tears > 0) {
         availableSections.push(WEAVE_SECTION.Shop);
     } else {
         section = WEAVE_SECTION.Tear; // force this section with no previous tears, since they'll need to do this first
@@ -294,7 +300,7 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
     if (section === WEAVE_SECTION.Tear) {
         let desc = `do you want to tear a bit of the universe?`;
 
-        if (player.tears <= 0) {
+        if (stats.total.tears <= 0) {
             desc = 
 `to weave, you first need thread.
 fortunately, the universe is ready to give you some.
@@ -305,8 +311,8 @@ unfortunately, it wants everything you have in return.
         desc += `\nthis will reset ALL of your progress (with the exception of Total stats), including pip, bp, pts, and all of their associated upgrades.`
         desc += `\nyou will gain **${formatNumber(getGainedThread(player), { options: player.formatOptions })} thread** for tearing the universe.`;
         
-        if (player.eternities < getTearRequirement(player.tears)) {
-            desc = `the universe isn't quite ready to be torn again yet. you need ${player.eternities}/**${getTearRequirement(player.tears), { options: player.formatOptions }}** eternities to tear the universe again.`
+        if (stats.tear.eternities < getTearRequirement(stats.total.tears)) {
+            desc = `the universe isn't quite ready to be torn again yet. you need ${stats.tear.eternities}/**${getTearRequirement(stats.total.tears)}** eternities to tear the universe again.`
         }
     
         embed.setTitle("tear the universe?")
@@ -315,7 +321,7 @@ unfortunately, it wants everything you have in return.
                 .setCustomId(`weave:reset`)
                 .setLabel("time to tear!")
                 .setStyle(ButtonStyle.Danger)
-                .setDisabled(player.eternities < getTearRequirement(player.tears)),
+                .setDisabled(stats.tear.eternities < getTearRequirement(stats.total.tears)),
             new ButtonBuilder()
                 .setCustomId(`weave:breakdown`)
                 .setLabel("thread breakdown")
@@ -654,6 +660,8 @@ function getShopStock(seed) {
 function getGainedThread(player, simplify = true) {
     const gain = {};
     gain.base = 100;
+    const stats = player.statsSync();
+    const totalTears = stats.total.tears;
     
     if (player.score > 0) {
         gain.pts = Math.floor(Math.log10(player.score));
@@ -661,11 +669,11 @@ function getGainedThread(player, simplify = true) {
     if (player.pip > 0) {
         gain.pip = Math.floor(Math.log10(player.pip) * 2);
     }
-    if (player.eternities > getTearRequirement(player.tears)) {
-        gain.eternities = Math.min(player.eternities - getTearRequirement(player.tears), 15);
+    if (stats.tear.eternities > getTearRequirement(totalTears)) {
+        stats.tear.eternities = Math.min(player.eternities - getTearRequirement(totalTears), 15);
     }
-    if (player.tears > 0) {
-        gain.tears = Math.min(player.tears * 3, 30);
+    if (totalTears > 0) {
+        gain.tears = Math.min(totalTears * 3, 30);
     }
 
     if (simplify) {

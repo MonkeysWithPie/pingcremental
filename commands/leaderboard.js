@@ -185,6 +185,7 @@ function initTypes() {
     }
 }
 
+// TODO: fix
 async function formatPlayer(player, score, leaderboard, interaction) {
     let userDisplay = await player.getUserDisplay(interaction.client);
     if (interaction.user.id === player.userId) {

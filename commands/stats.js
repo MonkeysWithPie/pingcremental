@@ -1,7 +1,7 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
 const database = require('./../helpers/database.js');
 const formatNumber = require('./../helpers/formatNumber.js');
-const ping = require('../helpers/pingCalc.js');
+const { PrestigeLayers } = require('../helpers/commonEnums.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -22,6 +22,11 @@ module.exports = {
                         .setDescription('the user to get stats for')
                         .setRequired(false)
                 )
+                .addStringOption(option =>
+                    option.setName('layer')
+                        .setDescription('which prestige layer to view stats for')
+                        .addChoices(PrestigeLayers.map(layer => ({ name: layer, value: layer })))
+                )
         ),
     async execute(interaction) {
         if (interaction.options.getSubcommand() === 'global') {
@@ -29,33 +34,40 @@ module.exports = {
             return;
         } else if (interaction.options.getSubcommand() === 'user') {
             const user = interaction.options.getUser('user') || interaction.user;
-            await interaction.reply(await getUserMessage(user.id, interaction));
+            const layer = interaction.options.getString('layer') || 'total';
+            await interaction.reply(await getUserMessage(user.id, interaction, interaction.user.id, layer));
             return;
         }
     },
     buttons: {
-        refresh: (async (interaction, [type, selfId]) => {
+        refresh: (async (interaction, [type, selfId, layer]) => {
             if (type === 'global') {
                 await interaction.update(await getGlobalMessage(selfId.replace("global", "") || interaction.user.id));
                 return;
             } 
 
-            await interaction.update(await getUserMessage(type || interaction.user.id, interaction, selfId));
+            await interaction.update(await getUserMessage(type || interaction.user.id, interaction, selfId, layer));
         })
     },
+    dropdowns: {
+        layer: (async (interaction, [userId, selfId]) => {
+            const selectedLayer = interaction.values[0];
+            await interaction.update(await getUserMessage(userId, interaction, selfId, selectedLayer));
+        })
+    }
 }
 
 async function getGlobalMessage(selfId) {
+    const where = { layer: 'total' };
     const globalPings = await Promise.all([
-        database.Player.count(),
-        database.Player.sum('totalScore'),
-        database.Player.sum('score'),
-        database.Player.sum('totalClicks'),
-        database.Player.sum('bluePings'),
-        database.Player.sum('bluePingsMissed'),
-        database.Player.sum('luckyPings'),
+        database.Player.unscoped().count(),
+        database.PlayerStat.sum('score', { where }),
+        database.PlayerStat.sum('clicks', { where }),
+        database.PlayerStat.sum('bluePings', { where }),
+        database.PlayerStat.sum('bluePingsMissed', { where }),
+        database.PlayerStat.sum('luckyPings', { where }),
     ]);
-    const [count, totalScore, ownedScore, totalClicks, blueClicked, blueMissed, luckyFound] = globalPings;
+    const [playerCount, totalScore, totalClicks, blueClicked, blueMissed, luckyFound] = globalPings;
     const selfData = await database.Player.findByPk(selfId);
     const formatOptions = { options: selfData.formatOptions }
 
@@ -63,9 +75,8 @@ async function getGlobalMessage(selfId) {
         .setTitle(`global stats`)
         .setColor('#bd6fb8')
         .setDescription(
-                `${formatNumber(count, formatOptions)} people have pinged at least once\n` +
+                `${formatNumber(playerCount, formatOptions)} people have pinged at least once\n` +
                 `\`${formatNumber(totalScore, formatOptions)} pts\` gained in total\n` +
-                `\`${formatNumber(ownedScore, formatOptions)} pts\` currently owned\n` +
                 `${formatNumber(totalClicks, formatOptions)} pings dealt with\n` +
                 `${formatNumber(blueClicked, formatOptions)} blue pings clicked\n` +
                 `${formatNumber(blueMissed, formatOptions)} blue pings missed\n` +
@@ -87,68 +98,92 @@ async function getGlobalMessage(selfId) {
     };
 }
 
-async function getUserMessage(userId, interaction, selfId) {
+async function getUserMessage(userId, interaction, selfId, layer = "total") {
     const player = await database.Player.findByPk(userId);
     if (!player) return { content: `<@${userId}> hasn't pinged yet.`, allowedMentions: { parse: [] }, flags: MessageFlags.Ephemeral };
     
     const self = await database.Player.findByPk(selfId);
     const formatOptions = { options: self.formatOptions }
 
-    const upgrades = player.upgrades;
+    const allStats = await player.stats();
+    const stats = allStats[layer];
+    const totalStats = allStats.total;
 
-    const simulatedPing = await ping(interaction, false, { forceNoRNG: true, userId: userId });
-    const bluePingChance = simulatedPing.currentEffects.blue;
-    const blueMult = simulatedPing.currentEffects.blueStrength || 1;
+    let desc = `viewing stats for **${await player.getUserDisplay(interaction.client, database)}**\n`
 
-    // monster of a string (TODO: probably refactor later)
-    let desc = `viewing stats for **${await player.getUserDisplay(interaction.client, database)}**\n` +
+    desc += `\n__the basics__\n` +
+        `${formatNumber(stats.clicks, formatOptions)} ping${stats.clicks === 1 ? '' : 's'}\n` +
+        (stats.aptClicks ? `${formatNumber(stats.aptClicks, formatOptions)} ping${stats.aptClicks === 1 ? '' : 's'} with APT\n` : '') +
+        `\`${formatNumber(stats.score, formatOptions)} pts\` gained\n` +
+        `\`${formatNumber(stats.highScore, formatOptions)} pts\` gained in a single ping\n` +
+        `${formatNumber(stats.luckyPings, formatOptions)} lucky ping${stats.luckyPings === 1 ? '' : 's'}\n`;
     
-            `\n__the basics__\n` +
-            `${formatNumber(player.totalClicks, formatOptions)} total ping${player.totalClicks === 1 ? '' : 's'}\n` +
-            `${player.totalClicks !== player.clicks ? `${formatNumber(player.clicks, formatOptions)} ping${player.clicks === 1 ? '' : 's'} this eternity\n` : ''}` +
-            `\`${formatNumber(player.totalScore, formatOptions)} pts\` in total\n` +
-            `${player.totalPip ? 
-                `${formatNumber(player.totalPip, formatOptions)} total PIP obtained\n` +
-                `${formatNumber(player.totalEternities, formatOptions)} total eternit${player.totalEternities === 1 ? 'y' : 'ies'}\n` +
-                `${player.totalEternities !== player.eternities ? `${formatNumber(player.eternities, formatOptions)} eternit${player.eternities === 1 ? 'y' : 'ies'} this tear\n` : ''}`
-            : ''}` +
-            `${player.totalTears ? 
-                `${formatNumber(player.totalTears, formatOptions)} total tear${player.totalTears === 1 ? '' : 's'}\n` +
-                `${formatNumber(player.totalThread, formatOptions)} total thread gained\n`
-            : ''}` +
+    if (stats.bluePings > 0) {
+        desc += `\n__blue pings__\n` +
+            `${formatNumber(stats.bluePings, formatOptions)} blue ping${stats.bluePings === 1 ? '' : 's'} clicked\n` +
+            `${formatNumber(stats.bluePingsMissed, formatOptions)} missed blue ping${stats.bluePingsMissed === 1 ? '' : 's'}\n` +
+            `${formatNumber(stats.bluePingMissRate, formatOptions)}% blue ping miss rate\n` +
+            `${formatNumber(stats.bluePingAppearRate, formatOptions)}% blue ping average rate\n` +
+            `${formatNumber(stats.blueStreak, formatOptions)} blue ping${stats.blueStreak === 1 ? '' : 's'} in a row\n`
+    }
 
-            `\n__blue pings__\n` +
-            `${formatNumber(player.bluePings, formatOptions)} blue ping${player.bluePings === 1 ? '' : 's'} clicked\n` +
-            `${formatNumber(player.bluePingsMissed, formatOptions)} missed blue ping${player.bluePingsMissed === 1 ? '' : 's'} (${player.bluePingMissRate}% miss rate)\n` +
-            `${upgrades.bluePingChance < 0 ? `0%` : `${formatNumber(bluePingChance, { options: self.formatOptions, decimalPlaces: 1 })}%`} blue ping chance\n` + 
-            `${blueMult.toFixed(2)}x blue ping strength = ${formatNumber(blueMult*15, formatOptions)}x \`pts\` on a blue ping\n` +
+    if (stats.eternities > 0) {
+        desc += `\n__eternities__\n` +
+            `${formatNumber(stats.eternities, formatOptions)} eternit${stats.eternities === 1 ? 'y' : 'ies'}\n` +
+            `${formatNumber(stats.bp, formatOptions)} BP gained\n` +
+            `${formatNumber(stats.pip, formatOptions)} PIP obtained\n` +
+            `${formatNumber(stats.removedUpgrades, formatOptions)} upgrades lost from eternities\n`
+    }
 
-            `\n__rarities__\n` +
-            `\`${formatNumber(player.highestScore, formatOptions)} pts\` in one ping\n` +
-            `${formatNumber(player.highestBlueStreak, formatOptions)} blue ping${player.highestBlueStreak === 1 ? '' : 's'} in a row\n` +
-            `${formatNumber(player.luckyPings, formatOptions)} lucky ping${player.luckyPings === 1 ? '' : 's'}\n` +
-            `${player.highestCoinflipCount ? `${formatNumber(player.highestCoinflipCount, formatOptions)} coinflip${player.highestCoinflipCount === 1 ? '' : 's'} in one ping\n` : ''}` +
-            `${player.highestPigScore ? `${formatNumber(player.highestPigScore, formatOptions)} pig score in one ping\n` : ''}`;
+    if (stats.tears > 0) {
+        desc += `\n__tears__\n` +
+            `${formatNumber(stats.tears, formatOptions)} tear${stats.tears === 1 ? '' : 's'}\n` +
+            `${formatNumber(stats.thread, formatOptions)} thread gained\n`
+    }
 
-    if (player.highestArtisanCombo || player.highestOrchestraCombo) desc += `\n__skill combos__\n` +
-            `${player.highestArtisanCombo ? `${formatNumber(player.highestArtisanCombo, formatOptions)} artisan combo at once\n` : ''}` +
-            `${player.highestOrchestraCombo ? `${formatNumber(player.highestOrchestraCombo, formatOptions)} orchestra combo at once\n` : ''}`;
+    const luckbased = ["coinflip", "pigScore", "artisanCombo", "orchestraCombo"];
+    const hasLuckBased = luckbased.some(stat => stats[stat] > 0);
 
+    if (hasLuckBased) {
+        desc += `\n__upgrades__\n` +
+            (stats.coinflip ? `${formatNumber(stats.coinflip, formatOptions)} coinflip${stats.coinflip === 1 ? '' : 's'} in one ping\n` : '') +
+            (stats.pigScore ? `${formatNumber(stats.pigScore, formatOptions)} pig score in one ping\n` : '') +
+            (stats.artisanCombo ? `${formatNumber(stats.artisanCombo, formatOptions)} artisan combo at once\n` : '') +
+            (stats.orchestraCombo ? `${formatNumber(stats.orchestraCombo, formatOptions)} orchestra combo at once\n` : '');
+    }
+            
     const embed = new EmbedBuilder()
         .setTitle(`personal stats`)
         .setColor('#6fa7bd')
         .setDescription(desc)
         .setTimestamp();
+    const dropdown = new StringSelectMenuBuilder()
+        .setCustomId(`stats:layer-${userId}-${selfId}`)
+        .setMinValues(1)
+        .setMaxValues(1)
+    
+    for (const prestigeLayer of PrestigeLayers.toReversed()) {
+        if (prestigeLayer === "eternity" && totalStats.eternities === 0) continue;
+        if (prestigeLayer === "tear" && totalStats.tears === 0) continue;
+
+        dropdown.addOptions([
+            new StringSelectMenuOptionBuilder()
+                .setLabel(prestigeLayer)
+                .setValue(prestigeLayer)
+                .setDefault(prestigeLayer === layer)
+        ]);
+    }
+
+    const refreshButton = new ButtonBuilder()
+        .setCustomId(`stats:refresh-${userId}-${selfId}-${layer}`)
+        .setLabel('refresh')
+        .setStyle(ButtonStyle.Secondary)
+
     return {
         embeds: [embed],
         components: [
-            new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId(`stats:refresh-${userId}-${selfId}`)
-                        .setLabel('refresh')
-                        .setStyle(ButtonStyle.Secondary)
-                )
+            new ActionRowBuilder().addComponents(dropdown),
+            new ActionRowBuilder().addComponents(refreshButton)
         ],
     };
 }

@@ -27,6 +27,13 @@ module.exports = (sequelize) => {
 
 			return stats;
 		}
+		statsSync() {
+			const stats = this.rawStat;
+			for (const layer of PrestigeLayers) {
+				stats[layer] = stats.find(stat => stat.layer === layer) || null;
+			}
+			return stats;
+		}
 		async refreshStats() {
 			const stats = await this.getRawStat();
 			if (stats.length === PrestigeLayers.length) return;
@@ -57,7 +64,7 @@ module.exports = (sequelize) => {
 			}
 		}
 		increaseStat(key, count = 1) {
-			if (count <= 0) return;
+			if (count <= 0 || !count) return;
 			this._pendingStatIncreases ??= {};
 			this._pendingStatIncreases[key] = (this._pendingStatIncreases[key] || 0) + count;
 		}

@@ -1,8 +1,9 @@
 {
   "dependencies": {
+    "@antimatter-dimensions/notations": "^3.2.0",
     "discord.js": "^14.18.0",
-    "rand-seed": "^3.0.0",
     "dotenv": "^17.2.0",
+    "rand-seed": "^3.0.0",
     "sequelize": "^6.37.7",
     "sqlite3": "^5.1.7"
   },

@@ -26,15 +26,14 @@ const settings = {
         ],
         default: "major only",
     },
-    // TODO: add this and use https://www.npmjs.com/package/@antimatter-dimensions/notations
-    // 'numberFormat': {
-    //     name: 'number format',
-    //     description: 'how should large numbers be formatted?',
-    //     options: [
-    //         "standard", "scientific", "engineering", "letters"
-    //     ],
-    //     default: "standard",
-    // },
+    'numberFormat': {
+        name: 'number format',
+        description: 'how should large numbers be formatted?',
+        options: [
+            "standard", "scientific", "engineering", "letters"
+        ],
+        default: "standard",
+    },
     'swapCommas': {
         name: 'swap commas and periods',
         description: 'should commas be used instead of periods and vice versa when formatting numbers?',

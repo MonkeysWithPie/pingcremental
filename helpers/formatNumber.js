@@ -1,63 +1,56 @@
-function formatNumber(num, { decimalPlaces = 2, shortHand = true, options = {
+const Notations = require("@antimatter-dimensions/notations")
+
+const TEMP_REPLACEMENT = "—";
+
+function formatNumber(num, { decimalPlaces = 2, shortHand = true, shortHandPlaces = 0, options = {
     swapCommas: false,
     formatMode: "standard",
 } } = {}) {
     if (num === null || num === undefined) return '0'; // handle null or undefined values
     if (!isFinite(num)) return num === Infinity ? 'Infinity' : 'NaN'; // handle special values
 
-    const numStr = num.toString();
-    const integerPart = numStr.split(".")[0];
+    const magnitude = Math.floor(Math.log10(num)) + 1;
 
-    const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', // 10^30
-                      'Dc', 'UDc', 'DDc', 'TDc', 'QaDc', 'QiDc', 'SxDc', 'SpDc', 'OcDc', 'NoDc', // 10^60
-                      'Vg', 'UVg', 'DVg', 'TVg', 'QaVg', 'QiVg', 'SxVg', 'SpVg', 'OcVg', 'NoVg', // 10^90
-                      'Tg', 'UTg', 'DTg', 'TTg', 'QaTg', 'QiTg', 'SxTg', 'SpTg', 'OcTg', 'NoTg', // 10^120
-                      'Qag', 'UQag', 'DQag', 'TQag', 'QaQag', 'QiQag', 'SxQag', 'SpQag', 'OcQag', 'NoQag', // 10^150
-                      'Qig', 'UQig', 'DQig', 'TQig', 'QaQig', 'QiQig', 'SxQig', 'SpQig', 'OcQig', 'NoQig', // 10^180
-                      'Sxg', 'USxg', 'DSxg', 'TSxg', 'QaSxg', 'QiSxg', 'SxSxg', 'SpSxg', 'OcSxg', 'NoSxg', // 10^210
-                      'Spg', 'USpg', 'DSpg', 'TSpg', 'QaSpg', 'QiSpg', 'SxSpg', 'SpSpg', 'OcSpg', 'NoSpg', // 10^240
-                      'Ocg', 'UOcg', 'DOcg', 'TOcg', 'QaOcg', 'QiOcg', 'SxOcg', 'SpOcg', 'OcOcg', 'NoOcg', // 10^270
-                      'Nog', 'UNog', 'DNog', 'TNog', 'QaNog', 'QiNog', 'SxNog', 'SpNog', 'OcNog', 'NoNog', // 10^300
-                      'Ce', 'UCe', 'DCe']; // 10^309
-
-    const magnitude = Math.floor(Math.log10(num));
-
-    if (magnitude >= suffixes.length * 3) {
-        return num.toExponential(decimalPlaces);
+    // e.g. 1,000 with 4 decimals doesn't get rounded to 1.000k, instead being 1,000
+    if (magnitude <= decimalPlaces || !shortHand) {
+        const integerPart = Math.floor(num);
+        const decimalPart = num - integerPart;
+        const roundedDecimal = decimalPart.toFixed(shortHand ? decimalPlaces - magnitude : shortHandPlaces).slice(2);
+        
+        return integerPart.toLocaleString().replace(",", options.swapCommas ? "." : ",") 
+            + (roundedDecimal ? (options.swapCommas ? "," : ".") + roundedDecimal : "");
     }
 
-    if (numStr.includes("e")) { 
-        const suffixIndex = Math.floor(magnitude / 3);
-        const baseNum = (num / Math.pow(10, suffixIndex * 3)).toFixed(decimalPlaces);
-        return baseNum + (suffixes[suffixIndex] || '');
+    let notation;
+    switch (options.formatMode) {
+        case "scientific":
+            notation = new Notations.ScientificNotation();
+            break;
+        
+        case "engineering":
+            notation = new Notations.EngineeringNotation();
+            break;
+        
+        case "letters":
+            notation = new Notations.LettersNotation();
+            break;
+        
+        case "standard":
+        default:
+            notation = new Notations.StandardNotation();
     }
 
-    if (integerPart.length < 4) {
-        const decimalPart = numStr.split(".")[1] || "";
-        const roundedDecimal = decimalPart.slice(0, decimalPlaces);
-        return integerPart + (roundedDecimal ? "." + roundedDecimal : "");
+    let formatted = notation.format(num, decimalPlaces)
+        .replace(" ", ""); // remove space before suffix
+
+    if (options.swapCommas) {
+        formatted = formatted
+            .replace(",", TEMP_REPLACEMENT)
+            .replace(".", ",")
+            .replace(TEMP_REPLACEMENT, ".");
     }
 
-    const suffixIndex = Math.floor((integerPart.length - 1) / 3);
-    if (decimalPlaces >= suffixIndex * 3) {
-        decimalPlaces = suffixIndex * 3;
-        shortHand = false;
-    }
-
-    if (!shortHand) {
-        return numStr
-            .replaceAll('.', options.swapCommas ? ',' : '.')
-            .replace(/\B(?=(\d{3})+(?!\d))/g, options.swapCommas ? '.' : ',')
-    }
-
-    let baseNum = (
-        Math.ceil((num * (10 ** (decimalPlaces + 1)) / Math.pow(10, suffixIndex * 3))) /
-        (10 ** (decimalPlaces + 1))
-    ).toFixed(decimalPlaces);
-
-    if (options.swapCommas) baseNum = baseNum.replace(".", ",");
-
-    return baseNum + suffixes[suffixIndex];
+    return formatted;
 }
 
 module.exports = formatNumber;

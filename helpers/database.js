@@ -20,7 +20,7 @@ for (const file of modelFiles) {
 }
 
 database.Player.hasMany(database.PlayerStat, { as: 'rawStat' });
-database.PlayerStat.belongsTo(database.Player, { as: 'player' });
+database.PlayerStat.belongsTo(database.Player);
 
 database.sequelize = sequelize;
 

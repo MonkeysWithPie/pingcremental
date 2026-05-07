@@ -56,7 +56,7 @@ async function getMessage(interaction, leaderboardType) {
     let showedSelf = false;
 
     for (const stats of topStats) {
-        const player = stats.getPlayer();
+        const player = await stats.getUser();
         position++;
         if (position > 10) break; // only show the top 10 players
 
@@ -68,7 +68,7 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
 
     if (!showedSelf) {
         // find position of the user
-        const userIndex = topStats.findIndex(player => player.getPlayer().userId === interaction.user.id);
+        const userIndex = await topStats.findIndex(async stat => (await stat.getUser()).userId === interaction.user.id);
 
         // show next user and user below
         if (userIndex >= 12) {
@@ -76,15 +76,15 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
         }
 
         if (userIndex >= 11) {
-            const userBelow = topStats[userIndex - 1];
-            description += `\n#${userIndex} ${await formatPlayer(userBelow.getPlayer(), userBelow[leaderboardType], leaderboardType, interaction)}`
+            const statBelow = topStats[userIndex - 1];
+            description += `\n#${userIndex} ${await formatPlayer(await statBelow.getUser(), statBelow[leaderboardType], leaderboardType, interaction)}`
         }
 
         description += `\n#${userIndex + 1} ${await formatPlayer(interaction.user.id, topStats[userIndex][leaderboardType], leaderboardType, interaction)}`
 
         if (userIndex !== topStats.length - 1) {
-            const userAbove = topStats[userIndex + 1];
-            description += `\n#${userIndex + 2} ${await formatPlayer(userAbove.getPlayer(), userAbove[leaderboardType], leaderboardType, interaction)}`
+            const statAbove = topStats[userIndex + 1];
+            description += `\n#${userIndex + 2} ${await formatPlayer(await statAbove.getUser(), statAbove[leaderboardType], leaderboardType, interaction)}`
         }
     }
 

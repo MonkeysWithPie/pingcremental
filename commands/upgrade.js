@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, InteractionContextType, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, InteractionContextType, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder } = require('discord.js');
 const { upgrades, rawUpgrades } = require('./../helpers/upgrades.js')
 const { getEmbeddedCommand } = require('./../helpers/embedCommand.js');
 const database = require('./../helpers/database.js');
@@ -116,16 +116,17 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
         }),
         custommb: (async interaction => {
             const modal = new ModalBuilder()
-                .setCustomId('upgrade:custommb')
+                .setCustomId('ponder:custommb')
                 .setTitle('custom multi-buy')
-                .addComponents(
-                    new ActionRowBuilder().addComponents(
-                        new TextInputBuilder()
-                            .setCustomId('value')
-                            .setLabel('upgrade amount')
-                            .setStyle(TextInputStyle.Short)
-                            .setPlaceholder('enter a number or "MAX"...')
-                    )
+                .addLabelComponents(
+                    new LabelBuilder()
+                        .setCustomId('value')
+                        .setLabel('upgrade amount')
+                        .setDescription('enter a number or "MAX"...')
+                        .setTextInputComponent(
+                            new TextInputBuilder()
+                                .setStyle(TextInputStyle.Short)
+                        )
                 );
             await interaction.showModal(modal);
         })

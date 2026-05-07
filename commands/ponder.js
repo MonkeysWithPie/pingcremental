@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, InteractionContextType, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, InteractionContextType, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder } = require('discord.js');
 const { upgrades } = require('./../helpers/upgrades.js')
 const database = require('./../helpers/database.js');
 const { PipUpgradeTypes } = require('./../helpers/commonEnums.js');
@@ -38,14 +38,15 @@ module.exports = {
             const modal = new ModalBuilder()
                 .setCustomId('ponder:custommb')
                 .setTitle('Custom Multi-Buy Amount')
-                .addComponents(
-                    new ActionRowBuilder().addComponents(
-                        new TextInputBuilder()
-                            .setCustomId('value')
-                            .setLabel('Upgrade Count')
-                            .setStyle(TextInputStyle.Short)
-                            .setPlaceholder('Enter a number or "MAX".')
-                    )
+                .addLabelComponents(
+                    new LabelBuilder()
+                        .setCustomId('value')
+                        .setLabel('Upgrade Count')
+                        .setDescription('Enter a number or "MAX".')
+                        .setTextInputComponent(
+                            new TextInputBuilder()
+                                .setStyle(TextInputStyle.Short)
+                        )
                 );
             await interaction.showModal(modal);
         })

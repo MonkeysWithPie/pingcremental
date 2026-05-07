@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, LabelBuilder } = require('discord.js');
 const database = require('./../helpers/database.js');
 const sequelize = require('sequelize');
 const getLatestVersion = require('./../helpers/versions.js');
@@ -44,27 +44,47 @@ module.exports = {
                 return;
             }
 
+            const descriptionLabel = new LabelBuilder()
+                .setCustomId('description')
+                .setLabel('description of the changes')
+                .setTextInputComponent(
+                    new TextInputBuilder()
+                        .setStyle(TextInputStyle.Paragraph)
+                        .setRequired(true)
+                );
+
+            const importanceSelect = new StringSelectMenuBuilder()
+                .setCustomId('importance')
+                .setPlaceholder('select the importance of the update')
+                .setMaxValues(1)
+                .addOptions(
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel('Major')
+                        .setValue('major')
+                        .setDescription('new prestige layers or other major features'),
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel('Minor')
+                        .setValue('minor')
+                        .setDescription('sizable changes like new upgrades or small reworks'),
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel('Patch')
+                        .setValue('patch')
+                        .setDescription('small changes like balancing or bug fixes'),
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel('Hotfix')
+                        .setValue('hotfix')
+                        .setDescription('bug fixes')
+                );
+
             const modal = new ModalBuilder()
                 .setCustomId(`update:announce`)
                 .setTitle(`announcing a new version...`)
-                .addComponents(
-                    new ActionRowBuilder()
-                        .addComponents(
-                            new TextInputBuilder()
-                                .setCustomId('description')
-                                .setLabel('description of the changes')
-                                .setStyle(TextInputStyle.Paragraph)
-                                .setRequired(true)
-                        ),
-                    new ActionRowBuilder()
-                        .addComponents(
-                            new TextInputBuilder()
-                                .setCustomId('importance')
-                                .setLabel('importance of the update')
-                                .setStyle(TextInputStyle.Short)
-                                .setRequired(true)
-                                .setPlaceholder('major, minor, patch, hotfix')
-                        )
+                .addLabelComponents(
+                    descriptionLabel,
+                    new LabelBuilder()
+                        .setCustomId('importance')
+                        .setLabel('importance level')
+                        .setStringSelectMenuComponent(importanceSelect)
                 );
             
             await interaction.showModal(modal);
@@ -103,11 +123,7 @@ module.exports = {
     modals: {
         announce: async (interaction) => {
             const description = interaction.fields.getTextInputValue('description');
-            const type = interaction.fields.getTextInputValue('importance').toLowerCase();
-            if (!['major', 'minor', 'patch', 'hotfix'].includes(type)) {
-                await interaction.reply({ content: 'invalid importance type, must be one of: major, minor, patch, hotfix', flags: MessageFlags.Ephemeral });
-                return;
-            }
+            const type = interaction.fields.getStringSelectValues('importance')[0];
             
             const currentVerInfo = getVersionInfo(await getLatestVersion());
 

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags, InteractionContextType } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags, InteractionContextType, LabelBuilder } = require("discord.js");
 const database = require("../helpers/database");
 const formatNumber = require("../helpers/formatNumber");
 const ping = require("../helpers/pingCalc");
@@ -56,15 +56,16 @@ module.exports = {
             const modal = new ModalBuilder()
                 .setCustomId("autoping:run")
                 .setTitle("autoping")
-                .addComponents(
-                    new ActionRowBuilder().addComponents(
-                        new TextInputBuilder()
-                            .setCustomId("value")
-                            .setLabel("autoping count")
-                            .setStyle(TextInputStyle.Short)
-                            .setPlaceholder(`input a number up to ${formatNumber(player.apt, { shortHand: false, options: player.formatOptions })} or "ALL"...`)
-                    )
-                );
+                .addLabelComponents(
+                    new LabelBuilder()
+                        .setCustomId("value")
+                        .setLabel("autoping count")
+                        .setDescription(`up to ${formatNumber(player.apt, { shortHand: false, options: player.formatOptions })} or "ALL"`)
+                        .setTextInputComponent(
+                            new TextInputBuilder()
+                                .setStyle(TextInputStyle.Short)
+                        )
+                    );
             await interaction.showModal(modal);
         }
     },

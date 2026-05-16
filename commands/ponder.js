@@ -40,12 +40,12 @@ module.exports = {
                 .setTitle('Custom Multi-Buy Amount')
                 .addLabelComponents(
                     new LabelBuilder()
-                        .setCustomId('value')
                         .setLabel('Upgrade Count')
                         .setDescription('Enter a number or "MAX".')
                         .setTextInputComponent(
                             new TextInputBuilder()
                                 .setStyle(TextInputStyle.Short)
+                                .setCustomId('value')
                         )
                 );
             await interaction.showModal(modal);

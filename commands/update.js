@@ -45,12 +45,12 @@ module.exports = {
             }
 
             const descriptionLabel = new LabelBuilder()
-                .setCustomId('description')
                 .setLabel('description of the changes')
                 .setTextInputComponent(
                     new TextInputBuilder()
                         .setStyle(TextInputStyle.Paragraph)
                         .setRequired(true)
+                        .setCustomId('description')
                 );
 
             const importanceSelect = new StringSelectMenuBuilder()
@@ -82,7 +82,6 @@ module.exports = {
                 .addLabelComponents(
                     descriptionLabel,
                     new LabelBuilder()
-                        .setCustomId('importance')
                         .setLabel('importance level')
                         .setStringSelectMenuComponent(importanceSelect)
                 );

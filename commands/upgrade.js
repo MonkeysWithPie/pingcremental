@@ -120,12 +120,12 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
                 .setTitle('custom multi-buy')
                 .addLabelComponents(
                     new LabelBuilder()
-                        .setCustomId('value')
                         .setLabel('upgrade amount')
                         .setDescription('enter a number or "MAX"...')
                         .setTextInputComponent(
                             new TextInputBuilder()
                                 .setStyle(TextInputStyle.Short)
+                                .setCustomId('value')
                         )
                 );
             await interaction.showModal(modal);

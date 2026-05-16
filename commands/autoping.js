@@ -58,12 +58,12 @@ module.exports = {
                 .setTitle("autoping")
                 .addLabelComponents(
                     new LabelBuilder()
-                        .setCustomId("value")
                         .setLabel("autoping count")
                         .setDescription(`up to ${formatNumber(player.apt, { shortHand: false, options: player.formatSettings })} or "ALL"`)
                         .setTextInputComponent(
                             new TextInputBuilder()
                                 .setStyle(TextInputStyle.Short)
+                                .setCustomId("value")
                         )
                     );
             await interaction.showModal(modal);

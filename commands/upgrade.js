@@ -116,7 +116,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
         }),
         custommb: (async interaction => {
             const modal = new ModalBuilder()
-                .setCustomId('ponder:custommb')
+                .setCustomId('upgrade:custommb')
                 .setTitle('custom multi-buy')
                 .addLabelComponents(
                     new LabelBuilder()

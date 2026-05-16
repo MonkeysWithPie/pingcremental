@@ -9,10 +9,17 @@ function formatNumber(num, { decimalPlaces = 2, shortHand = true, shortHandPlace
     if (num === null || num === undefined) return '0'; // handle null or undefined values
     if (!isFinite(num)) return num === Infinity ? 'Infinity' : 'NaN'; // handle special values
 
-    const magnitude = Math.floor(Math.log10(num)) + 1;
+    const magnitude = Math.floor(Math.log10(num));
+    let showFullNum;
+    if (options.formatMode === "scientific") { // only notation that uses `1e4` instead of `10k`
+        showFullNum = magnitude <= decimalPlaces;
+    } else {
+        const mag2 = Math.floor(magnitude / 3) * 3;
+        showFullNum = mag2 <= decimalPlaces;
+    }
 
     // e.g. 1,000 with 4 decimals doesn't get rounded to 1.000k, instead being 1,000
-    if (magnitude <= decimalPlaces || !shortHand) {
+    if (showFullNum || !shortHand) {
         const integerPart = Math.floor(num);
         const decimalPart = num - integerPart;
         if (decimalPart < 1e-6) {

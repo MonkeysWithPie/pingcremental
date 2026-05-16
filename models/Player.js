@@ -134,8 +134,8 @@ module.exports = (sequelize) => {
 			type: DataTypes.VIRTUAL,
 			get() {
 				return {
-					formatMode: this.settings.formatMode || 'standard',
-					swapCommas: this.settings.swapCommas || false,
+					formatMode: this.settings.numberFormat || 'standard',
+					swapCommas: this.settings.swapCommas === 'yes' || false,
 				}
 			},
 			set() { return; }

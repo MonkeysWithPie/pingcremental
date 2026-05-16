@@ -69,18 +69,18 @@ async function getGlobalMessage(selfId) {
     ]);
     const [playerCount, totalScore, totalClicks, blueClicked, blueMissed, luckyFound] = globalPings;
     const selfData = await database.Player.findByPk(selfId);
-    const formatOptions = { options: selfData.formatOptions }
+    const formatSettings = { options: selfData.formatSettings }
 
     const embed = new EmbedBuilder()
         .setTitle(`global stats`)
         .setColor('#bd6fb8')
         .setDescription(
-                `${formatNumber(playerCount, formatOptions)} people have pinged at least once\n` +
-                `\`${formatNumber(totalScore, formatOptions)} pts\` gained in total\n` +
-                `${formatNumber(totalClicks, formatOptions)} pings dealt with\n` +
-                `${formatNumber(blueClicked, formatOptions)} blue pings clicked\n` +
-                `${formatNumber(blueMissed, formatOptions)} blue pings missed\n` +
-                `${formatNumber(luckyFound, formatOptions)} lucky pings found`
+                `${formatNumber(playerCount, formatSettings)} people have pinged at least once\n` +
+                `\`${formatNumber(totalScore, formatSettings)} pts\` gained in total\n` +
+                `${formatNumber(totalClicks, formatSettings)} pings dealt with\n` +
+                `${formatNumber(blueClicked, formatSettings)} blue pings clicked\n` +
+                `${formatNumber(blueMissed, formatSettings)} blue pings missed\n` +
+                `${formatNumber(luckyFound, formatSettings)} lucky pings found`
         )
         .setTimestamp();
     
@@ -103,7 +103,7 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
     if (!player) return { content: `<@${userId}> hasn't pinged yet.`, allowedMentions: { parse: [] }, flags: MessageFlags.Ephemeral };
     
     const self = await database.Player.findByPk(selfId);
-    const formatOptions = { options: self.formatOptions }
+    const formatSettings = { options: self.formatSettings }
 
     const allStats = await player.stats();
     const stats = allStats[layer];
@@ -112,33 +112,33 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
     let desc = `viewing stats for **${await player.getUserDisplay(interaction.client, database)}**\n`
 
     desc += `\n__the basics__\n` +
-        `${formatNumber(stats.clicks, formatOptions)} ping${stats.clicks === 1 ? '' : 's'}\n` +
-        (stats.aptClicks ? `${formatNumber(stats.aptClicks, formatOptions)} ping${stats.aptClicks === 1 ? '' : 's'} with APT\n` : '') +
-        `\`${formatNumber(stats.score, formatOptions)} pts\` gained\n` +
-        `\`${formatNumber(stats.highScore, formatOptions)} pts\` gained in a single ping\n` +
-        `${formatNumber(stats.luckyPings, formatOptions)} lucky ping${stats.luckyPings === 1 ? '' : 's'}\n`;
+        `${formatNumber(stats.clicks, formatSettings)} ping${stats.clicks === 1 ? '' : 's'}\n` +
+        (stats.aptClicks ? `${formatNumber(stats.aptClicks, formatSettings)} ping${stats.aptClicks === 1 ? '' : 's'} with APT\n` : '') +
+        `\`${formatNumber(stats.score, formatSettings)} pts\` gained\n` +
+        `\`${formatNumber(stats.highScore, formatSettings)} pts\` gained in a single ping\n` +
+        `${formatNumber(stats.luckyPings, formatSettings)} lucky ping${stats.luckyPings === 1 ? '' : 's'}\n`;
     
     if (stats.bluePings > 0) {
         desc += `\n__blue pings__\n` +
-            `${formatNumber(stats.bluePings, formatOptions)} blue ping${stats.bluePings === 1 ? '' : 's'} clicked\n` +
-            `${formatNumber(stats.bluePingsMissed, formatOptions)} missed blue ping${stats.bluePingsMissed === 1 ? '' : 's'}\n` +
-            `${formatNumber(stats.bluePingMissRate, formatOptions)}% blue ping miss rate\n` +
-            `${formatNumber(stats.bluePingAppearRate, formatOptions)}% blue ping average rate\n` +
-            `${formatNumber(stats.blueStreak, formatOptions)} blue ping${stats.blueStreak === 1 ? '' : 's'} in a row\n`
+            `${formatNumber(stats.bluePings, formatSettings)} blue ping${stats.bluePings === 1 ? '' : 's'} clicked\n` +
+            `${formatNumber(stats.bluePingsMissed, formatSettings)} missed blue ping${stats.bluePingsMissed === 1 ? '' : 's'}\n` +
+            `${formatNumber(stats.bluePingMissRate, formatSettings)}% blue ping miss rate\n` +
+            `${formatNumber(stats.bluePingAppearRate, formatSettings)}% blue ping average rate\n` +
+            `${formatNumber(stats.blueStreak, formatSettings)} blue ping${stats.blueStreak === 1 ? '' : 's'} in a row\n`
     }
 
     if (stats.eternities > 0) {
         desc += `\n__eternities__\n` +
-            `${formatNumber(stats.eternities, formatOptions)} eternit${stats.eternities === 1 ? 'y' : 'ies'}\n` +
-            `${formatNumber(stats.bp, formatOptions)} BP gained\n` +
-            `${formatNumber(stats.pip, formatOptions)} PIP obtained\n` +
-            `${formatNumber(stats.removedUpgrades, formatOptions)} upgrades lost from eternities\n`
+            `${formatNumber(stats.eternities, formatSettings)} eternit${stats.eternities === 1 ? 'y' : 'ies'}\n` +
+            `${formatNumber(stats.bp, formatSettings)} BP gained\n` +
+            `${formatNumber(stats.pip, formatSettings)} PIP obtained\n` +
+            `${formatNumber(stats.removedUpgrades, formatSettings)} upgrades lost from eternities\n`
     }
 
     if (stats.tears > 0) {
         desc += `\n__tears__\n` +
-            `${formatNumber(stats.tears, formatOptions)} tear${stats.tears === 1 ? '' : 's'}\n` +
-            `${formatNumber(stats.thread, formatOptions)} thread gained\n`
+            `${formatNumber(stats.tears, formatSettings)} tear${stats.tears === 1 ? '' : 's'}\n` +
+            `${formatNumber(stats.thread, formatSettings)} thread gained\n`
     }
 
     const luckbased = ["coinflip", "pigScore", "artisanCombo", "orchestraCombo"];
@@ -146,10 +146,10 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
 
     if (hasLuckBased) {
         desc += `\n__upgrades__\n` +
-            (stats.coinflip ? `${formatNumber(stats.coinflip, formatOptions)} coinflip${stats.coinflip === 1 ? '' : 's'} in one ping\n` : '') +
-            (stats.pigScore ? `${formatNumber(stats.pigScore, formatOptions)} pig score in one ping\n` : '') +
-            (stats.artisanCombo ? `${formatNumber(stats.artisanCombo, formatOptions)} artisan combo at once\n` : '') +
-            (stats.orchestraCombo ? `${formatNumber(stats.orchestraCombo, formatOptions)} orchestra combo at once\n` : '');
+            (stats.coinflip ? `${formatNumber(stats.coinflip, formatSettings)} coinflip${stats.coinflip === 1 ? '' : 's'} in one ping\n` : '') +
+            (stats.pigScore ? `${formatNumber(stats.pigScore, formatSettings)} pig score in one ping\n` : '') +
+            (stats.artisanCombo ? `${formatNumber(stats.artisanCombo, formatSettings)} artisan combo at once\n` : '') +
+            (stats.orchestraCombo ? `${formatNumber(stats.orchestraCombo, formatSettings)} orchestra combo at once\n` : '');
     }
             
     const embed = new EmbedBuilder()

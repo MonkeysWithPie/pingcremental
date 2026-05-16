@@ -74,7 +74,7 @@ module.exports = {
             
             playerData.changed('upgrades', true) 
 
-            await interaction.update({ content: `*it is done.*\n-# you gained __\`${formatNumber(gainedPip, { options: playerData.formatOptions })} PIP\`__, so you now have __\`${formatNumber(playerData.pip, { options: playerData.formatOptions })} PIP\`__`, components: [] });
+            await interaction.update({ content: `*it is done.*\n-# you gained __\`${formatNumber(gainedPip, { options: playerData.formatSettings })} PIP\`__, so you now have __\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\`__`, components: [] });
             if (firstEternity) {
                 await interaction.followUp({ content: `
 *welcome to Eternity. congratulations on making it here.*
@@ -166,7 +166,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
 
                 await interaction.update(await getEditMessage(interaction, upgradeClass.type(), displaySetting)); // fix dropdown remaining after failed upgrade
                 return await interaction.followUp({
-                    content: `you dont have enough \`pts\` to afford that! (missing \`${formatNumber(price - playerData.score, { options: playerData.formatOptions })} pts\`)`,
+                    content: `you dont have enough \`pts\` to afford that! (missing \`${formatNumber(price - playerData.score, { options: playerData.formatSettings })} pts\`)`,
                     components: [new ActionRowBuilder().addComponents(button)],
                     flags: ephemeral
                 })
@@ -179,7 +179,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
                     content: 
 `*Eternity calls for you, but you must make sure you're ready.*
 ***are you?***
--# this will **reset** your current upgrades, \`pts\`, and clicks and give you __${formatNumber(getEternityPip(playerData, { options: playerData.formatOptions }))} PIP__ from your __\`${formatNumber(playerData.bp, { options: playerData.formatOptions })} BP\`__.`,
+-# this will **reset** your current upgrades, \`pts\`, and clicks and give you __${formatNumber(getEternityPip(playerData, { options: playerData.formatSettings }))} PIP__ from your __\`${formatNumber(playerData.bp, { options: playerData.formatSettings })} BP\`__.`,
                     components: [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder()
@@ -278,8 +278,8 @@ async function getEditMessage(interaction, category, buySetting) {
         .setCustomId('upgrade:buy')
         .setPlaceholder('pick an upgrade')
     let description = 
-`you have **__\`${formatNumber(playerData.score, { options: playerData.formatOptions, decimalPlaces: 4 })} pts\`__** to spend...
-buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerData.formatOptions }) : buySetting}** upgrade${buySetting === 1 ? '' : 's'} per click...\n`
+`you have **__\`${formatNumber(playerData.score, { options: playerData.formatSettings, decimalPlaces: 4 })} pts\`__** to spend...
+buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerData.formatSettings }) : buySetting}** upgrade${buySetting === 1 ? '' : 's'} per click...\n`
     
     const embed = new EmbedBuilder()
         .setTitle("upgrades")
@@ -334,13 +334,13 @@ buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerDat
         
         const {price, levels} = getMultiBuyCost(buySetting, upgrade, playerData.score, upgradeLevel);
 
-        description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatOptions, decimalPlaces: 6 })})**
+        description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatSettings, decimalPlaces: 6 })})**
 ${upgrade.getDetails().description}
-${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, { options: playerData.formatOptions })} pts\`${levels > 1 ? ` (*${formatNumber(levels, { options: playerData.formatOptions })} levels*)` : ''}`
+${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, { options: playerData.formatSettings })} pts\`${levels > 1 ? ` (*${formatNumber(levels, { options: playerData.formatSettings })} levels*)` : ''}`
 
         select.addOptions(
             new StringSelectMenuOptionBuilder()
-                .setLabel(`${upgrade.getDetails().name} | ${formatNumber(price, { options: playerData.formatOptions })} pts`)
+                .setLabel(`${upgrade.getDetails().name} | ${formatNumber(price, { options: playerData.formatSettings })} pts`)
                 .setValue(upgradeId)
         )
     }

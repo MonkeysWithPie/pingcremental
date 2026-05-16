@@ -239,7 +239,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
             context.specials = currentEffects.specials;
         }
 
-        const effectString = formatEffect(effect, upgradeClass, pingFormat, playerProfile.formatOptions);
+        const effectString = formatEffect(effect, upgradeClass, pingFormat, playerProfile.formatSettings);
 
         // add to display
         if (effectString) {
@@ -268,7 +268,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     score *= totalMult;
 
     if (totalMult > 1 && pingFormat !== "expanded") {
-        displays.mult.push(`__\`x${formatNumber(totalMult, playerProfile.formatOptions)}\`__`);
+        displays.mult.push(`__\`x${formatNumber(totalMult, playerProfile.formatSettings)}\`__`);
     }
 
     let totalExp = 1;
@@ -278,7 +278,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     score = Math.pow(score, totalExp);
 
     if (totalExp > 1 && pingFormat !== "expanded") {
-        displays.exponents.push(`**__\`^${formatNumber(totalExp, playerProfile.formatOptions)}\`__**`);
+        displays.exponents.push(`**__\`^${formatNumber(totalExp, playerProfile.formatSettings)}\`__**`);
     }
 
     score = Math.round(score);
@@ -299,21 +299,21 @@ async function ping(interaction, isSuper = false, overrides = {}) {
 
         if (effect.bp) { 
             currentEffects.bp += effect.bp;
-            displays.bp.push(formatEffect(effect, upgradeClass, pingFormat, playerProfile.formatOptions));
+            displays.bp.push(formatEffect(effect, upgradeClass, pingFormat, playerProfile.formatSettings));
         }
         if (effect.apt) {
             currentEffects.apt += effect.apt;
-            displays.apt.push(formatEffect(effect, upgradeClass, pingFormat,  playerProfile.formatOptions))
+            displays.apt.push(formatEffect(effect, upgradeClass, pingFormat,  playerProfile.formatSettings))
         }
     }
     
     if (pingFormat !== "expanded") {
-        displays.add.push(`\`+${formatNumber(score, { options: playerProfile.formatOptions })}\``);
+        displays.add.push(`\`+${formatNumber(score, { options: playerProfile.formatSettings })}\``);
         if (currentEffects.bp) {
-            displays.bp.push(`\`+${formatNumber(currentEffects.bp, { options: playerProfile.formatOptions })} bp\``);
+            displays.bp.push(`\`+${formatNumber(currentEffects.bp, { options: playerProfile.formatSettings })} bp\``);
         }
         if (currentEffects.apt) {
-            displays.apt.push(`\`+${formatNumber(currentEffects.apt, { options: playerProfile.formatOptions })} APT\``);
+            displays.apt.push(`\`+${formatNumber(currentEffects.apt, { options: playerProfile.formatSettings })} APT\``);
         }
     }
 
@@ -406,23 +406,23 @@ function measureTimeSegment(segmentName, finish = false) {
     }
 }
 
-function formatEffect(effect, upgradeClass, format, formatOptions) {
+function formatEffect(effect, upgradeClass, format, formatSettings) {
     let effectString = upgradeClass.getDetails().emoji;
 
     if (effect.add && effect.add !== 0) {
-        effectString += ` \`${effect.add >= 0 ? "+" : ""}${formatNumber(effect.add, { options: formatOptions })}\``;
+        effectString += ` \`${effect.add >= 0 ? "+" : ""}${formatNumber(effect.add, { options: formatSettings })}\``;
     }
     if (effect.multiply && effect.multiply !== 1) {
-        effectString += ` __\`x${formatNumber(effect.multiply, { options: formatOptions })}\`__`;
+        effectString += ` __\`x${formatNumber(effect.multiply, { options: formatSettings })}\`__`;
     }
     if (effect.exponent && effect.exponent !== 1) {
-        effectString += ` **__\`^${formatNumber(effect.exponent, { options: formatOptions, decimalPlaces: 3 })}\`__**`;
+        effectString += ` **__\`^${formatNumber(effect.exponent, { options: formatSettings, decimalPlaces: 3 })}\`__**`;
     }
     if (effect.bp) {
-        effectString += ` \`+${formatNumber(effect.bp, { options: formatOptions })} bp\``;
+        effectString += ` \`+${formatNumber(effect.bp, { options: formatSettings })} bp\``;
     }
     if (effect.apt) {
-        effectString += ` \`+${formatNumber(effect.apt, { options: formatOptions })} APT\``;
+        effectString += ` \`+${formatNumber(effect.apt, { options: formatSettings })} APT\``;
     }
 
     if (format === "compact" && effectString !== upgradeClass.getDetails().emoji) {

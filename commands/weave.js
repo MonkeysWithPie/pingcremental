@@ -65,7 +65,7 @@ module.exports = {
 
             await interaction.update(await getEmbed(interaction, WEAVE_SECTION.Tear));
             return await interaction.followUp({
-                content: `you tear the universe, and gained **${formatNumber(gainedThread, { options: player.formatOptions })}** thread (now ${formatNumber(player.thread, { options: player.formatOptions })} total).`,
+                content: `you tear the universe, and gained **${formatNumber(gainedThread, { options: player.formatSettings })}** thread (now ${formatNumber(player.thread, { options: player.formatSettings })} total).`,
                 flags: MessageFlags.Ephemeral
             });
         },
@@ -73,19 +73,19 @@ module.exports = {
             const player = await database.Player.findByPk(interaction.user.id);
             const breakdown = getGainedThread(player, false);
 
-            let desc = `you will gain ${formatNumber(getGainedThread(player), { options: player.formatOptions })} thread for tearing the universe, given by the following:\n`;
+            let desc = `you will gain ${formatNumber(getGainedThread(player), { options: player.formatSettings })} thread for tearing the universe, given by the following:\n`;
             desc += `\n**base**: ${breakdown.base} (always given regardless)`;
             if (breakdown.pts) {
-                desc += `\n**owned \`pts\`**: ${formatNumber(breakdown.pts, { options: player.formatOptions })} (1 per every digit in your owned \`pts\`)`;
+                desc += `\n**owned \`pts\`**: ${formatNumber(breakdown.pts, { options: player.formatSettings })} (1 per every digit in your owned \`pts\`)`;
             }
             if (breakdown.pip) {
-                desc += `\n**owned pip**: ${formatNumber(breakdown.pip, { options: player.formatOptions })} (2 per every digit in your owned pip)`;
+                desc += `\n**owned pip**: ${formatNumber(breakdown.pip, { options: player.formatSettings })} (2 per every digit in your owned pip)`;
             }
             if (breakdown.eternities) {
-                desc += `\n**eternities**: ${formatNumber(breakdown.eternities, { options: player.formatOptions })} (1 per every eternity beyond the requirement, up to 15)`;
+                desc += `\n**eternities**: ${formatNumber(breakdown.eternities, { options: player.formatSettings })} (1 per every eternity beyond the requirement, up to 15)`;
             }
             if (breakdown.tears) {
-                desc += `\n**previous tears**: ${formatNumber(breakdown.tears, { options: player.formatOptions })} (3 per every previous tear, up to 30)`;
+                desc += `\n**previous tears**: ${formatNumber(breakdown.tears, { options: player.formatSettings })} (3 per every previous tear, up to 30)`;
             }
 
             return await interaction.reply({
@@ -210,7 +210,7 @@ module.exports = {
 
             const msg = ['hell yeah!', 'woo!', 'okay!']
             await interaction.followUp({
-                content: `you got **${fabricUpgrade.getDetails().name}** in exchange for **${formatNumber(fabricUpgrade.getPrice(), { options: player.formatOptions })}** thread!`,
+                content: `you got **${fabricUpgrade.getDetails().name}** in exchange for **${formatNumber(fabricUpgrade.getPrice(), { options: player.formatSettings })}** thread!`,
                 components: [new ActionRowBuilder().addComponents(
                     new ButtonBuilder()
                         .setCustomId(`weave:delete`)
@@ -309,7 +309,7 @@ unfortunately, it wants everything you have in return.
         }
 
         desc += `\nthis will reset ALL of your progress (with the exception of Total stats), including pip, bp, pts, and all of their associated upgrades.`
-        desc += `\nyou will gain **${formatNumber(getGainedThread(player), { options: player.formatOptions })} thread** for tearing the universe.`;
+        desc += `\nyou will gain **${formatNumber(getGainedThread(player), { options: player.formatSettings })} thread** for tearing the universe.`;
         
         if (stats.tear.eternities < getTearRequirement(stats.total.tears)) {
             desc = `the universe isn't quite ready to be torn again yet. you need ${stats.tear.eternities}/**${getTearRequirement(stats.total.tears)}** eternities to tear the universe again.`
@@ -339,7 +339,7 @@ unfortunately, it wants everything you have in return.
             .setMinValues(1)
             .setMaxValues(1)
 
-        let desc = `you have **${formatNumber(player.thread, { options: player.formatOptions })}** thread. the following fabrics are craftable right now:`;
+        let desc = `you have **${formatNumber(player.thread, { options: player.formatSettings })}** thread. the following fabrics are craftable right now:`;
         embed.setFooter({ text: `fabrics in stock and reroll prices will be reset after tearing the universe.` })
         embed.setTitle("fabric weaving")
 
@@ -362,7 +362,7 @@ unfortunately, it wants everything you have in return.
                 isBuyable = false;
                 desc += `\nalready bought!`;
             } else if (isBuyable) {
-                desc += `\ncosts ${formatNumber(fabricUpgrade.getPrice(), { options: player.formatOptions })} thread`;
+                desc += `\ncosts ${formatNumber(fabricUpgrade.getPrice(), { options: player.formatSettings })} thread`;
 
                 if (ownedFabrics[fabricName] > 0) {
                     desc += `\nyou already own **${ownedFabrics[fabricName]}** of this fabric`;

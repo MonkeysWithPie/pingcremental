@@ -15,8 +15,12 @@ function formatNumber(num, { decimalPlaces = 2, shortHand = true, shortHandPlace
     if (magnitude <= decimalPlaces || !shortHand) {
         const integerPart = Math.floor(num);
         const decimalPart = num - integerPart;
+        if (decimalPart < 1e-6) {
+            return integerPart.toLocaleString().replace(",", options.swapCommas ? "." : ",");
+        }
+
         const roundedDecimal = decimalPart.toFixed(shortHand ? decimalPlaces - magnitude : shortHandPlaces).slice(2);
-        
+
         return integerPart.toLocaleString().replace(",", options.swapCommas ? "." : ",") 
             + (roundedDecimal ? (options.swapCommas ? "," : ".") + roundedDecimal : "");
     }

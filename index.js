@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection } = require('discord.js');
 
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 const token = process.env.DISCORD_TOKEN;
 if (!token) throw new Error('variable in .env missing: DISCORD_TOKEN')

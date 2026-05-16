@@ -101,13 +101,18 @@ async function getGlobalMessage(selfId) {
 async function getUserMessage(userId, interaction, selfId, layer = "total") {
     const player = await database.Player.findByPk(userId);
     if (!player) return { content: `<@${userId}> hasn't pinged yet.`, allowedMentions: { parse: [] }, flags: MessageFlags.Ephemeral };
-    
+
     const self = await database.Player.findByPk(selfId);
     const formatSettings = { options: self.formatSettings }
 
     const allStats = await player.stats();
     const stats = allStats[layer];
     const totalStats = allStats.total;
+
+    let layerReached = true;
+    if (layer === 'eternity' && totalStats.eternities === 0) layerReached = false;
+    if (layer === 'tear' && totalStats.tears === 0) layerReached = false;
+    if (!layerReached) layer = 'total'; // fallback to total if layer not reached yet
 
     let desc = `viewing stats for **${await player.getUserDisplay(interaction.client, database)}**\n`
 

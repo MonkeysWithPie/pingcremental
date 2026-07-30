@@ -7,7 +7,7 @@ const awardBadge = require('../helpers/awardBadge.js');
 const formatNumber = require('./../helpers/formatNumber.js');
 const { getTearRequirement } = require('./weave.js');
 const { getEmoji } = require('../helpers/emojis.js');
-const { getBuySetting, getMultiBuyCost, customMultibuyModalSubmit } = require('../helpers/multibuy.js');
+const { getMultiBuyCost, customMultibuyModalSubmit, parseMultibuySetting } = require('../helpers/multibuy.js');
 
 function getEternityPip(playerProfile) {
     let gainedPip = playerProfile.bp;
@@ -33,8 +33,8 @@ module.exports = {
             await interaction.update({ content: "(bye!)", components: [] });
             await interaction.deleteReply(interaction.message);
         }),
-        category: (async (interaction, newCategory) => {
-            await interaction.update(await getEditMessage(interaction, newCategory, getBuySetting(interaction)));
+        category: (async (interaction, [newCategory, buySetting]) => {
+            await interaction.update(await getEditMessage(interaction, newCategory, parseMultibuySetting(buySetting)));
         }),
         eternity: (async interaction => {
             const playerData = await database.Player.findByPk(`${interaction.user.id}`);
@@ -106,11 +106,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
             const catButtonRow = interaction.message.components[0];
             const category = catButtonRow.components.find(button => button.style === ButtonStyle.Primary).customId.split('-')[1];
 
-            if (buySetting === 'MAX') {
-                buySetting = 'MAX';
-            } else {
-                buySetting = parseInt(buySetting);
-            }
+            buySetting = parseMultibuySetting(buySetting);
 
             await interaction.update(await getEditMessage(interaction, category, buySetting));
         }),
@@ -132,13 +128,12 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
         })
     },
     dropdowns: {
-        buy: (async interaction => {
+        buy: (async (interaction, buySetting) => {
+            buySetting = parseMultibuySetting(buySetting);
+
             const upgradeId = interaction.values[0];
             if (upgradeId === 'none') return await interaction.reply({ content: 'you already got everything!', flags: MessageFlags.Ephemeral });
             const playerData = await database.Player.findByPk(`${interaction.user.id}`);
-            let buySetting = getBuySetting(interaction);
-            const displaySetting = buySetting;
-            if (buySetting < 1 && buySetting !== 'MAX') buySetting = 1;
 
             const playerUpgradeLevel = playerData.upgrades[upgradeId] ?? 0;
             const upgradeClass = upgrades.pts[upgradeId];
@@ -164,7 +159,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
                     .setLabel(msg[Math.floor(Math.random() * msg.length)]) // random sad message
                     .setStyle(ButtonStyle.Secondary)
 
-                await interaction.update(await getEditMessage(interaction, upgradeClass.type(), displaySetting)); // fix dropdown remaining after failed upgrade
+                await interaction.update(await getEditMessage(interaction, upgradeClass.type(), buySetting)); // fix dropdown remaining after failed upgrade
                 return await interaction.followUp({
                     content: `you dont have enough \`pts\` to afford that! (missing \`${formatNumber(price - playerData.score, { options: playerData.formatSettings })} pts\`)`,
                     components: [new ActionRowBuilder().addComponents(button)],
@@ -173,7 +168,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
             }
 
             if (upgradeId === 'eternity') {
-                await interaction.update(await getEditMessage(interaction, upgradeClass.type(), displaySetting)); 
+                await interaction.update(await getEditMessage(interaction, upgradeClass.type(), buySetting)); 
                 if (playerData.bp < 10000) { return await interaction.followUp({ content: `*you shouldn't be here, yet.*`, flags: MessageFlags.Ephemeral }) }
                 return await interaction.followUp({
                     content: 
@@ -222,11 +217,11 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
                 .setLabel(pickedMsg) // random happy message
                 .setStyle(ButtonStyle.Success)
 
-            await interaction.update(await getEditMessage(interaction, upgradeClass.type(), displaySetting));
+            await interaction.update(await getEditMessage(interaction, upgradeClass.type(), buySetting));
 
             if (followupType !== 'none') {
                 return await interaction.followUp({
-                    content: `upgraded **${upgradeClass.getDetails().name}** to level ${playerUpgradeLevel + levels}! you have \`${formatNumber(playerData.score, true, 4)} pts\` left.`,
+                    content: `upgraded **${upgradeClass.getDetails().name}** to level ${formatNumber(playerUpgradeLevel + levels, { options: playerData.formatSettings, shortHand: true })}! you have \`${formatNumber(playerData.score, { options: playerData.formatSettings, decimalPlaces: 4 })} pts\` left.`,
                     components: [new ActionRowBuilder().addComponents(button)],
                     flags: ephemeral
                 })
@@ -247,7 +242,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
     }
 }
 
-async function getEditMessage(interaction, category, buySetting) {
+async function getEditMessage(interaction, category, buySetting = 1) {
     const [playerData, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
     const stats = await playerData.stats();
     if (stats.total.clicks < 150) { // prevent upgrading before 150 clicks
@@ -266,7 +261,7 @@ async function getEditMessage(interaction, category, buySetting) {
     for (const [, cat] of Object.entries(UpgradeTypes)) {
         if (cat === UpgradeTypes.PRESTIGE && !playerData.upgrades?.pingularity) continue; // prevent seing prestige tab before unlock
         const button = new ButtonBuilder()
-            .setCustomId(`upgrade:category-${cat}`)
+            .setCustomId(`upgrade:category-${cat}-${buySetting}`)
             .setLabel(cat)
             .setStyle(category === cat ? ButtonStyle.Primary : ButtonStyle.Secondary)
         buttonRow.addComponents(button)
@@ -275,7 +270,7 @@ async function getEditMessage(interaction, category, buySetting) {
     const pUpgrades = playerData.upgrades
 
     const select = new StringSelectMenuBuilder()
-        .setCustomId('upgrade:buy')
+        .setCustomId(`upgrade:buy-${buySetting}`)
         .setPlaceholder('pick an upgrade')
     let description = 
 `you have **__\`${formatNumber(playerData.score, { options: playerData.formatSettings, decimalPlaces: 4 })} pts\`__** to spend...
@@ -303,11 +298,6 @@ buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerDat
     )
     const multiBuyRow = new ActionRowBuilder()
         .addComponents(multiBuyButtons)
-
-    // still display as <= 1 but act as 1
-    if (parseInt(buySetting) < 1 && buySetting !== 'MAX') {
-        buySetting = 1;
-    }
 
     const context = { 
         upgrades: pUpgrades, 

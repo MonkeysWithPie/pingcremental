@@ -33,7 +33,7 @@ module.exports = {
                     if (buttonArgs.length <= 1) {
                         await buttonCommand.buttons[buttonType](interaction, buttonArgs[0]);
                     } else {
-                        await buttonCommand.buttons[buttonType](interaction, buttonArgs);
+                        await buttonCommand.buttons[buttonType](interaction, ...buttonArgs);
                     }
                 }
             } else if (interaction.isStringSelectMenu()) {
@@ -55,7 +55,7 @@ module.exports = {
                     if (buttonArgs.length <= 1) {
                         await buttonCommand.dropdowns[buttonType](interaction, buttonArgs[0]);
                     } else {
-                        await buttonCommand.dropdowns[buttonType](interaction, buttonArgs);
+                        await buttonCommand.dropdowns[buttonType](interaction, ...buttonArgs);
                     }
                 }
             } else if (interaction.isAutocomplete()) {

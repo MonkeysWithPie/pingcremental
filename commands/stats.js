@@ -40,7 +40,7 @@ module.exports = {
         }
     },
     buttons: {
-        refresh: (async (interaction, [type, selfId, layer]) => {
+        refresh: (async (interaction, type, selfId, layer) => {
             if (type === 'global') {
                 await interaction.update(await getGlobalMessage(selfId.replace("global", "") || interaction.user.id));
                 return;
@@ -50,7 +50,7 @@ module.exports = {
         })
     },
     dropdowns: {
-        layer: (async (interaction, [userId, selfId]) => {
+        layer: (async (interaction, userId, selfId) => {
             const selectedLayer = interaction.values[0];
             await interaction.update(await getUserMessage(userId, interaction, selfId, selectedLayer));
         })
@@ -68,8 +68,12 @@ async function getGlobalMessage(selfId) {
         database.PlayerStat.sum('luckyPings', { where }),
     ]);
     const [playerCount, totalScore, totalClicks, blueClicked, blueMissed, luckyFound] = globalPings;
-    const selfData = await database.Player.findByPk(selfId);
-    const formatSettings = { options: selfData.formatSettings }
+
+    let formatSettings;
+    if (selfId) {
+        const selfData = await database.Player.findByPk(selfId);
+        formatSettings = { options: selfData.formatSettings }
+    }
 
     const embed = new EmbedBuilder()
         .setTitle(`global stats`)
@@ -102,8 +106,13 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
     const player = await database.Player.findByPk(userId);
     if (!player) return { content: `<@${userId}> hasn't pinged yet.`, allowedMentions: { parse: [] }, flags: MessageFlags.Ephemeral };
 
-    const self = await database.Player.findByPk(selfId);
-    const formatSettings = { options: self.formatSettings }
+    let formatSettings;
+    if (selfId && selfId !== userId && selfId !== "undefined") {
+        const self = await database.Player.findByPk(selfId);
+        formatSettings = { options: self.formatSettings }
+    } else {
+        formatSettings = { options: player.formatSettings }
+    }
 
     const allStats = await player.stats();
     const stats = allStats[layer];

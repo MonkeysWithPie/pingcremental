@@ -33,7 +33,7 @@ module.exports = {
             await interaction.update({ content: "(bye!)", components: [] });
             await interaction.deleteReply(interaction.message);
         }),
-        category: (async (interaction, [newCategory, buySetting]) => {
+        category: (async (interaction, newCategory, buySetting) => {
             await interaction.update(await getEditMessage(interaction, newCategory, parseMultibuySetting(buySetting)));
         }),
         eternity: (async interaction => {

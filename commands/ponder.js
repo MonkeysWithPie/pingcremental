@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, InteractionContextType, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, InteractionContextType, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder, ContainerBuilder, SeparatorSpacingSize } = require('discord.js');
 const { upgrades } = require('./../helpers/upgrades.js')
 const database = require('./../helpers/database.js');
 const { PipUpgradeTypes } = require('./../helpers/commonEnums.js');
@@ -23,7 +23,7 @@ module.exports = {
             await interaction.update(await getEditMessage(interaction, newCategory, parseMultibuySetting(buySetting)));
         }),
         multibuy: (async (interaction, buySetting) => {
-            const catButtonRow = interaction.message.components[0];
+            const catButtonRow = interaction.message.components[1];
             const category = catButtonRow.components.find(button => button.style === ButtonStyle.Primary).customId.split('-')[1];
 
             buySetting = parseMultibuySetting(buySetting);
@@ -52,7 +52,7 @@ module.exports = {
             const newBuySetting = await customMultibuyModalSubmit(interaction);
             if (newBuySetting === undefined || interaction.replied) return; // already returned
 
-            const catButtonRow = interaction.message.components[0];
+            const catButtonRow = interaction.message.components[1];
             const category = catButtonRow.components.find(button => button.style === ButtonStyle.Primary).customId.split('-')[1];
 
             return await interaction.update(await getEditMessage(interaction, category, newBuySetting));
@@ -143,24 +143,26 @@ async function getEditMessage(interaction, category, buySetting) {
         }
     }
 
-    const buttonRow = new ActionRowBuilder();
+    const categoryRow = new ActionRowBuilder();
     for (const [, cat] of Object.entries(PipUpgradeTypes)) {
         const button = new ButtonBuilder()
             .setCustomId(`ponder:category-${cat}-${buySetting}`)
             .setLabel(cat)
             .setStyle(category === cat ? ButtonStyle.Primary : ButtonStyle.Secondary)
-        buttonRow.addComponents(button)
+        categoryRow.addComponents(button)
     }
 
     const pUpgrades = playerData.prestigeUpgrades
     const select = new StringSelectMenuBuilder()
         .setCustomId(`ponder:buy-${buySetting}`)
         .setPlaceholder('pick an upgrade')
-    let description = `You have **__\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\`__**. Spend wisely.
+    
+    const description = `You have **__\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\`__**. Spend wisely.
 You're buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerData.formatSettings }) : buySetting}** upgrade${buySetting === 1 ? '' : 's'} at a time.\n`
-    const embed = new EmbedBuilder()
-        .setTitle("Ponder")
-        .setColor("#162b94")
+    
+    const container = new ContainerBuilder()
+        .setAccentColor(0x162b94)
+        .addTextDisplayComponents((textDisplay) => textDisplay.setContent("### Ponder \n" + description))
     
     const multiBuys = [1,3,10,'MAX']
     const multiBuyButtons = []
@@ -178,8 +180,16 @@ You're buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: pl
             .setLabel('custom...')
             .setStyle(ButtonStyle.Secondary)
     )
-    const multiBuyRow = new ActionRowBuilder()
-        .addComponents(multiBuyButtons)
+    container.addActionRowComponents((actionRow) => actionRow.addComponents(multiBuyButtons))
+        .addSeparatorComponents((separator) =>
+            separator.setSpacing(SeparatorSpacingSize.Small)
+        )
+
+    function addToContainer(text) {
+        container.addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(text)
+        )
+    }
 
     const context = { upgrades: pUpgrades };
 
@@ -190,21 +200,21 @@ You're buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: pl
         const unlocked = upgrade.unlockRequirements(context);
         if (!unlocked.showable) continue;
         if (!unlocked.buyable) {
-            description += `\n-# ${getEmoji('locked', '🔒')} locked upgrade | *${unlocked.reason}*`
+            addToContainer(`-# ${getEmoji('locked', '🔒')} locked upgrade | *${unlocked.reason}*`)
             continue;
         }
 
         if (upgrade.getPrice(upgradeLevel) === null) {
-            description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (MAX)**\n*"${upgrade.getDetails().flavor}"*\n${upgrade.getDetails().description}\nCurrently ${upgrade.getEffectString(upgradeLevel)}` 
+            addToContainer(`**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (MAX)**\n*"${upgrade.getDetails().flavor}"*\n${upgrade.getDetails().description}\nCurrently ${upgrade.getEffectString(upgradeLevel)}`) 
             continue;
         }
 
         const {price, levels} = getMultiBuyCost(buySetting, upgrade, playerData.pip, upgradeLevel);
 
-        description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatSettings })})**
+        addToContainer(`\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatSettings })})**
 *"${upgrade.getDetails().flavor}"*
 ${upgrade.getDetails().description}
-${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, { decimalPlaces: 3, options: playerData.formatSettings })} PIP\`` 
+${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, { decimalPlaces: 3, options: playerData.formatSettings })} PIP\``)
 
         select.addOptions(
             new StringSelectMenuOptionBuilder()
@@ -222,8 +232,7 @@ ${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLev
         )
     }
 
+    container.addActionRowComponents((actionRow) => actionRow.addComponents(select))
 
-    embed.setDescription(description)
-
-    return { embeds: [embed], components: [buttonRow, multiBuyRow, new ActionRowBuilder().addComponents(select)] }
+    return { embeds: [], components: [container, categoryRow], flags: MessageFlags.IsComponentsV2 }
 }

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags, InteractionContextType, LabelBuilder } = require("discord.js");
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags, InteractionContextType, LabelBuilder, ContainerBuilder, SeparatorSpacingSize } = require("discord.js");
 const database = require("../helpers/database");
 const formatNumber = require("../helpers/formatNumber");
 const ping = require("../helpers/pingCalc");
@@ -77,7 +77,6 @@ module.exports = {
 }
 
 async function doAutoping(interaction, count) {
-
     if (usersAutopinging.includes(interaction.user.id)) {
         return interaction.reply({
             content: "you are already autopinging!",
@@ -107,14 +106,20 @@ async function doAutoping(interaction, count) {
         });
     }
 
-    const embed = new EmbedBuilder()
-        .setTitle("autopinging...")
-        .setDescription(`autoping is running!\n**0**/${formatNumber(pings, { shortHand: false, options: player.formatSettings })}...`)
-        .setColor("#c4bf18")
+    function buildAutopingContainer(progress) {
+        const container = new ContainerBuilder()
+            .setAccentColor(0xc4bf18)
+            .addTextDisplayComponents((textDisplay) => 
+                textDisplay.setContent(`### autopinging...\n**${formatNumber(progress, { shortHand: false, options: player.formatSettings })}**/${formatNumber(pings, { shortHand: false, options: player.formatSettings })}...`)
+            )
+        return container
+    }
+
 
     await interaction.update({
-        embeds: [embed],
-        components: [],
+        embeds: [],
+        components: [buildAutopingContainer(0)],
+        flags: MessageFlags.IsComponentsV2,
     })
 
     usersAutopinging.push(interaction.user.id);
@@ -145,8 +150,7 @@ async function doAutoping(interaction, count) {
 
     for (let i = 0; i < pings; i++) {
         if (i === nextUpdate) {
-            embed.setDescription(`autoping is running!\n**${formatNumber(i, { shortHand: false, options: player.formatSettings })}**/${formatNumber(pings, { shortHand: false, options: player.formatSettings })}...`);
-            await interaction.editReply({ embeds: [embed] });
+            await interaction.editReply({ components: [buildAutopingContainer(i)] });
             await new Promise(r => setTimeout(r, 400)); // short delay to avoid rate limits
             nextUpdate += updateEmbedEvery + Math.ceil(Math.random() - 0.5 * pings / 1000);
         }
@@ -239,16 +243,22 @@ missed **${pingDataTotal.bluesMissed}** blue ping${pingDataTotal.bluesMissed ===
 
     if (pingDataTotal.rares > 0) finalDescription += `\nfound **${pingDataTotal.rares}** rare ping${pingDataTotal.rares === 1 ? '' : 's'}`;
 
-    const finalEmbed = new EmbedBuilder()
-        .setTitle("autoping finished!")
-        .setDescription(finalDescription)
-        .setColor("#18c4bf");
+    const finalContainer = new ContainerBuilder()
+        .setAccentColor(0x18c4bf)
+        .addTextDisplayComponents((textDisplay) => 
+            textDisplay.setContent(`### autoping finished!
+${finalDescription}`)
+        )
 
-    let footer = `finished in ${(Number(endTime - startTime) / 1e9).toFixed(3)}s `;
+    let footer = `-# finished in ${(Number(endTime - startTime) / 1e9).toFixed(3)}s `;
     if (player.apt > 0) {
-        footer = `${formatNumber(player.apt, { options: player.formatSettings })} APT remaining | ` + footer;
+        footer = `you have **${formatNumber(player.apt, { options: player.formatSettings })}** APT left.\n` + footer;
     }
-    finalEmbed.setFooter({ text: footer });
+    finalContainer.addSeparatorComponents((separator) => 
+        separator.setSpacing(SeparatorSpacingSize.Small)
+    ).addTextDisplayComponents((textDisplay) => 
+        textDisplay.setContent(`${footer}`)
+    )
 
     const components = [
         new ButtonBuilder()
@@ -277,11 +287,14 @@ missed **${pingDataTotal.bluesMissed}** blue ping${pingDataTotal.bluesMissed ===
         );
     }
 
+    finalContainer.addActionRowComponents((actionRow) => 
+        actionRow.setComponents(components)
+    )
+
     usersAutopinging = usersAutopinging.filter(id => id !== interaction.user.id);
 
     await interaction.editReply({
-        embeds: [finalEmbed],
-        components: [new ActionRowBuilder().addComponents(...components)],
+        components: [finalContainer],
     });
 }
 
@@ -289,16 +302,6 @@ async function getAutopingEmbed(interaction) {
     const [player,] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
 
     await refreshAPT(player);
-
-    const embed = new EmbedBuilder()
-        .setTitle("autoping!")
-        .setDescription(`
-autoping pings for you automatically and quickly! all you need is some APT to run it. some upgrades will allow you to find APT while pinging.
-autoping will always press the simulated **left-most** button.
-APT **cannot** be gained through autopinging, so you'll need to find it on your own.
-
-you currently have **${formatNumber(player.apt, { options: player.formatSettings })} APT**.`)
-        .setColor("#46b019")
 
     const button = new ButtonBuilder()
         .setCustomId("autoping:run")
@@ -310,9 +313,28 @@ you currently have **${formatNumber(player.apt, { options: player.formatSettings
         .setLabel("refresh")
         .setStyle(ButtonStyle.Secondary);
 
+    const container = new ContainerBuilder()
+        .setAccentColor(0x46b019)
+        .addTextDisplayComponents((textDisplay) => 
+            textDisplay.setContent(`### autoping!
+autoping pings for you automatically and quickly! all you need is some APT to run it. some upgrades will allow you to find APT while pinging.
+autoping will always press the simulated **left-most** button.
+APT **cannot** be gained through autopinging, so you'll need to find it on your own.`)
+        )
+        .addSeparatorComponents((separator) => 
+            separator.setDivider(true).setSpacing(SeparatorSpacingSize.Small)
+        )
+        .addTextDisplayComponents((textDisplay) => 
+            textDisplay.setContent(`you currently have **${formatNumber(player.apt, { options: player.formatSettings })} APT**.`)
+        )
+        .addActionRowComponents((actionRow) => 
+            actionRow.setComponents(button, refreshButton)
+        )
+
     return {
-        embeds: [embed],
-        components: [new ActionRowBuilder().addComponents(button, refreshButton)],
+        embeds: [],
+        components: [container],
+        flags: MessageFlags.IsComponentsV2
     };
 }
 

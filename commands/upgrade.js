@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, InteractionContextType, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, InteractionContextType, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder, ContainerBuilder, SeparatorSpacingSize } = require('discord.js');
 const { upgrades, rawUpgrades } = require('./../helpers/upgrades.js')
 const { getEmbeddedCommand } = require('./../helpers/embedCommand.js');
 const database = require('./../helpers/database.js');
@@ -103,7 +103,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
             }
         }),
         multibuy: (async (interaction, buySetting) => {
-            const catButtonRow = interaction.message.components[0];
+            const catButtonRow = interaction.message.components[1];
             const category = catButtonRow.components.find(button => button.style === ButtonStyle.Primary).customId.split('-')[1];
 
             buySetting = parseMultibuySetting(buySetting);
@@ -234,7 +234,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
             const newBuySetting = await customMultibuyModalSubmit(interaction);
             if (newBuySetting === undefined || interaction.replied) return; // already returned
 
-            const catButtonRow = interaction.message.components[0];
+            const catButtonRow = interaction.message.components[1];
             const category = catButtonRow.components.find(button => button.style === ButtonStyle.Primary).customId.split('-')[1];
 
             return await interaction.update(await getEditMessage(interaction, category, newBuySetting));
@@ -256,7 +256,7 @@ async function getEditMessage(interaction, category, buySetting = 1) {
         }
     }
 
-    const buttonRow = new ActionRowBuilder();
+    const categoryRow = new ActionRowBuilder();
     // loop through all upgrade categories and add buttons for each one
     for (const [, cat] of Object.entries(UpgradeTypes)) {
         if (cat === UpgradeTypes.PRESTIGE && !playerData.upgrades?.pingularity) continue; // prevent seing prestige tab before unlock
@@ -264,21 +264,26 @@ async function getEditMessage(interaction, category, buySetting = 1) {
             .setCustomId(`upgrade:category-${cat}-${buySetting}`)
             .setLabel(cat)
             .setStyle(category === cat ? ButtonStyle.Primary : ButtonStyle.Secondary)
-        buttonRow.addComponents(button)
+        categoryRow.addComponents(button)
     }
+
 
     const pUpgrades = playerData.upgrades
 
     const select = new StringSelectMenuBuilder()
         .setCustomId(`upgrade:buy-${buySetting}`)
         .setPlaceholder('pick an upgrade')
-    let description = 
+    
+    const description = 
 `you have **__\`${formatNumber(playerData.score, { options: playerData.formatSettings, decimalPlaces: 4 })} pts\`__** to spend...
 buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerData.formatSettings }) : buySetting}** upgrade${buySetting === 1 ? '' : 's'} per click...\n`
     
-    const embed = new EmbedBuilder()
-        .setTitle("upgrades")
-        .setColor("#73c9ae")
+
+    const container = new ContainerBuilder()
+        .setAccentColor(0x73c9ae)
+        .addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`### upgrades\n${description}`)
+        )
 
     const multiBuys = [1,5,25,'MAX']
     const multiBuyButtons = []
@@ -296,8 +301,16 @@ buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerDat
             .setLabel('custom...')
             .setStyle(ButtonStyle.Secondary)
     )
-    const multiBuyRow = new ActionRowBuilder()
-        .addComponents(multiBuyButtons)
+
+    container.addActionRowComponents((actionRow) => actionRow.addComponents(multiBuyButtons))
+        .addSeparatorComponents((separator) =>
+            separator.setSpacing(SeparatorSpacingSize.Small)
+        )
+    function addToContainer(text) {
+        container.addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(text)
+        )
+    }
 
     const context = { 
         upgrades: pUpgrades, 
@@ -314,19 +327,19 @@ buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerDat
         const unlocked = upgrade.unlockRequirements(context);
         if (!unlocked.showable) continue; // hidden
         if (!unlocked.buyable) {
-            description += `\n-# ${getEmoji('locked', '🔒')} locked upgrade | *${unlocked.reason}*`
+            addToContainer(`-# ${getEmoji('locked', '🔒')} locked upgrade | *${unlocked.reason}*`)
             continue;
         }
         if (upgrade.getPrice(upgradeLevel) === null) { // maxed out
-            description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (MAX)**\n${upgrade.getDetails().description}\nCurrently ${upgrade.getEffectString(upgradeLevel)}`
+            addToContainer(`**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (MAX)**\n${upgrade.getDetails().description}\nCurrently ${upgrade.getEffectString(upgradeLevel)}`)
             continue;
         }
         
         const {price, levels} = getMultiBuyCost(buySetting, upgrade, playerData.score, upgradeLevel);
 
-        description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatSettings, decimalPlaces: 6 })})**
+        addToContainer(`\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatSettings, decimalPlaces: 6 })})**
 ${upgrade.getDetails().description}
-${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, { options: playerData.formatSettings })} pts\`${levels > 1 ? ` (*${formatNumber(levels, { options: playerData.formatSettings })} levels*)` : ''}`
+${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, { options: playerData.formatSettings })} pts\`${levels > 1 ? ` (*${formatNumber(levels, { options: playerData.formatSettings })} levels*)` : ''}`)
 
         select.addOptions(
             new StringSelectMenuOptionBuilder()
@@ -344,7 +357,7 @@ ${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLev
                 .setDefault(true)
         )
     }
+    container.addActionRowComponents((actionRow) => actionRow.addComponents(select))
 
-    embed.setDescription(description)
-    return { embeds: [embed], components: [buttonRow, multiBuyRow, new ActionRowBuilder().addComponents(select)] }
+    return { embeds: [], components: [container, categoryRow], flags: MessageFlags.IsComponentsV2 }
 }

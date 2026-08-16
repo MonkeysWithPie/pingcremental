@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, MessageFlags, ContainerBuilder, SeparatorSpacingSize } = require('discord.js');
 const database = require('./../helpers/database.js')
 const feedbackCategories = [
     'bug',
@@ -143,7 +143,10 @@ async function buildFeedbackEmbed(interaction, category) {
     // get all feedback for the category
     const feedbacks = await database.Feedback.findAll({
         where: { type: category },
-        order: [['createdAt', 'DESC']] // newest first
+        order: [['createdAt', 'DESC']], // newest first
+        
+        // TODO: pagination
+        limit: 25 // max 25 since more may not fit
     });
 
     const buttons = [];
@@ -157,17 +160,27 @@ async function buildFeedbackEmbed(interaction, category) {
         )
     }
 
+    const container = new ContainerBuilder()
+        .setAccentColor(0x997565)
+        .addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`### feedback\n__${feedbacks.length}__ for category __${category}__`)
+        )
+        .addSeparatorComponents((separator) =>
+            separator.setSpacing(SeparatorSpacingSize.Small).setDivider(false)
+        )
+
     const row = new ActionRowBuilder()
         .addComponents(buttons);
     const dropdown = new StringSelectMenuBuilder()
         .setCustomId('feedback:chooseFeedback')
         .setPlaceholder('pick feedback to delete')
 
-    let description = `__${feedbacks.length}__ for category __${category}__\n`;
-
     for (const feedback of feedbacks) {
         const user = await interaction.client.users.fetch(feedback.userId); // find the user for username display
-        description += `\n- __${user.username}__: ${feedback.text}`;
+        container.addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`__${user.username}__: ${feedback.text}`)
+        )
+
         if (interaction.user.id === feedback.userId || interaction.user.id === ownerId) { // if the user is the owner or the feedback author, add the feedback to the dropdown
             dropdown.addOptions(
                 new StringSelectMenuOptionBuilder()
@@ -175,24 +188,22 @@ async function buildFeedbackEmbed(interaction, category) {
                     .setValue(`${feedback.dbId}`)
             )
         }
-
     }
 
     if (feedbacks.length === 0) {
-        description = `__no feedback here.__`;
+        container.addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`__no feedback here.__`)
+        )
     }
 
-    const embed = new EmbedBuilder()
-        .setTitle("feedback")
-        .setColor('#997565')
-        .setDescription(description)
-
-    const components = [row];
     if (dropdown.options.length > 0) { // only add dropdown if there are options
-        components.push(new ActionRowBuilder().addComponents(dropdown));
+        container.addActionRowComponents((actionRow) =>
+            actionRow.setComponents(dropdown)
+        )
     }
     return {
-        embeds: [embed],
-        components: components
+        components: [container, row],
+        embeds: [],
+        flags: MessageFlags.IsComponentsV2
     }
 }

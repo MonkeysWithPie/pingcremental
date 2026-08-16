@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, InteractionContextType, MessageFlags, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ContainerBuilder, SeparatorSpacingSize } = require('discord.js');
 const database = require('./../helpers/database.js');
 const formatNumber = require('./../helpers/formatNumber.js');
 const { PrestigeLayers } = require('../helpers/commonEnums.js');
@@ -75,30 +75,33 @@ async function getGlobalMessage(selfId) {
         formatSettings = { options: selfData.formatSettings }
     }
 
-    const embed = new EmbedBuilder()
-        .setTitle(`global stats`)
-        .setColor('#bd6fb8')
-        .setDescription(
+    const refreshButton = new ButtonBuilder()
+        .setCustomId(`stats:refresh-global-${selfId}`)
+        .setLabel('refresh')
+        .setStyle(ButtonStyle.Secondary)
+
+    const container = new ContainerBuilder()
+        .setAccentColor(0xbd6fb8)
+        .addTextDisplayComponents((textDisplay) => 
+            textDisplay.setContent(`### global stats\n` +
                 `${formatNumber(playerCount, formatSettings)} people have pinged at least once\n` +
                 `\`${formatNumber(totalScore, formatSettings)} pts\` gained in total\n` +
                 `${formatNumber(totalClicks, formatSettings)} pings dealt with\n` +
                 `${formatNumber(blueClicked, formatSettings)} blue pings clicked\n` +
                 `${formatNumber(blueMissed, formatSettings)} blue pings missed\n` +
                 `${formatNumber(luckyFound, formatSettings)} lucky pings found`
+            )
         )
-        .setTimestamp();
+        .addSectionComponents((section) =>
+            section.addTextDisplayComponents((textDisplay) =>
+                textDisplay.setContent(`as of <t:${Math.floor(Date.now() / 1000)}:S>`)
+            ).setButtonAccessory(refreshButton)
+        )
     
     return {
-        embeds: [embed],
-        components: [
-            new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId(`stats:refresh-global-${selfId}`)
-                        .setLabel('refresh')
-                        .setStyle(ButtonStyle.Secondary)
-                )
-        ],
+        embeds: [],
+        components: [container],
+        flags: MessageFlags.IsComponentsV2
     };
 }
 
@@ -115,6 +118,7 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
     }
 
     const allStats = await player.stats();
+    const when = Date.now();
     const stats = allStats[layer];
     const totalStats = allStats.total;
 
@@ -123,54 +127,68 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
     if (layer === 'tear' && totalStats.tears === 0) layerReached = false;
     if (!layerReached) layer = 'total'; // fallback to total if layer not reached yet
 
-    let desc = `viewing stats for **${await player.getUserDisplay(interaction.client, database)}**\n`
+    const desc = `viewing stats for **${await player.getUserDisplay(interaction.client, database)}**\n`
 
-    desc += `\n__the basics__\n` +
+    const container = new ContainerBuilder()
+        .setAccentColor(0x6fa7bd)
+        .addTextDisplayComponents((textDisplay) => 
+            textDisplay.setContent("### personal stats\n" + desc)
+    )
+
+    function addToContainer(text) {
+        container.addTextDisplayComponents((textDisplay) => 
+            textDisplay.setContent(text)
+        ).addSeparatorComponents((separator) =>
+            separator.setSpacing(SeparatorSpacingSize.Small)
+        )
+    }
+
+    const basicsText = `__the basics__\n` +
         `${formatNumber(stats.clicks, formatSettings)} ping${stats.clicks === 1 ? '' : 's'}\n` +
         (stats.aptClicks ? `${formatNumber(stats.aptClicks, formatSettings)} ping${stats.aptClicks === 1 ? '' : 's'} with APT\n` : '') +
         `\`${formatNumber(stats.score, formatSettings)} pts\` gained\n` +
         `\`${formatNumber(stats.highScore, formatSettings)} pts\` gained in a single ping\n` +
         `${formatNumber(stats.luckyPings, formatSettings)} lucky ping${stats.luckyPings === 1 ? '' : 's'}\n`;
-    
+    addToContainer(basicsText);
+
     if (stats.bluePings > 0) {
-        desc += `\n__blue pings__\n` +
+        const bluePingsText = `__blue pings__\n` +
             `${formatNumber(stats.bluePings, formatSettings)} blue ping${stats.bluePings === 1 ? '' : 's'} clicked\n` +
             `${formatNumber(stats.bluePingsMissed, formatSettings)} missed blue ping${stats.bluePingsMissed === 1 ? '' : 's'}\n` +
             `${formatNumber(stats.bluePingMissRate, formatSettings)}% blue ping miss rate\n` +
             `${formatNumber(stats.bluePingAppearRate, formatSettings)}% blue ping average rate\n` +
-            `${formatNumber(stats.blueStreak, formatSettings)} blue ping${stats.blueStreak === 1 ? '' : 's'} in a row\n`
+            `${formatNumber(stats.blueStreak, formatSettings)} blue ping${stats.blueStreak === 1 ? '' : 's'} in a row`
+        addToContainer(bluePingsText);
     }
 
     if (stats.eternities > 0) {
-        desc += `\n__eternities__\n` +
+        const eternitiesText = `__eternities__\n` +
             `${formatNumber(stats.eternities, formatSettings)} eternit${stats.eternities === 1 ? 'y' : 'ies'}\n` +
             `${formatNumber(stats.bp, formatSettings)} BP gained\n` +
             `${formatNumber(stats.pip, formatSettings)} PIP obtained\n` +
-            `${formatNumber(stats.removedUpgrades, formatSettings)} upgrades lost from eternities\n`
+            `${formatNumber(stats.removedUpgrades, formatSettings)} upgrades lost from eternities`
+        addToContainer(eternitiesText);
     }
 
     if (stats.tears > 0) {
-        desc += `\n__tears__\n` +
+        const tearsText = `__tears__\n` +
             `${formatNumber(stats.tears, formatSettings)} tear${stats.tears === 1 ? '' : 's'}\n` +
-            `${formatNumber(stats.thread, formatSettings)} thread gained\n`
+            `${formatNumber(stats.thread, formatSettings)} thread gained`
+        addToContainer(tearsText);
     }
 
     const luckbased = ["coinflip", "pigScore", "artisanCombo", "orchestraCombo"];
     const hasLuckBased = luckbased.some(stat => stats[stat] > 0);
 
     if (hasLuckBased) {
-        desc += `\n__upgrades__\n` +
+        const luckBasedText = `__upgrades__\n` +
             (stats.coinflip ? `${formatNumber(stats.coinflip, formatSettings)} coinflip${stats.coinflip === 1 ? '' : 's'} in one ping\n` : '') +
             (stats.pigScore ? `${formatNumber(stats.pigScore, formatSettings)} pig score in one ping\n` : '') +
             (stats.artisanCombo ? `${formatNumber(stats.artisanCombo, formatSettings)} artisan combo at once\n` : '') +
             (stats.orchestraCombo ? `${formatNumber(stats.orchestraCombo, formatSettings)} orchestra combo at once\n` : '');
+        addToContainer(luckBasedText.trim());
     }
-            
-    const embed = new EmbedBuilder()
-        .setTitle(`personal stats`)
-        .setColor('#6fa7bd')
-        .setDescription(desc)
-        .setTimestamp();
+
     const dropdown = new StringSelectMenuBuilder()
         .setCustomId(`stats:layer-${userId}-${selfId}`)
         .setMinValues(1)
@@ -193,11 +211,15 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
         .setLabel('refresh')
         .setStyle(ButtonStyle.Secondary)
 
+    container.addSectionComponents((section) =>
+        section.addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`as of <t:${Math.floor(when / 1000)}:S>`)
+        ).setButtonAccessory(refreshButton)
+    ).addActionRowComponents((actionRow) => actionRow.addComponents(dropdown))
+
     return {
-        embeds: [embed],
-        components: [
-            new ActionRowBuilder().addComponents(dropdown),
-            new ActionRowBuilder().addComponents(refreshButton)
-        ],
+        embeds: [],
+        components: [container],
+        flags: MessageFlags.IsComponentsV2
     };
 }

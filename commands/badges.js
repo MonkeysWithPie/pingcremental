@@ -1,9 +1,9 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder, StringSelectMenuBuilder } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, StringSelectMenuBuilder, ContainerBuilder } = require('discord.js');
 const database = require('./../helpers/database.js');
 const { getEmoji } = require('./../helpers/emojis.js')
 const { getEmbeddedCommand } = require('../helpers/embedCommand.js');
 const { BADGE_TIERS, getBadgeByName, getBadgesByName, getAllBadges } = require('../helpers/badgeUtils.js');
-const BADGES_PER_PAGE = 10;
+const BADGES_PER_PAGE = 6;
 const ownerId = process.env.OWNER_ID;
 
 module.exports = {
@@ -49,6 +49,8 @@ module.exports = {
         ),
     async execute(interaction) {
         if (interaction.options.getSubcommand() === 'view') {
+            // TODO: pagination
+
             const user = interaction.options.getUser('user') || interaction.user;
             const player = await database.Player.findByPk(`${user.id}`);
 
@@ -57,17 +59,21 @@ module.exports = {
             }
             
             const badges = getBadgesByName(...player.badges);
-            let description = `badges of ${await player.getUserDisplay(interaction.client, database)}\n\n`;
+
+            const userDisplay = await player.getUserDisplay(interaction.client, database);
+            const container = new ContainerBuilder()
+                .setAccentColor(0xd1b586)
+                .addTextDisplayComponents((textDisplay) =>
+                    textDisplay.setContent(`### badges of ${userDisplay}`)
+                )
 
             for (const badge of badges) {
-                description += `${badgeDisplay(badge)}\n`;
+                container.addTextDisplayComponents((textDisplay) => 
+                    textDisplay.setContent(badgeDisplay(badge))
+                )
             }
 
-            const embed = new EmbedBuilder()
-                .setColor('#e3cf6b')
-                .setDescription(description.trim());
-
-            return await interaction.reply({ embeds: [embed] });
+            return await interaction.reply({ components: [container], flags: MessageFlags.IsComponentsV2 });
         } 
         else if (interaction.options.getSubcommand() === 'list') {
             return await interaction.reply(await getListPage(interaction, BADGE_TIERS.SILVER));
@@ -156,7 +162,7 @@ module.exports = {
         const focusedValue = interaction.options.getString('badge');
         const badges = getAllBadges().filter(b => b.name.toLowerCase().includes(focusedValue.toLowerCase())).slice(0, 25);
         if (badges.length === 0) {
-            return await interaction.respond([{ name: 'no match', value: 'none' }]);
+            return await interaction.respond([]);
         }
 
         const options = [];
@@ -177,21 +183,25 @@ function getListPage(interaction, tier, page = 1) {
 
     if (page < 1 || isNaN(page)) page = 1;
 
-    let description = `${getEmoji(`badge_none_${tier}`)} __${['silver','blue','purple'][tier-1]} badges__ (${badgeCount} total)\n\n`;
+    const container = new ContainerBuilder()
+        .setAccentColor(0xd1b586)
+        .addTextDisplayComponents((textDisplay) => 
+            textDisplay.setContent(`### ${getEmoji(`badge_none_${tier}`)} ${['silver','blue','purple'][tier-1]} badges (${badgeCount} total)`)
+        )
 
     if (badgeCount === 0) {
-        description += `huh. there's nothing here...?`;
+        container.addTextDisplayComponents((textDisplay) => 
+            textDisplay.setContent(`huh. there's nothing here...?`)
+        )
     } else {
         badges = badges.slice((page - 1) * BADGES_PER_PAGE, page * BADGES_PER_PAGE);
 
         for (const badge of badges) {
-            description += `${badgeDisplay(badge)}\n`;
+            container.addTextDisplayComponents((textDisplay) => 
+                textDisplay.setContent(badgeDisplay(badge))
+            )
         }
     }
-
-    const embed = new EmbedBuilder()
-        .setColor('#d1b586')
-        .setDescription(description.trim());
 
     const tierButtons = Object.values(BADGE_TIERS).map(t => {
         return new ButtonBuilder()
@@ -200,8 +210,6 @@ function getListPage(interaction, tier, page = 1) {
             .setStyle(t === tier ? ButtonStyle.Primary : ButtonStyle.Secondary)
             .setEmoji(getEmoji(`badge_none_${t}`));
     });
-
-    let navRow = undefined;
 
     // add nav buttons if there's a lot of badges
     if (badgeCount > BADGES_PER_PAGE) {
@@ -222,16 +230,14 @@ function getListPage(interaction, tier, page = 1) {
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(page >= pageCount);
         
-        navRow = new ActionRowBuilder()
-            .addComponents(leftButton, rightButton);
+        container.addActionRowComponents((actionRow) => 
+            actionRow.setComponents(leftButton, rightButton)
+        )
     }
 
     const tierRow = new ActionRowBuilder().addComponents(tierButtons);
 
-    const rows = [tierRow];
-    if (navRow) rows.push(navRow);
-
-    return { embeds: [embed], components: rows };
+    return { components: [container, tierRow], flags: MessageFlags.IsComponentsV2, embeds: [] };
 }
 
 async function getShowcaseDisplay(interaction) {
@@ -248,8 +254,17 @@ async function getShowcaseDisplay(interaction) {
         return { content: `${getEmoji('badge_empty')} you don't have any badges...`, flags: MessageFlags.Ephemeral };
     }
 
-    let description = `choose which badges to display (**${displayedBadges.length}/3**)...\npreview: ${await player.getUserDisplay(interaction.client, database)}\n\n`;
+    const userDisplay = await player.getUserDisplay(interaction.client, database);
 
+    const container = new ContainerBuilder()
+        .setAccentColor(0xd1b586)
+        .addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`### display badges\n**${displayedBadges.length}/3** displayed\npreview: ${userDisplay}`)
+        )
+
+
+    let description = ``;
+    
     const dropdown = new StringSelectMenuBuilder()
         .setCustomId('badges:badgeSelect')
         .setPlaceholder('choose a badge to toggle...');
@@ -260,16 +275,16 @@ async function getShowcaseDisplay(interaction) {
             value: `${badge.name}`,
             // emoji: getEmoji(badge.emoji),
         });
-        description += `${badgeDisplay(badge,true)} ${displayedBadges.includes(badge.name) ? '🟢' : ''}\n`;
+        description += `${displayedBadges.includes(badge.name) ? '✅' : '◼️'} ${badgeDisplay(badge,true)}\n`;
     }
 
-    const row = new ActionRowBuilder().addComponents(dropdown);
+    container.addTextDisplayComponents((textDisplay) =>
+        textDisplay.setContent(description.trim())
+    ).addActionRowComponents((actionRow) =>
+        actionRow.setComponents(dropdown)
+    )
 
-    const embed = new EmbedBuilder()
-        .setColor('#6b8fe3')
-        .setDescription(description.trim());
-
-    return { embeds: [embed], components: [row] };
+    return { components: [container], flags: MessageFlags.IsComponentsV2, embeds: [] };
 }
 
 function badgeDisplay(badge, short = false) {

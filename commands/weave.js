@@ -1,6 +1,6 @@
 const formatNumber = require("../helpers/formatNumber");
 const { rawUpgrades, upgrades } = require("../helpers/upgrades");
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, InteractionContextType } = require("discord.js");
+const { SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, InteractionContextType, ContainerBuilder, SectionBuilder, SeparatorSpacingSize, TextDisplayBuilder } = require("discord.js");
 const database = require("../helpers/database");
 const RandSeed = require("rand-seed").default;
 const awardBadge = require("../helpers/awardBadge.js");
@@ -100,11 +100,20 @@ module.exports = {
         sew: async (interaction) => {
             await interaction.reply(await getSewEmbed(interaction));
         },
+        sewRemove: async (interaction, fabricName) => {
+            const equippedFabrics = getEquippedFromSewMessage(interaction.message);
+
+            equippedFabrics[fabricName]--;
+            if (equippedFabrics[fabricName] <= 0) {
+                delete equippedFabrics[fabricName];
+            }
+
+            await interaction.update(await getSewEmbed(interaction, equippedFabrics));
+        },
         sewFinish: async (interaction) => {
             const player = await database.Player.findByPk(interaction.user.id);
-            const response = await getSewEmbed(interaction, getEquippedFromSewMessage(interaction.message));
-            const responseFinishButton = response.components[2].components[0];
-            responseFinishButton.setCustomId(`weave:sewFinishConfirm`).setLabel("are you sure?").setStyle(ButtonStyle.Danger);
+            const response = await getSewEmbed(interaction, getEquippedFromSewMessage(interaction.message), "confirm");
+
             await interaction.update(response);
 
             await interaction.followUp({
@@ -121,17 +130,8 @@ module.exports = {
             player.cloakModificationsAllowed--;
 
             await player.save();
-
-            const resewButton = new ButtonBuilder()
-                .setCustomId(`weave:sew`)
-                .setLabel("re-sew your cloak")
-                .setStyle(ButtonStyle.Primary)
-                .setDisabled(player.cloakModificationsAllowed <= 0);
             
-            await interaction.update({
-                components: [ new ActionRowBuilder().addComponents(resewButton) ],
-                embeds: [interaction.message.embeds[0]]
-            })
+            await interaction.update(await getSewEmbed(interaction, equippedFabrics, "final"));
             return await interaction.followUp({
                 content: `your cloak has been sewn with the selected fabrics!`,
                 flags: MessageFlags.Ephemeral
@@ -139,9 +139,12 @@ module.exports = {
         },
         sewCancel: async (interaction) => {
             await interaction.update({
-                content: "the sewing has been cancelled.",
-                components: [],
-                embeds: []
+                components: [
+                    new TextDisplayBuilder()
+                        .setContent(`cloak sewing cancelled.`)
+                ],
+                embeds: [],
+                flags: MessageFlags.Ephemeral
             })
 
             await new Promise(resolve => setTimeout(resolve, 4000));
@@ -164,13 +167,8 @@ module.exports = {
             await player.save();
 
             await interaction.update(await getEmbed(interaction, WEAVE_SECTION.Shop));
-        }
-    },
-    dropdowns: {
-        buy: async (interaction) => {
-            const fabricName = interaction.values[0];
-            if (fabricName === "none") return await interaction.reply({ content: 'you already got everything!', flags: MessageFlags.Ephemeral });
-
+        },
+        buy: async (interaction, fabricName) => {
             if (!rawUpgrades[fabricName]) {
                 return await interaction.reply({
                     content: `this fabric doesn't exist?`,
@@ -218,7 +216,9 @@ module.exports = {
                         .setStyle(ButtonStyle.Secondary)
                 )]
             })
-        },
+        }
+    },
+    dropdowns: {
         sewAdd: async (interaction) => {
             const fabricName = interaction.values[0];
             if (fabricName === "none") return await interaction.reply({ content: 'you already got everything!', flags: MessageFlags.Ephemeral });
@@ -229,19 +229,6 @@ module.exports = {
 
             await interaction.update(await getSewEmbed(interaction, equippedFabrics));
         },
-        sewRemove: async (interaction) => {
-            const fabricName = interaction.values[0];
-            if (fabricName === "none") return await interaction.reply({ content: 'you already got everything!', flags: MessageFlags.Ephemeral });
-
-            const equippedFabrics = getEquippedFromSewMessage(interaction.message);
-
-            equippedFabrics[fabricName]--;
-            if (equippedFabrics[fabricName] <= 0) {
-                delete equippedFabrics[fabricName];
-            }
-
-            await interaction.update(await getSewEmbed(interaction, equippedFabrics));
-        }
     },
     getTearRequirement,
 }
@@ -264,11 +251,10 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
 
     const availableSections = [WEAVE_SECTION.Tear]
 
-    const embed = new EmbedBuilder()
-        .setColor('#120830')
+    const container = new ContainerBuilder()
+        .setAccentColor(0x120830)
 
-    const row = new ActionRowBuilder();
-    const extraRows = [];
+    const categoryRow = new ActionRowBuilder();
     
     if (stats.total.tears > 0) {
         availableSections.push(WEAVE_SECTION.Shop);
@@ -280,7 +266,7 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
     }
 
     for (const sectionName of availableSections) {
-        row.addComponents(new ButtonBuilder()
+        categoryRow.addComponents(new ButtonBuilder()
             .setCustomId(`weave:section-${sectionName}`)
             .setLabel(sectionName)
             .setStyle(section === sectionName ? ButtonStyle.Primary : ButtonStyle.Secondary)
@@ -288,7 +274,7 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
     }
     for (const sectionName of Object.values(WEAVE_SECTION)) {
         if (!availableSections.includes(sectionName)) {
-            row.addComponents(new ButtonBuilder()
+            categoryRow.addComponents(new ButtonBuilder()
                 .setCustomId(`weave:section-${sectionName}`)
                 .setLabel(`???`)
                 .setStyle(ButtonStyle.Secondary)
@@ -315,9 +301,9 @@ unfortunately, it wants everything you have in return.
             desc = `the universe isn't quite ready to be torn again yet. you need ${stats.tear.eternities}/**${getTearRequirement(stats.total.tears)}** eternities to tear the universe again.`
         }
     
-        embed.setTitle("tear the universe?")
-        embed.setDescription(desc);
-        extraRows.push(new ActionRowBuilder().addComponents(new ButtonBuilder()
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`### tear the universe?\n${desc}`));
+        container.addActionRowComponents((actionRow) => actionRow.addComponents(
+            new ButtonBuilder()
                 .setCustomId(`weave:reset`)
                 .setLabel("time to tear!")
                 .setStyle(ButtonStyle.Danger)
@@ -333,15 +319,8 @@ unfortunately, it wants everything you have in return.
         const stock = getShopStock(player.shopSeed);
         const ownedFabrics = player.ownedFabrics;
         const emptySlots = player.shopEmptySlots;
-        const select = new StringSelectMenuBuilder()
-            .setCustomId(`weave:buy`)
-            .setPlaceholder("choose a fabric")
-            .setMinValues(1)
-            .setMaxValues(1)
 
-        let desc = `you have **${formatNumber(player.thread, { options: player.formatSettings })}** thread. the following fabrics are craftable right now:`;
-        embed.setFooter({ text: `fabrics in stock and reroll prices will be reset after tearing the universe.` })
-        embed.setTitle("fabric weaving")
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`### fabric weaving\nyou have **${formatNumber(player.thread, { options: player.formatSettings })}** thread. the following fabrics are craftable right now:`));
 
         for (const fabricName of stock) {
             const fabricUpgrade = rawUpgrades[fabricName];
@@ -349,7 +328,7 @@ unfortunately, it wants everything you have in return.
 
             let isBuyable = true;
 
-            desc += `\n\n**${fabricUpgrade.getDetails().emoji} ${fabricUpgrade.getDetails().name}**`;
+            let desc = `**${fabricUpgrade.getDetails().emoji} ${fabricUpgrade.getDetails().name}**`;
 
             if (fabricUpgrade.isUnique() && ownedFabrics[fabricName] > 0) {
                 desc += ` (unique, already owned)`;
@@ -370,28 +349,20 @@ unfortunately, it wants everything you have in return.
             }
 
             desc += `\n${fabricUpgrade.getDetails().description}`;
+            
+            const section = new SectionBuilder()
+            section.addTextDisplayComponents((textDisplay) => 
+                textDisplay.setContent(desc)
+            )
 
-            if (isBuyable) {
-                select.addOptions([
-                    new StringSelectMenuOptionBuilder()
-                        .setLabel(fabricUpgrade.getDetails().name)
-                        .setValue(fabricName)
-                ])
-            }
+            section.setButtonAccessory(new ButtonBuilder()
+                .setCustomId(`weave:buy-${fabricName}`)
+                .setLabel(`buy`)
+                .setStyle(isBuyable ? ButtonStyle.Success : ButtonStyle.Secondary)
+                .setDisabled(player.thread < fabricUpgrade.getPrice() || !isBuyable)
+            )
+            container.addSectionComponents(section);
         }
-
-        if (select.options.length === 0) {
-            select.addOptions([
-                new StringSelectMenuOptionBuilder()
-                    .setLabel("all sold out!")
-                    .setValue("none")
-                    .setDefault(true)
-            ])
-            select.setDisabled(true);
-        }
-
-        embed.setDescription(desc);
-        extraRows.push(new ActionRowBuilder().addComponents(select));
         
         const rerollButton = new ButtonBuilder()
             .setCustomId(`weave:shopReroll`)
@@ -400,14 +371,20 @@ unfortunately, it wants everything you have in return.
             .setDisabled(player.shopRerolls >= 3);
         if (player.shopRerolls >= 3) rerollButton.setLabel(`reroll (3/3)`)
         
-        extraRows.push(new ActionRowBuilder().addComponents(rerollButton));
+        container.addSeparatorComponents((separator) => separator.setSpacing(SeparatorSpacingSize.Small))
+        .addSectionComponents((section) => section
+            .addTextDisplayComponents((textDisplay) => textDisplay.setContent(`fabrics in stock and reroll prices will be reset after tearing the universe.`))
+            .setButtonAccessory(rerollButton)
+        );
     }
 
     if (section === WEAVE_SECTION.Cloths) {
-        embed.setTitle("fabrics")
-        let desc = "";
-        
         let total = 0;
+        for (const [, count] of Object.entries(player.ownedFabrics)) {
+            total += count;
+        }
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`### fabrics\nyou have **${total}** total fabric${total === 1 ? "" : "s"}.`));
+
         for (const [fabricName, count] of Object.entries(player.ownedFabrics)) {
             const fabricUpgrade = rawUpgrades[fabricName];
             if (!fabricUpgrade) continue;
@@ -421,59 +398,49 @@ unfortunately, it wants everything you have in return.
                 nameDisplay += ` (x${count})`;
             }
 
-            desc += 
-`
-
-**${nameDisplay}**
-${fabricUpgrade.getDetails().description}`;
+            container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`**${nameDisplay}**\n${fabricUpgrade.getDetails().description}`));
         }
-
-        embed.setDescription(`you have **${total}** total fabric${total === 1 ? "" : "s"}.${desc}`);
     }
 
     if (section === WEAVE_SECTION.Cloak) {
-        embed.setTitle("your cloak")
+        if (!player.equippedFabrics || Object.keys(player.equippedFabrics).length === 0) {
+            container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`### your cloak`));
+        } else {
+            container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`### your cloak\nyour cloak has the following fabrics equipped:`));
+        }
         
-        let desc = `your cloak has the following fabrics equipped:`;
         for (const fabricName of Object.keys(player.equippedFabrics)) {
             const fabricUpgrade = rawUpgrades[fabricName];
             if (!fabricUpgrade) continue;
 
-            desc += `\n\n**${fabricUpgrade.getDetails().emoji} ${fabricUpgrade.getDetails().name}**\n${fabricUpgrade.getDetails().description}`.repeat(player.equippedFabrics[fabricName] || 1);
+            for (let i = 0; i < player.equippedFabrics[fabricName]; i++) {
+                container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`**${fabricUpgrade.getDetails().emoji} ${fabricUpgrade.getDetails().name}**\n${fabricUpgrade.getDetails().description}`));
+            }
         }
-
-        if (player.cloakModificationsAllowed <= 0) {
-            desc += `\n\nyou can't re-sew your cloak right now; tear the universe again to modify it more.`;
-        } else {
-            desc += `\n\nyou can re-sew your cloak **${player.cloakModificationsAllowed}** more time${player.cloakModificationsAllowed === 1 ? "" : "s"} before having to tear the universe.`;
-        }
-
 
         if (Object.keys(player.equippedFabrics).length === 0) {
-            desc = `you don't have a cloak yet! you can sew one now using the fabrics you own.`
+            container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`you don't have a cloak yet! you can sew one now using the fabrics you own.`));
+        } else if (player.cloakModificationsAllowed <= 0) {
+            container.addSeparatorComponents((separator) => separator.setSpacing(SeparatorSpacingSize.Small))
+                .addTextDisplayComponents((textDisplay) => textDisplay.setContent(`you can't re-sew your cloak right now; tear the universe again to modify it more.`));
+        } else {
+            container.addSeparatorComponents((separator) => separator.setSpacing(SeparatorSpacingSize.Small))
+                .addTextDisplayComponents((textDisplay) => textDisplay.setContent(`you can re-sew your cloak **${player.cloakModificationsAllowed}** more time${player.cloakModificationsAllowed === 1 ? "" : "s"} before having to tear the universe.`));
         }
 
-        embed.setDescription(desc);
-        extraRows.push(new ActionRowBuilder().addComponents(new ButtonBuilder()
-            .setCustomId(`weave:sew`)
-            .setLabel(`${Object.values(player.equippedFabrics).length === 0 ? "" : "re-"}sew your cloak`)
-            .setStyle(ButtonStyle.Primary)
-            .setDisabled(player.cloakModificationsAllowed <= 0)
+        container.addActionRowComponents((actionRow) => actionRow.addComponents(
+            new ButtonBuilder()
+                .setCustomId(`weave:sew`)
+                .setLabel(`${Object.values(player.equippedFabrics).length === 0 ? "" : "re-"}sew your cloak`)
+                .setStyle(ButtonStyle.Primary)
+                .setDisabled(player.cloakModificationsAllowed <= 0)
         ));
     }
 
-    const components = [];
-    components.push(row);
-    if (extraRows.length > 0) {
-        for (const extraRow of extraRows) {
-            components.push(extraRow);
-        }
-    }
-
-    return { embeds: [embed], components: components };
+    return { embeds: [], components: [container, categoryRow], flags: MessageFlags.IsComponentsV2 };
 }
 
-async function getSewEmbed(interaction, equippedFabrics) {
+async function getSewEmbed(interaction, equippedFabrics, state = "normal") {
     const player = await database.Player.findByPk(interaction.user.id);
 
     if (!equippedFabrics) {
@@ -482,13 +449,17 @@ async function getSewEmbed(interaction, equippedFabrics) {
 
     if (player.cloakModificationsAllowed <= 0) {
         return {
-            content: `you can't re-sew your cloak right now; tear the universe again to modify it more.`,
-            flags: MessageFlags.Ephemeral
+            embeds: [],
+            components: [
+                new TextDisplayBuilder()
+                    .setContent(`you can't re-sew your cloak right now; tear the universe again to modify it more.`)
+            ],
+            flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
         };
     }
 
-    const sewEmbed = new EmbedBuilder()
-        .setColor('#120830')
+    const container = new ContainerBuilder()
+        .setAccentColor(0x120830)
 
     const addMenu = new StringSelectMenuBuilder()
         .setCustomId(`weave:sewAdd`)
@@ -518,16 +489,14 @@ async function getSewEmbed(interaction, equippedFabrics) {
         ]);
         addMenu.setDisabled(true);
     }
-    
-    const removeMenu = new StringSelectMenuBuilder()
-        .setCustomId(`weave:sewRemove`)
-        .setPlaceholder("choose a fabric to remove")
-        .setMinValues(1)
-        .setMaxValues(1);
 
     let totalEquipped = 0;
     let maxEquipped = 3;
-    let desc = `the fabrics you selected have the following effects:`;
+    if (Object.keys(equippedFabrics).length === 0) {
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`### sew your cloak\nyou don't have any fabrics selected. choose some below.`));
+    } else {
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`### sew your cloak`));
+    }
     for (const [fabricName, count] of Object.entries(equippedFabrics)) {
         if (count <= 0) continue;
 
@@ -539,23 +508,21 @@ async function getSewEmbed(interaction, equippedFabrics) {
             maxEquipped += increasesMax;
         }
 
-        desc += `\n\n**${fabricUpgrade.getDetails().emoji} ${fabricUpgrade.getDetails().name}**\n${fabricUpgrade.getDetails().description}`.repeat(count);
+        for (let i = 0; i < count; i++) {
+            if (state === "final") {
+                container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`**${fabricUpgrade.getDetails().emoji} ${fabricUpgrade.getDetails().name}**\n${fabricUpgrade.getDetails().description}`));
+            } else {
+                container.addSectionComponents((section) => section
+                    .addTextDisplayComponents((textDisplay) => textDisplay.setContent(`**${fabricUpgrade.getDetails().emoji} ${fabricUpgrade.getDetails().name}**\n${fabricUpgrade.getDetails().description}`))
+                    .setButtonAccessory(new ButtonBuilder()
+                        .setCustomId(`weave:sewRemove-${fabricName}`)
+                        .setLabel(`remove`)
+                        .setStyle(ButtonStyle.Danger)
+                    )
+                );
+            }   
+        }
         totalEquipped += count;
-        removeMenu.addOptions([
-            new StringSelectMenuOptionBuilder()
-                .setLabel(`${fabricUpgrade.getDetails().name}${count > 1 ? ` (x${count})` : ""}`)
-                .setValue(fabricName)
-        ]);
-    }
-    if (removeMenu.options.length === 0) {
-        removeMenu.addOptions([
-            new StringSelectMenuOptionBuilder()
-                .setLabel("no fabrics in use!")
-                .setValue("none")
-                .setDefault(true)
-        ]);
-        removeMenu.setDisabled(true);
-        desc = `you don't have any fabrics selected. choose some below.`
     }
 
     const finishButton = new ButtonBuilder()
@@ -565,61 +532,66 @@ async function getSewEmbed(interaction, equippedFabrics) {
     if (totalEquipped > maxEquipped) {
         finishButton.setDisabled(true).setStyle(ButtonStyle.Danger).setLabel(`${totalEquipped}/${maxEquipped} selected!`);
     }
+    if (state === "confirm") {
+        finishButton.setStyle(ButtonStyle.Danger).setLabel("are you sure?").setCustomId(`weave:sewFinishConfirm`);
+    }
+    if (state === "final") {
+        finishButton.setDisabled(true).setStyle(ButtonStyle.Secondary).setLabel("cloak sewn!");
+        addMenu.setDisabled(true);
+    }
+
     // allow going slightly over for QoL but disable so embed doesn't get too long 
     if (totalEquipped >= maxEquipped + 2) {
         addMenu.setDisabled(true).setPlaceholder(`too many selected!`);
     }
     
+    let finalDesc = ``;
     if (totalEquipped < maxEquipped) {
-        desc += `\n\nyou can select up to **${maxEquipped - totalEquipped}** more fabric${maxEquipped - totalEquipped === 1 ? "" : "s"}.`
+        finalDesc += `you can select up to **${maxEquipped - totalEquipped}** more fabric${maxEquipped - totalEquipped === 1 ? "" : "s"} for your cloak.`;
     }
     if (totalEquipped <= 0) {
         finishButton.setDisabled(true).setStyle(ButtonStyle.Secondary).setLabel("no fabrics selected!");
     }
 
-    sewEmbed.setTitle("sew your cloak")
-        .setDescription(desc)
-
     if (player.cloakModificationsAllowed > 1) {
-        sewEmbed.setFooter({ text: `you can re-sew your cloak ${player.cloakModificationsAllowed - 1} more time${player.cloakModificationsAllowed - 1 === 1 ? "" : "s"} after this before having to tear the universe again.` });
+        const remainingMods = state === "final" ? player.cloakModificationsAllowed : player.cloakModificationsAllowed - 1;
+        finalDesc += `\nyou can re-sew your cloak ${remainingMods} more time${remainingMods === 1 ? "" : "s"} after this before having to tear the universe again.`;
     } else {
-        sewEmbed.setFooter({ text: `you won't be able to re-sew your cloak without tearing the universe again!` });
+        finalDesc += `\nyou won't be able to re-sew your cloak without tearing the universe again!`;
     }
+    
+    container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(finalDesc.trim()));
 
     const cancelButton = new ButtonBuilder()
         .setCustomId(`weave:sewCancel`)
         .setLabel("cancel")
         .setStyle(ButtonStyle.Secondary);
+    if (state === "final") {
+        cancelButton.setDisabled(true);
+    }
+    container.addActionRowComponents((actionRow) => actionRow.addComponents(addMenu));
+    container.addActionRowComponents((actionRow) => actionRow.addComponents(finishButton, cancelButton));
 
     return {
-        embeds: [sewEmbed],
-        components: [
-            new ActionRowBuilder().addComponents(addMenu),
-            new ActionRowBuilder().addComponents(removeMenu),
-            new ActionRowBuilder().addComponents(finishButton, cancelButton)
-        ]
+        embeds: [],
+        components: [container],
+        flags: MessageFlags.IsComponentsV2
     }
 }
 
 function getEquippedFromSewMessage(message) {
     const equippedFabrics = {};
-    let removeComponent;
+    const sections = [];
 
-    for (const row of message.components) {
-        if (row.components.some(c => c.customId === 'weave:sewRemove')) {
-            removeComponent = row.components.find(c => c.customId === 'weave:sewRemove');
-            break;
+    for (const component of message.components[0].components) {
+        if (component.accessory) {
+            sections.push(component);
         }
     }
-    if (!removeComponent) return equippedFabrics;
 
-    for (const option of removeComponent.options) {
-        if (option.value === 'none') break;
-        const fabricName = option.value;
-        // regex looks gross but just extracts the count from (xNUMBER)
-        const count = parseInt(option.label.match(/\(x(\d+)\)/)?.[1] || 1); 
-
-        equippedFabrics[fabricName] = count;
+    for (const section of sections) {
+        const fabricName = section.accessory.data.custom_id.split("-")[1];
+        equippedFabrics[fabricName] = (equippedFabrics[fabricName] || 0) + 1;
     }
 
     return equippedFabrics;

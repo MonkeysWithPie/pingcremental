@@ -207,14 +207,14 @@ const commands = {
         return "OK!";
     }),
     "data": ownerRequiredCommand(async (interaction, args) => {
+        if (!args[0] || !args[1]) {
+            return "FAIL!\nUsage: data <user> <key> [layer] [value]";
+        }
         const userId = args[0].replace(/[<@!>]/g, "");
         const key = args[1];
         const layer = args[2] || "profile";
         const value = args.slice(3).join(" ");
 
-        if (!userId || !key) {
-            return "FAIL!\nUsage: data <user> <key> [layer] [value]";
-        }
         let obj;
         const player = await database.Player.findByPk(userId);
         if (!player) {

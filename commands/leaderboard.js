@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, InteractionContextType, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, ContainerBuilder, MessageFlags } = require('discord.js');
 const database = require('./../helpers/database.js')
 const formatNumber = require('./../helpers/formatNumber.js');
 const { getEmoji } = require('../helpers/emojis.js');
@@ -40,7 +40,6 @@ async function getMessage(interaction, leaderboardType) {
     let description = "";
     const topStats = await database.PlayerStat.findAll({
         order: [[leaderboardType, 'DESC']], // highest first
-        attributes: [leaderboardType, 'player'], // only get userId and totalScore
         where: {
             layer: 'total',
         }
@@ -88,10 +87,7 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
         }
     }
 
-    const embed = new EmbedBuilder()
-        .setTitle(`leaderboard / ${leaderboardTypes[leaderboardType].emoji} ${leaderboardTypes[leaderboardType].name}`)
-        .setColor('#9c8e51')
-        .setDescription(description)
+
     const refreshButton = new ButtonBuilder()
         .setCustomId(`leaderboard:refresh-${leaderboardType}`)
         .setLabel('refresh')
@@ -102,6 +98,12 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
     const select = new StringSelectMenuBuilder()
         .setCustomId(`leaderboard:select`)
         .setPlaceholder(`select leaderboard type`)
+    
+    const container = new ContainerBuilder()
+        .setAccentColor(0x9c8e51)
+        .addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`### ${leaderboardTypes[leaderboardType].emoji} ${leaderboardTypes[leaderboardType].name} leaderboard\n` + description)
+        )
     
     let needReInit = false;
     for (const [key, value] of Object.entries(leaderboardTypes)) {
@@ -116,11 +118,12 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
 
     const selectRow = new ActionRowBuilder()
         .addComponents(select)
-        
+    
     return {
         contents: "",
-        embeds: [embed],
-        components: [row, selectRow],
+        embeds: [],
+        components: [container, selectRow, row],
+        flags: MessageFlags.IsComponentsV2
     }
 }
 

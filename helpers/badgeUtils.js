@@ -8,14 +8,20 @@ let allBadgesCache = null;
 
 function getAllBadges() {
     if (allBadgesCache) return allBadgesCache;
+    let updateCache = true;
 
     const badges = [];
     const badgeFiles = require('fs').readdirSync('./badges').filter(f => f.endsWith('.js'));
     for (const file of badgeFiles) {
         const badgeObj = require(`../badges/${file}`)();
         badges.push(badgeObj);
+
+        if (badgeObj.emoji === '🟥') {
+            console.warn(`[WARN] emojis haven't been initialized yet in badge checker! not updating cache`);
+            updateCache = false;
+        }
     }
-    allBadgesCache = badges;
+    if (updateCache) allBadgesCache = badges;
 
     return badges;
 }

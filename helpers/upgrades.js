@@ -46,4 +46,40 @@ for (const folder of Object.keys(list)) {
     }
 }
 
-module.exports = { upgrades: sortedList, rawUpgrades: rawUpgrades };
+for (const upgrade of Object.values(rawUpgrades)) {
+    if (upgrade.getPrice(1) === upgrade.getPrice(0)) continue;
+    if (upgrade.getMax) {
+        upgrade.theoreticalMax = upgrade.getMax();
+        continue
+    };
+    let level = 1;
+    let exp = 0;
+    let upperLimitHit = false;
+
+    while (true) {
+        const price = upgrade.getPrice(level)
+        const priceInvalid = price === null || price === Infinity
+        if (priceInvalid) {
+            if (price === null && exp === 0) level++;
+            if (exp === 0) break;
+            upperLimitHit = true;
+        };
+
+        if (upperLimitHit && exp !== 0) exp--;
+        else if (!upperLimitHit) exp++;
+
+        const oldLevel = level;
+        if (!upperLimitHit) {
+            level = 2 ** exp
+        } else if (priceInvalid) {
+            level -= 2 ** exp
+        } else {
+            level += 2 ** exp
+        }
+        if (level === oldLevel) break;
+    }
+
+    upgrade.theoreticalMax = level - 1;
+}
+
+module.exports = { upgrades: sortedList, rawUpgrades };

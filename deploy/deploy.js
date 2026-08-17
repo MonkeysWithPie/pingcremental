@@ -1,6 +1,6 @@
 require('dotenv').config({ quiet: true });
 const { REST, Routes } = require('discord.js');
-const database = require('./helpers/database.js');
+const database = require('../helpers/database.js');
 const fs = require('node:fs');
 const path = require('node:path');
 

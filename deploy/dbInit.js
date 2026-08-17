@@ -1,4 +1,4 @@
-const database = require('./helpers/database');
+const database = require('../helpers/database');
 
 async function run() {
 	const sequelize = database.sequelize

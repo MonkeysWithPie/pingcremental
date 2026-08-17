@@ -44,5 +44,6 @@ module.exports = {
     },
     sortOrder() { return 203 },
     type() { return PipUpgradeTypes.MISC },
-    section() { return PingCalculationStates.RNG_AND_SPECIAL | PingCalculationStates.SCORING | PingCalculationStates.POST_SCORING; }
+    section() { return PingCalculationStates.RNG_AND_SPECIAL | PingCalculationStates.SCORING | PingCalculationStates.POST_SCORING; },
+    getMax() { return 1; }
 }

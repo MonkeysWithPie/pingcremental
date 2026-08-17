@@ -337,7 +337,8 @@ buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerDat
         
         const {price, levels} = getMultiBuyCost(buySetting, upgrade, playerData.score, upgradeLevel);
 
-        addToContainer(`\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatSettings, decimalPlaces: 6 })})**
+        const maxSuffix = upgrade.getMax ? `/${upgrade.getMax()}` : ""
+        addToContainer(`\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatSettings, decimalPlaces: 6 })}${maxSuffix})**
 ${upgrade.getDetails().description}
 ${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, { options: playerData.formatSettings })} pts\`${levels > 1 ? ` (*${formatNumber(levels, { options: playerData.formatSettings })} levels*)` : ''}`)
 

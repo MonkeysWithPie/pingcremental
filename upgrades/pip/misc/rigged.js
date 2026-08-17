@@ -29,5 +29,6 @@ module.exports = {
     },
     sortOrder() { return 201 },
     type() { return PipUpgradeTypes.MISC },
-    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
+    section() { return PingCalculationStates.RNG_AND_SPECIAL; },
+    getMax() { return 3; }
 }

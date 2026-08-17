@@ -23,5 +23,6 @@ module.exports = {
     },
     sortOrder() { return 1000 },
     type() { return UpgradeTypes.ONE_TIME },
-    section() { return 0; }
+    section() { return 0; },
+    getMax() { return 1; }
 }

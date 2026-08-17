@@ -32,5 +32,6 @@ module.exports = {
     },
     sortOrder() { return 204 },
     type() { return PipUpgradeTypes.MISC },
-    section() { return PingCalculationStates.POST_SCORING; }
+    section() { return PingCalculationStates.POST_SCORING; },
+    getMax() { return 3; }
 }

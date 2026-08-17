@@ -49,5 +49,6 @@ module.exports = {
     },
     sortOrder() { return 103 },
     type() { return UpgradeTypes.ONE_TIME },
-    section() { return PingCalculationStates.SCORING }
+    section() { return PingCalculationStates.SCORING },
+    getMax() { return 1; }
 }

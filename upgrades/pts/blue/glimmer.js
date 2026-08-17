@@ -38,5 +38,6 @@ module.exports = {
     },
     sortOrder() { return 17 },
     type() { return UpgradeTypes.BLUE_PING },
-    section() { return PingCalculationStates.SCORING; }
+    section() { return PingCalculationStates.SCORING; },
+    getMax() { return 1; }
 }

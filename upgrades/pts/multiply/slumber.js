@@ -58,5 +58,6 @@ module.exports = {
     },
     sortOrder() { return 107 },
     type() { return UpgradeTypes.MULT_BONUS },
-    section() { return PingCalculationStates.SCORING; }
+    section() { return PingCalculationStates.SCORING; },
+    getMax() { return 5; }
 }

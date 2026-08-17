@@ -36,5 +36,6 @@ module.exports = {
     },
     sortOrder() { return 13 },
     type() { return UpgradeTypes.BLUE_PING },
-    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
+    section() { return PingCalculationStates.RNG_AND_SPECIAL; },
+    getMax() { return 4; }
 }

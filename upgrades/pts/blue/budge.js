@@ -38,4 +38,5 @@ module.exports = {
     sortOrder() { return 15 },
     type() { return UpgradeTypes.BLUE_PING },
     section() { return PingCalculationStates.RNG_AND_SPECIAL },
+    getMax() { return 6; }
 }

@@ -26,5 +26,6 @@ module.exports = {
     },
     sortOrder() { return 1 },
     type() { return PipUpgradeTypes.BONUS },
-    section() { return PingCalculationStates.SCORING; }
+    section() { return PingCalculationStates.SCORING; },
+    getMax() { return 1; }
 }

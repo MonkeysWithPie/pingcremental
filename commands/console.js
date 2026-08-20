@@ -36,6 +36,9 @@ module.exports = {
         if (!output) {
             return await interaction.reply({ content: `\`# ${fullCommand}\``, flags: MessageFlags.Ephemeral });
         }
+        if (output === true) {
+            return;
+        }
 
         return await interaction.reply({ content: `\`# ${fullCommand}\`\n\`\`\`txt\n${output}\`\`\``, flags: MessageFlags.Ephemeral });
     },
@@ -255,9 +258,16 @@ const commands = {
     "echo": (interaction, args) => {
         return "did it really say this?:\n" + args.join(" ");
     },
-    "ping": (interaction) => {
-        const pingmessage = pingMessages(interaction.client.ws.ping, { user: interaction.user })
-        return pingmessage;
+    "ping": async (interaction, args) => {
+        const now = Date.now();
+        const command = `\`ping ${args.join(" ")}\``
+        await interaction.reply(`${command}\n\`\`\`...\`\`\``)
+        const finish = Date.now();
+        
+        const pingmessage = pingMessages(finish - now, { user: interaction.user, fromConsole: true })
+        await interaction.editReply(`${command}\n\`\`\`${pingmessage}\`\`\``)
+
+        return true;
     },
 
     "help": () => {

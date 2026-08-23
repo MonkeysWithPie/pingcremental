@@ -50,7 +50,13 @@ module.exports = {
 const files = {};
 
 function registerFiles() {
-    const data = readFileSync(path.join(__dirname, "../data/console.txt"))
+    let data;
+    try {
+        data = readFileSync(path.join(__dirname, "../data/console.txt"))
+    } catch {
+        console.warn("no console files found!");
+        return;
+    }
     const lines = data.toString().split("\n")
 
     let currentDir = { name: '', files: [], type: 'directory', locked: false };
@@ -162,6 +168,15 @@ const ownerRequiredCommand = (command) => {
         return command(interaction, args);
     }
 }
+const filesRequiredCommand = (command) => {
+    return (interaction, args) => {
+        if (Object.keys(files).length === 0) {
+            return "you're in a strange computer with no files! how strange.";
+        }
+
+        return command(interaction, args);
+    }
+}
 
 
 const commands = {
@@ -260,8 +275,8 @@ const commands = {
     },
     "ping": async (interaction, args) => {
         const now = Date.now();
-        const command = `\`ping ${args.join(" ")}\``
-        await interaction.reply(`${command}\n\`\`\`...\`\`\``)
+        const command = `\`# ping${args[0] ? " " + args.join(" ") : ""}\``
+        await interaction.reply({ content: `${command}\n\`\`\`...\`\`\``, flags: MessageFlags.Ephemeral });
         const finish = Date.now();
         
         const pingmessage = pingMessages(finish - now, { user: interaction.user, fromConsole: true })
@@ -274,7 +289,7 @@ const commands = {
         return "not yet!"
     },
 
-    "ls": (interaction) => {
+    "ls": filesRequiredCommand((interaction) => {
         const currentDirString = getUserDirectory(interaction.user.id);
         const workingDir = getConsoleDir(currentDirString);
         let output = `${currentDirString} CONTENTS`;
@@ -302,11 +317,11 @@ const commands = {
         }
 
         return output;
-    },
-    "pwd": (interaction) => {
+    }),
+    "pwd": filesRequiredCommand((interaction) => {
         return getUserDirectory(interaction.user.id);
-    },
-    "cd": (interaction, args) => {
+    }),
+    "cd": filesRequiredCommand((interaction, args) => {
         const dirName = args.join(' ');
         const dirNameSplit = dirName.split('/').filter(d => d.length > 0);
 
@@ -340,8 +355,8 @@ const commands = {
 
         userDirectories[interaction.user.id] = newDirString;
         return;
-    },
-    "cat": async (interaction, args) => {
+    }),
+    "cat": filesRequiredCommand(async (interaction, args) => {
         const fileName = args[0];
         if (!fileName) {
             return "usage: cat <file>";
@@ -420,5 +435,5 @@ const commands = {
         }
 
         return out;
-    }
+    })
 }

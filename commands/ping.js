@@ -103,7 +103,7 @@ async function pingResponse(interaction, isSuper = false) {
 
     // click saving
     playerProfile.increaseStat('clicks', 1);
-    if (currentEffects.rare) playerProfile.luckyPings += 1;
+    if (currentEffects.rare) playerProfile.increaseStat('luckyPings', 1);
     if (!isSuper) {
         let missed = false;
         for (const row of interaction.message.components) {
@@ -114,9 +114,9 @@ async function pingResponse(interaction, isSuper = false) {
                 }
             }
         }
-        if (missed) playerProfile.bluePingsMissed += 1; // if the button is still there, it means they didn't click it
+        if (missed) playerProfile.increaseStat('bluePingsMissed', 1); // if the button is still there, it means they didn't click it
     }
-    if (isSuper) playerProfile.bluePings += 1;
+    if (isSuper) playerProfile.increaseStat('bluePings', 1);
 
     // high score and streak saving
     for (const layerStat of Object.values(stats)) {

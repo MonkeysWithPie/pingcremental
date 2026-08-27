@@ -209,9 +209,9 @@ async function doAutoping(interaction, count) {
     player.increaseStat('clicks', pings);
     player.increaseStat('aptClicks', pings);
     player.bp = Math.min(player.bp + pingDataTotal.bp, finalEffects.bpMax);
-    player.luckyPings += pingDataTotal.rares;
-    player.bluePings += pingDataTotal.blues;
-    player.bluePingsMissed += pingDataTotal.bluesMissed;
+    player.increaseStat('luckyPings', pingDataTotal.rares);
+    player.increaseStat('bluePings', pingDataTotal.blues);
+    player.increaseStat('bluePingsMissed', pingDataTotal.bluesMissed);
     player.lastPing = Date.now();
 
     await player.save();

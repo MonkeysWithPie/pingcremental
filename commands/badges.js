@@ -1,10 +1,8 @@
 const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, StringSelectMenuBuilder, ContainerBuilder } = require('discord.js');
 const database = require('./../helpers/database.js');
 const { getEmoji } = require('./../helpers/emojis.js')
-const { getEmbeddedCommand } = require('../helpers/embedCommand.js');
-const { BADGE_TIERS, getBadgeByName, getBadgesByName, getAllBadges } = require('../helpers/badgeUtils.js');
+const { BADGE_TIERS, getBadgesByName, getAllBadges } = require('../helpers/badgeUtils.js');
 const BADGES_PER_PAGE = 6;
-const ownerId = process.env.OWNER_ID;
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -30,22 +28,6 @@ module.exports = {
             subcommand
                 .setName('showcase')
                 .setDescription('change which badges you have displayed')
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('award')
-                .setDescription('grant (or remove) a badge to a user')
-                .addUserOption(option =>
-                    option.setName('user')
-                        .setDescription('the user to grant the badge to')
-                        .setRequired(true)
-                )
-                .addStringOption(option =>
-                    option.setName('badge')
-                        .setDescription('the badge to grant or remove')
-                        .setRequired(true)
-                        .setAutocomplete(true)
-                )
         ),
     async execute(interaction) {
         if (interaction.options.getSubcommand() === 'view') {
@@ -57,41 +39,6 @@ module.exports = {
         }
         else if (interaction.options.getSubcommand() === 'showcase') {
             return await interaction.reply(await getShowcaseDisplay(interaction));
-        }
-        else if (interaction.options.getSubcommand() === 'award') {
-            if (interaction.user.id !== ownerId) {
-                return await interaction.reply({ content: 'you can\'t do that, you\'re not my owner', flags: MessageFlags.Ephemeral });
-            }
-
-            await interaction.deferReply({ ephemeral: true });
-            const user = interaction.options.getUser('user');
-            const badgeName = interaction.options.getString('badge');
-
-            const player = await database.Player.findByPk(user.id.toString());
-            const badge = getBadgeByName(badgeName);
-            let dmMessage;
-            let playerDisplayedBadges = player.displayedBadges;
-            let playerBadges = player.badges; // because sequelize doesn't like it when you try to modify the array directly
-
-            if (playerBadges.includes(badge.name)) {
-                playerBadges = playerBadges.filter(bId => bId !== badge.name);
-                playerDisplayedBadges = playerDisplayedBadges.filter(bId => bId !== badge.name);
-
-                dmMessage = `**bad news...**\n\nthe badge ${badgeDisplay(badge, true)} was manually removed. \nif you think this was a mistake, stay tuned; your badge will likely be returned soon.`;
-            } else {
-                playerBadges.push(badge.name);
-
-                dmMessage = `**good news!!**\n\nyou have been manually awarded the badge ${badgeDisplay(badge, true)}! be sure to show it off with ${getEmbeddedCommand('badges showcase')}.`;
-            }
-
-            player.badges = playerBadges;
-            player.displayedBadges = playerDisplayedBadges;
-            await player.save();
-
-            const dmablePlayer = await interaction.client.users.resolve(user.id);
-            await dmablePlayer.send(dmMessage);
-
-            await interaction.editReply({ content: `successfully ${player.badges.includes(badge.name) ? 'awarded' : 'removed'} the badge ${badgeDisplay(badge, true)} to ${await player.getUserDisplay(interaction.client, database)}` });
         }
     },
     dropdowns: {
@@ -138,23 +85,6 @@ module.exports = {
             await interaction.update(await getUserPage(interaction, user, parseInt(page)));
         }
     },
-    async autocomplete(interaction) {
-        const focusedValue = interaction.options.getString('badge');
-        const badges = getAllBadges().filter(b => b.name.toLowerCase().includes(focusedValue.toLowerCase())).slice(0, 25);
-        if (badges.length === 0) {
-            return await interaction.respond([]);
-        }
-
-        const options = [];
-        for (const badge of badges) {
-            options.push({
-                name: badge.name,
-                value: badge.name,
-            });
-        }
-
-        await interaction.respond(options);
-    }
 }
 
 async function getUserPage(interaction, userId, page = 1) {

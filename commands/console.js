@@ -1,11 +1,12 @@
 const { SlashCommandBuilder, MessageFlags, InteractionContextType, TextInputStyle, LabelBuilder, StringSelectMenuBuilder, ModalBuilder, StringSelectMenuOptionBuilder, TextInputBuilder } = require("discord.js");
 const database = require("../helpers/database");
 const util = require("node:util");
-const { cacheCommandIds } = require("../helpers/embedCommand");
+const { cacheCommandIds, getEmbeddedCommand } = require("../helpers/embedCommand");
 const { initEmojis } = require("../helpers/emojis");
 const pingMessages = require("../helpers/pingMessage");
 const { readFileSync } = require("node:fs");
 const path = require("node:path");
+const { getBadgeByName } = require("../helpers/badgeUtils");
 
 const ownerId = process.env.OWNER_ID
 
@@ -309,6 +310,45 @@ const commands = {
             );
 
         await interaction.showModal(modal);
+    }),
+    "award": ownerRequiredCommand(async (interaction, args) => {
+        function badgeDisplay(badge) {
+            return `${badge.emoji} ${badge.name}`
+        }
+
+        const userId = args[0].replace(/[<@!>]/g, "");
+        const badgeName = args.slice(1).join(" ");
+
+        const player = await database.Player.findByPk(userId);
+        if (!player) {
+            return `couldn't find a player with the id ${userId}`;
+        }
+        const badge = getBadgeByName(badgeName);
+        let dmMessage;
+        let playerDisplayedBadges = player.displayedBadges;
+        let playerBadges = player.badges; // because sequelize doesn't like it when you try to modify the array directly
+
+        if (playerBadges.includes(badge.name)) {
+            playerBadges = playerBadges.filter(bId => bId !== badge.name);
+            playerDisplayedBadges = playerDisplayedBadges.filter(bId => bId !== badge.name);
+
+            dmMessage = `**bad news...**\n\nthe badge ${badgeDisplay(badge)} was manually removed. \nif you think this was a mistake, stay tuned; your badge will likely be returned soon.`;
+        } else {
+            playerBadges.push(badge.name);
+
+            dmMessage = `**good news!!**\n\nyou have been manually awarded the badge ${badgeDisplay(badge)}! be sure to show it off with ${getEmbeddedCommand('badges showcase')}.`;
+        }
+
+        player.badges = playerBadges;
+        player.displayedBadges = playerDisplayedBadges;
+        await player.save();
+
+        const dmablePlayer = await interaction.client.users.resolve(userId);
+        if (dmablePlayer) dmablePlayer.send(dmMessage).catch(err => {
+            console.warn(`couldn't DM ${userId} about badge award: `, err);
+        });
+
+        return `successfully ${player.badges.includes(badge.name) ? 'awarded' : 'removed'} the badge ${badgeDisplay(badge)} to ${await player.getUserDisplay(interaction.client, database)}`;
     }),
 
     "meow": (interaction, args) => {

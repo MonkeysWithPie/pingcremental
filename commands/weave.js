@@ -53,7 +53,7 @@ module.exports = {
             player.bp = 0;
             player.pip = 0;
             player.prestigeUpgrades = {};
-            
+
             await player.save();
             await player.layerReset('tear');
 
@@ -130,7 +130,7 @@ module.exports = {
             player.cloakModificationsAllowed--;
 
             await player.save();
-            
+
             await interaction.update(await getSewEmbed(interaction, equippedFabrics, "final"));
             return await interaction.followUp({
                 content: `your cloak has been sewn with the selected fabrics!`,
@@ -234,12 +234,12 @@ module.exports = {
 }
 
 async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
-    const [player, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
+    const [player,] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
     const stats = await player.stats();
 
     if (stats.total.tears <= 0 && stats.tear.eternities < getTearRequirement(0)) {
-        return { 
-            content: "*you'd love to try weaving... but regular old cloaks and quilts aren't going to do you any good in your pts gathering. maybe there's something more fundamental you're missing?*", 
+        return {
+            content: "*you'd love to try weaving... but regular old cloaks and quilts aren't going to do you any good in your pts gathering. maybe there's something more fundamental you're missing?*",
             components: [new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setCustomId(`weave:delete`)
@@ -255,7 +255,7 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
         .setAccentColor(0x120830)
 
     const categoryRow = new ActionRowBuilder();
-    
+
     if (stats.total.tears > 0) {
         availableSections.push(WEAVE_SECTION.Shop);
     } else {
@@ -274,6 +274,7 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
     }
     for (const sectionName of Object.values(WEAVE_SECTION)) {
         if (!availableSections.includes(sectionName)) {
+            // this makes it clearer that it's a set of categories that can be unlocked
             categoryRow.addComponents(new ButtonBuilder()
                 .setCustomId(`weave:section-${sectionName}`)
                 .setLabel(`???`)
@@ -287,20 +288,20 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
         let desc = `do you want to tear a bit of the universe?`;
 
         if (stats.total.tears <= 0) {
-            desc = 
-`to weave, you first need thread.
+            desc =
+                `to weave, you first need thread.
 fortunately, the universe is ready to give you some.
 unfortunately, it wants everything you have in return.
 ` + desc
         }
 
-        desc += `\nthis will reset ALL of your progress (with the exception of Total stats), including pip, bp, pts, and all of their associated upgrades.`
+        desc += `\nthis will reset ALL of your progress (with the exception of Total stats), including pip, bp, \`pts\`, and all of their associated upgrades.`
         desc += `\nyou will gain **${formatNumber(getGainedThread(player), { options: player.formatSettings })} thread** for tearing the universe.`;
-        
+
         if (stats.tear.eternities < getTearRequirement(stats.total.tears)) {
             desc = `the universe isn't quite ready to be torn again yet. you need ${stats.tear.eternities}/**${getTearRequirement(stats.total.tears)}** eternities to tear the universe again.`
         }
-    
+
         container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`### tear the universe?\n${desc}`));
         container.addActionRowComponents((actionRow) => actionRow.addComponents(
             new ButtonBuilder()
@@ -336,7 +337,7 @@ unfortunately, it wants everything you have in return.
             } else if (fabricUpgrade.isUnique()) {
                 desc += ` (unique)`;
             }
-            
+
             if (emptySlots.includes(stock.indexOf(fabricName)) && isBuyable) {
                 isBuyable = false;
                 desc += `\nalready bought!`;
@@ -349,9 +350,9 @@ unfortunately, it wants everything you have in return.
             }
 
             desc += `\n${fabricUpgrade.getDetails().description}`;
-            
+
             const section = new SectionBuilder()
-            section.addTextDisplayComponents((textDisplay) => 
+            section.addTextDisplayComponents((textDisplay) =>
                 textDisplay.setContent(desc)
             )
 
@@ -363,27 +364,28 @@ unfortunately, it wants everything you have in return.
             )
             container.addSectionComponents(section);
         }
-        
+
         const rerollButton = new ButtonBuilder()
             .setCustomId(`weave:shopReroll`)
             .setLabel(`reroll (${5 ** player.shopRerolls * 20} thread) (${player.shopRerolls}/3)`)
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(player.shopRerolls >= 3);
         if (player.shopRerolls >= 3) rerollButton.setLabel(`reroll (3/3)`)
-        
+
         container.addSeparatorComponents((separator) => separator.setSpacing(SeparatorSpacingSize.Small))
-        .addSectionComponents((section) => section
-            .addTextDisplayComponents((textDisplay) => textDisplay.setContent(`fabrics in stock and reroll prices will be reset after tearing the universe.`))
-            .setButtonAccessory(rerollButton)
-        );
+            .addSectionComponents((section) => section
+                .addTextDisplayComponents((textDisplay) => textDisplay.setContent(`fabrics in stock and reroll prices will be reset after tearing the universe.`))
+                .setButtonAccessory(rerollButton)
+            );
     }
 
     if (section === WEAVE_SECTION.Cloths) {
         let total = 0;
+        const differentFabrics = Object.keys(player.ownedFabrics).length;
         for (const [, count] of Object.entries(player.ownedFabrics)) {
             total += count;
         }
-        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`### fabrics\nyou have **${total}** total fabric${total === 1 ? "" : "s"}.`));
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`### fabrics\nyou have **${total}** total fabric${total === 1 ? "" : `s, and ${differentFabrics} different types`}.`));
 
         for (const [fabricName, count] of Object.entries(player.ownedFabrics)) {
             const fabricUpgrade = rawUpgrades[fabricName];
@@ -408,7 +410,7 @@ unfortunately, it wants everything you have in return.
         } else {
             container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`### your cloak\nyour cloak has the following fabrics equipped:`));
         }
-        
+
         for (const fabricName of Object.keys(player.equippedFabrics)) {
             const fabricUpgrade = rawUpgrades[fabricName];
             if (!fabricUpgrade) continue;
@@ -520,7 +522,7 @@ async function getSewEmbed(interaction, equippedFabrics, state = "normal") {
                         .setStyle(ButtonStyle.Danger)
                     )
                 );
-            }   
+            }
         }
         totalEquipped += count;
     }
@@ -544,7 +546,7 @@ async function getSewEmbed(interaction, equippedFabrics, state = "normal") {
     if (totalEquipped >= maxEquipped + 2) {
         addMenu.setDisabled(true).setPlaceholder(`too many selected!`);
     }
-    
+
     let finalDesc = ``;
     if (totalEquipped < maxEquipped) {
         finalDesc += `you can select up to **${maxEquipped - totalEquipped}** more fabric${maxEquipped - totalEquipped === 1 ? "" : "s"} for your cloak.`;
@@ -559,7 +561,7 @@ async function getSewEmbed(interaction, equippedFabrics, state = "normal") {
     } else {
         finalDesc += `\nyou won't be able to re-sew your cloak without tearing the universe again!`;
     }
-    
+
     container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(finalDesc.trim()));
 
     const cancelButton = new ButtonBuilder()
@@ -609,11 +611,11 @@ function getShopStock(seed) {
     if (seed === "TUTORIAL") {
         return ["goldlace", "elusive", "azure"]
     }
-    
+
     while (stock.length < 3) {
         // very specific case where all registered fabrics are unique but there's not enough to fill stock
-        if (fabrics.every(f => rawUpgrades[f].isUnique()) 
-            && stock.every(f => rawUpgrades[f].isUnique()) 
+        if (fabrics.every(f => rawUpgrades[f].isUnique())
+            && stock.every(f => rawUpgrades[f].isUnique())
             && stock.length === fabrics.length) { break; }
 
         const fabricIndex = Math.floor(rng.next() * fabrics.length);
@@ -634,7 +636,7 @@ function getGainedThread(player, simplify = true) {
     gain.base = 100;
     const stats = player.statsSync();
     const totalTears = stats.total.tears;
-    
+
     if (player.score > 0) {
         gain.pts = Math.floor(Math.log10(player.score));
     }

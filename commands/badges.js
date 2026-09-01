@@ -57,7 +57,7 @@ module.exports = {
             if (!player || player.badges.length === 0) {
                 return await interaction.reply({ content: `${getEmoji('badge_none_1')} ${user.username} has no badges.`, flags: MessageFlags.Ephemeral });
             }
-            
+
             const badges = getBadgesByName(...player.badges);
 
             const userDisplay = await player.getUserDisplay(interaction.client, database);
@@ -68,13 +68,13 @@ module.exports = {
                 )
 
             for (const badge of badges) {
-                container.addTextDisplayComponents((textDisplay) => 
+                container.addTextDisplayComponents((textDisplay) =>
                     textDisplay.setContent(badgeDisplay(badge))
                 )
             }
 
             return await interaction.reply({ components: [container], flags: MessageFlags.IsComponentsV2 });
-        } 
+        }
         else if (interaction.options.getSubcommand() === 'list') {
             return await interaction.reply(await getListPage(interaction, BADGE_TIERS.SILVER));
         }
@@ -100,11 +100,11 @@ module.exports = {
                 playerBadges = playerBadges.filter(bId => bId !== badge.name);
                 playerDisplayedBadges = playerDisplayedBadges.filter(bId => bId !== badge.name);
 
-                dmMessage = `**bad news...**\n\nthe badge ${badgeDisplay(badge,true)} was manually removed. \nif you think this was a mistake, stay tuned; your badge will likely be returned soon.`;
+                dmMessage = `**bad news...**\n\nthe badge ${badgeDisplay(badge, true)} was manually removed. \nif you think this was a mistake, stay tuned; your badge will likely be returned soon.`;
             } else {
                 playerBadges.push(badge.name);
 
-                dmMessage = `**good news!!**\n\nyou have been manually awarded the badge ${badgeDisplay(badge,true)}! be sure to show it off with ${getEmbeddedCommand('badges showcase')}.`;
+                dmMessage = `**good news!!**\n\nyou have been manually awarded the badge ${badgeDisplay(badge, true)}! be sure to show it off with ${getEmbeddedCommand('badges showcase')}.`;
             }
 
             player.badges = playerBadges;
@@ -114,7 +114,7 @@ module.exports = {
             const dmablePlayer = await interaction.client.users.resolve(user.id);
             await dmablePlayer.send(dmMessage);
 
-            await interaction.editReply({ content: `successfully ${player.badges.includes(badge.name) ? 'awarded' : 'removed'} the badge ${badgeDisplay(badge,true)} to ${await player.getUserDisplay(interaction.client, database)}` });
+            await interaction.editReply({ content: `successfully ${player.badges.includes(badge.name) ? 'awarded' : 'removed'} the badge ${badgeDisplay(badge, true)} to ${await player.getUserDisplay(interaction.client, database)}` });
         }
     },
     dropdowns: {
@@ -185,19 +185,19 @@ function getListPage(interaction, tier, page = 1) {
 
     const container = new ContainerBuilder()
         .setAccentColor(0xd1b586)
-        .addTextDisplayComponents((textDisplay) => 
-            textDisplay.setContent(`### ${getEmoji(`badge_none_${tier}`)} ${['silver','blue','purple'][tier-1]} badges (${badgeCount} total)`)
+        .addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`### ${getEmoji(`badge_none_${tier}`)} ${['silver', 'blue', 'purple'][tier - 1]} badges (${badgeCount} total)`)
         )
 
     if (badgeCount === 0) {
-        container.addTextDisplayComponents((textDisplay) => 
+        container.addTextDisplayComponents((textDisplay) =>
             textDisplay.setContent(`huh. there's nothing here...?`)
         )
     } else {
         badges = badges.slice((page - 1) * BADGES_PER_PAGE, page * BADGES_PER_PAGE);
 
         for (const badge of badges) {
-            container.addTextDisplayComponents((textDisplay) => 
+            container.addTextDisplayComponents((textDisplay) =>
                 textDisplay.setContent(badgeDisplay(badge))
             )
         }
@@ -206,7 +206,7 @@ function getListPage(interaction, tier, page = 1) {
     const tierButtons = Object.values(BADGE_TIERS).map(t => {
         return new ButtonBuilder()
             .setCustomId(`badges:list-${t},1`) // formatted tier-page
-            .setLabel(`${['silver','blue','purple'][t-1]} tier`)
+            .setLabel(`${['silver', 'blue', 'purple'][t - 1]} tier`)
             .setStyle(t === tier ? ButtonStyle.Primary : ButtonStyle.Secondary)
             .setEmoji(getEmoji(`badge_none_${t}`));
     });
@@ -214,7 +214,7 @@ function getListPage(interaction, tier, page = 1) {
     // add nav buttons if there's a lot of badges
     if (badgeCount > BADGES_PER_PAGE) {
         const pageCount = Math.ceil(badgeCount / BADGES_PER_PAGE);
-        
+
         const leftButton = new ButtonBuilder()
             .setCustomId(`badges:list-${tier},${page - 1}`)
             .setLabel('<--')
@@ -223,14 +223,14 @@ function getListPage(interaction, tier, page = 1) {
         if (page - 1 === 1) {
             leftButton.setCustomId(`badges:list-${tier}`) // discord doesn't like duplicate custom ids, so we work around it with this
         }
-        
+
         const rightButton = new ButtonBuilder()
             .setCustomId(`badges:list-${tier},${page + 1}`)
             .setLabel('-->')
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(page >= pageCount);
-        
-        container.addActionRowComponents((actionRow) => 
+
+        container.addActionRowComponents((actionRow) =>
             actionRow.setComponents(leftButton, rightButton)
         )
     }
@@ -264,7 +264,7 @@ async function getShowcaseDisplay(interaction) {
 
 
     let description = ``;
-    
+
     const dropdown = new StringSelectMenuBuilder()
         .setCustomId('badges:badgeSelect')
         .setPlaceholder('choose a badge to toggle...');
@@ -275,7 +275,7 @@ async function getShowcaseDisplay(interaction) {
             value: `${badge.name}`,
             // emoji: getEmoji(badge.emoji),
         });
-        description += `${displayedBadges.includes(badge.name) ? '✅' : '◼️'} ${badgeDisplay(badge,true)}\n`;
+        description += `${displayedBadges.includes(badge.name) ? '✅' : '◼️'} ${badgeDisplay(badge, true)}\n`;
     }
 
     container.addTextDisplayComponents((textDisplay) =>
@@ -292,8 +292,8 @@ function badgeDisplay(badge, short = false) {
         return `${badge.emoji} ${badge.name}`;
     }
 
-    const display = 
-`${badge.emoji} **${badge.name}**
+    const display =
+        `${badge.emoji} **${badge.name}**
 *"${badge.flavorText}"*
 ${badge.description}`;
 

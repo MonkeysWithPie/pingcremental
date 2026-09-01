@@ -108,7 +108,7 @@ async function getMessage(interaction) {
             playerData.settings[key] = value.default;
             settingsUpdated = true;
         }
-        
+
         container.addSeparatorComponents((separator) => separator.setSpacing(SeparatorSpacingSize.Small))
 
         if (value.style === "dropdown") {

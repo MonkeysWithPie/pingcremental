@@ -4,6 +4,7 @@ const formatNumber = require("../helpers/formatNumber");
 const ping = require("../helpers/pingCalc");
 const betaMode = process.env.BETA_TEST === 'true';
 
+// autopinging multiple times can cause issues, so this keeps track of userIDs
 let usersAutopinging = [];
 
 module.exports = {
@@ -49,6 +50,7 @@ module.exports = {
                 });
             }
 
+            // for quick repeats ("100x more!")
             if (count) {
                 return doAutoping(interaction, count);
             }
@@ -65,7 +67,7 @@ module.exports = {
                                 .setStyle(TextInputStyle.Short)
                                 .setCustomId("value")
                         )
-                    );
+                );
             await interaction.showModal(modal);
         }
     },
@@ -109,7 +111,7 @@ async function doAutoping(interaction, count) {
     function buildAutopingContainer(progress) {
         const container = new ContainerBuilder()
             .setAccentColor(0xc4bf18)
-            .addTextDisplayComponents((textDisplay) => 
+            .addTextDisplayComponents((textDisplay) =>
                 textDisplay.setContent(`### autopinging...\n**${formatNumber(progress, { shortHand: false, options: player.formatSettings })}**/${formatNumber(pings, { shortHand: false, options: player.formatSettings })}...`)
             )
         return container
@@ -152,10 +154,16 @@ async function doAutoping(interaction, count) {
         if (i === nextUpdate) {
             await interaction.editReply({ components: [buildAutopingContainer(i)] });
             await new Promise(r => setTimeout(r, 400)); // short delay to avoid rate limits
-            nextUpdate += updateEmbedEvery + Math.ceil(Math.random() - 0.5 * pings / 1000);
+            nextUpdate += updateEmbedEvery + Math.ceil(Math.random() - 0.5 * pings / 1000); // some variance, for fun
         }
 
-        const { score, currentEffects, cache } = await ping(interaction, nextPingBlue, { autopinging: true, blueCombo: currentChain, artisanClickedSymbol: nextPingArtisan, cache: storedCache, skipDisplays: true });
+        const { score, currentEffects, cache } = await ping(interaction, nextPingBlue, {
+            autopinging: true,
+            blueCombo: currentChain,
+            artisanClickedSymbol: nextPingArtisan,
+            cache: storedCache,
+            skipDisplays: true
+        });
         nextPingBlue = currentEffects.spawnedSuper && currentEffects.specials.budge;
         storedCache = cache;
 
@@ -175,6 +183,10 @@ async function doAutoping(interaction, count) {
         pingDataTotal.bluesMissed += currentEffects.spawnedSuper && !currentEffects.specials.budge ? 1 : 0;
         pingDataTotal.rares += currentEffects.rare ? 1 : 0;
 
+        storedCache.profile.slumberClicks += currentEffects.slumberClicks || 0;
+        storedCache.profile.glimmerClicks += currentEffects.glimmerClicks || 0;
+        storedCache.profile.lastPing = Date.now();
+
         if (currentEffects.artisanClickedSymbol) {
             nextPingArtisan = currentEffects.artisanNextSymbols[0];
         }
@@ -189,6 +201,9 @@ async function doAutoping(interaction, count) {
     // re-fetch in case stats changed while autoping was active
     player = await database.Player.findByPk(interaction.user.id);
 
+    player.slumberClicks += Math.max(storedCache.profile.slumberClicks, 0);
+    player.glimmerClicks += Math.max(storedCache.profile.glimmerClicks, 0);
+
     // wow that's a lot of stats
     player.apt -= pings;
 
@@ -199,10 +214,10 @@ async function doAutoping(interaction, count) {
     for (const layerStat of Object.values(stats)) {
         if (pingDataTotal.highestScore > layerStat.highestScore)
             layerStat.highScore = pingDataTotal.highestScore;
-        
+
         if (pingDataTotal.highestBlueCombo > layerStat.highestBlueStreak)
             layerStat.blueStreak = pingDataTotal.highestBlueCombo;
-        
+
         if (layerStat.changed()) await layerStat.save();
     }
 
@@ -245,7 +260,7 @@ missed **${pingDataTotal.bluesMissed}** blue ping${pingDataTotal.bluesMissed ===
 
     const finalContainer = new ContainerBuilder()
         .setAccentColor(0x18c4bf)
-        .addTextDisplayComponents((textDisplay) => 
+        .addTextDisplayComponents((textDisplay) =>
             textDisplay.setContent(`### autoping finished!
 ${finalDescription}`)
         )
@@ -254,9 +269,9 @@ ${finalDescription}`)
     if (player.apt > 0) {
         footer = `you have **${formatNumber(player.apt, { options: player.formatSettings })}** APT left.\n` + footer;
     }
-    finalContainer.addSeparatorComponents((separator) => 
+    finalContainer.addSeparatorComponents((separator) =>
         separator.setSpacing(SeparatorSpacingSize.Small)
-    ).addTextDisplayComponents((textDisplay) => 
+    ).addTextDisplayComponents((textDisplay) =>
         textDisplay.setContent(`${footer}`)
     )
 
@@ -287,7 +302,7 @@ ${finalDescription}`)
         );
     }
 
-    finalContainer.addActionRowComponents((actionRow) => 
+    finalContainer.addActionRowComponents((actionRow) =>
         actionRow.setComponents(components)
     )
 
@@ -315,19 +330,19 @@ async function getAutopingEmbed(interaction) {
 
     const container = new ContainerBuilder()
         .setAccentColor(0x46b019)
-        .addTextDisplayComponents((textDisplay) => 
+        .addTextDisplayComponents((textDisplay) =>
             textDisplay.setContent(`### autoping!
 autoping pings for you automatically and quickly! all you need is some APT to run it. some upgrades will allow you to find APT while pinging.
 autoping will always press the simulated **left-most** button.
 APT **cannot** be gained through autopinging, so you'll need to find it on your own.`)
         )
-        .addSeparatorComponents((separator) => 
+        .addSeparatorComponents((separator) =>
             separator.setDivider(true).setSpacing(SeparatorSpacingSize.Small)
         )
-        .addTextDisplayComponents((textDisplay) => 
+        .addTextDisplayComponents((textDisplay) =>
             textDisplay.setContent(`you currently have **${formatNumber(player.apt, { options: player.formatSettings })} APT**.`)
         )
-        .addActionRowComponents((actionRow) => 
+        .addActionRowComponents((actionRow) =>
             actionRow.setComponents(button, refreshButton)
         )
 

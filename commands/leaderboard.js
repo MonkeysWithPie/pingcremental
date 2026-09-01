@@ -98,13 +98,13 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
     const select = new StringSelectMenuBuilder()
         .setCustomId(`leaderboard:select`)
         .setPlaceholder(`select leaderboard type`)
-    
+
     const container = new ContainerBuilder()
         .setAccentColor(0x9c8e51)
         .addTextDisplayComponents((textDisplay) =>
             textDisplay.setContent(`### ${leaderboardTypes[leaderboardType].emoji} ${leaderboardTypes[leaderboardType].name} leaderboard\n` + description)
         )
-    
+
     let needReInit = false;
     for (const [key, value] of Object.entries(leaderboardTypes)) {
         select.addOptions({
@@ -118,7 +118,7 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
 
     const selectRow = new ActionRowBuilder()
         .addComponents(select)
-    
+
     return {
         contents: "",
         embeds: [],
@@ -194,7 +194,7 @@ async function formatPlayer(player, score, leaderboard, interaction) {
     if (interaction.user.id === player.userId) {
         userDisplay = `__${userDisplay}__` // highlight the user's own score
     }
-    
+
     // TODO: format options
     return `**${userDisplay}** - \`${formatNumber(score, { decimalPlaces: 5 })}\` ${leaderboardTypes[leaderboard].metric}`
 }

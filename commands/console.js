@@ -25,7 +25,7 @@ module.exports = {
         const fullCommand = interaction.options.getString('command');
         const command = fullCommand.split(" ")[0];
         const args = fullCommand.split(" ").slice(1) || [];
-        
+
         let output;
         if (commands[command]) {
             output = await commands[command](interaction, args);
@@ -73,7 +73,7 @@ function registerFiles() {
 
         while (fileTabs < tabs) {
             if (!currentDir.parent) throw new Error(`${currentDir.name} has no parent (this shouldn't be possible)`);
-            
+
             tabs--;
             currentDir = currentDir.parent;
         }
@@ -82,12 +82,12 @@ function registerFiles() {
             const newDir = { name: fileName, files: [], type: 'directory', locked: fileData.indexOf('locked') !== -1 };
             tabs++;
             newDir.parent = currentDir;
-            
+
             if (!currentDir.children) currentDir.children = [];
             currentDir.children.push(newDir);
             currentDir = newDir;
         } else if (fileData.indexOf('file') !== -1) {
-            const contentDirIndex = fileData.indexOf('file')+1;
+            const contentDirIndex = fileData.indexOf('file') + 1;
 
             if (contentDirIndex === 0) throw new Error(`${fileName} has no content directory specified`);
             const contentDir = path.join(`${__dirname}`, `../data/console/${fileData[contentDirIndex]}`);
@@ -101,7 +101,7 @@ function registerFiles() {
                 let i = keyIndex + 1;
 
                 while (i < fileData.length) {
-                    key += fileData[i].replace("\"","") + " ";
+                    key += fileData[i].replace("\"", "") + " ";
                     if (fileData[i].endsWith('"')) break;
                     i++;
                 }
@@ -147,7 +147,7 @@ function getConsoleFileData(file) {
             return `internal: error reading file ${file.name}`;
         }
     }
-    
+
     return path.join(file.contentPath);
 }
 
@@ -162,7 +162,7 @@ function getUserDirectory(userId) {
 
 const ownerRequiredCommand = (command) => {
     return (interaction, args) => {
-        if (interaction.user.id !== ownerId) 
+        if (interaction.user.id !== ownerId)
             return "not for you!";
 
         return command(interaction, args);
@@ -186,7 +186,7 @@ const commands = {
     }),
     "pull": ownerRequiredCommand(async () => {
         const execAsync = util.promisify(require("child_process").exec);
-        const {error, stdout, stderr} = await execAsync("git pull");
+        const { error, stdout, stderr } = await execAsync("git pull");
         if (error) {
             return `FAIL!\n${error}`;
         }
@@ -226,7 +226,7 @@ const commands = {
     }),
     "data": ownerRequiredCommand(async (interaction, args) => {
         if (!args[0] || !args[1]) {
-            return "FAIL!\nUsage: data <user> <key> [layer] [value]";
+            return "FAIL!\nUsage: data <user> <key> [layer|\"profile\"] [value]";
         }
         const userId = args[0].replace(/[<@!>]/g, "");
         const key = args[1];
@@ -253,11 +253,15 @@ const commands = {
             return `OK!\n${userId}'s ${layer} ${key}: ${dataValue}`;
         }
 
+        if (obj[key] === undefined) {
+            return `FAIL!\nKey ${key} doesn't exist on ${userId}'s ${layer}`;
+        }
+
         obj[key] = value;
         await obj.save();
         return `OK!\nSet ${key} to ${value} for ${userId} in layer ${layer}`;
     }),
-    "update": ownerRequiredCommand(async (interaction, ) => {
+    "update": ownerRequiredCommand(async (interaction) => {
         if (process.env.BETA_TEST === 'true') {
             return "versioning isn't available in beta!";
         }
@@ -303,7 +307,7 @@ const commands = {
                     .setLabel('importance level')
                     .setStringSelectMenuComponent(importanceSelect)
             );
-        
+
         await interaction.showModal(modal);
     }),
 
@@ -314,6 +318,7 @@ const commands = {
             count = 100;
             suff = "me...";
         }
+        if (count === 5) return `${"meow".repeat(count)} :wyphsmall:`;
         return `${"meow".repeat(count)}${suff}`;
     },
     "meowmeowmeowmeowmeow": () => {
@@ -325,9 +330,9 @@ const commands = {
     "ping": async (interaction, args) => {
         const now = Date.now();
         const command = `\`# ping${args[0] ? " " + args.join(" ") : ""}\``
-        await interaction.reply({ content: `${command}\n\`\`\`...\`\`\``, flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: `${command}\n\`\`\`measuring latency...\`\`\``, flags: MessageFlags.Ephemeral });
         const finish = Date.now();
-        
+
         const pingmessage = pingMessages(finish - now, { user: interaction.user, fromConsole: true })
         await interaction.editReply(`${command}\n\`\`\`${pingmessage}\`\`\``)
 
@@ -335,7 +340,24 @@ const commands = {
     },
 
     "help": () => {
-        return "not yet!"
+        // TODO make some commands hidden in the console and linked to the user profile
+        return `Available commands:
+- help: shows this message
+- ping: shows the bot's latency
+- echo <message>: echoes back the message
+- ls: lists files in the current directory
+- pwd: shows the directory you're in
+- cd <directory>: changes the current directory
+- cat <file> [--key <key>]: displays the contents of a file, optionally decrypting it with a key`
+    },
+
+    // hi avid pingcremental fans! might attach a badge to this one later, so remember this
+    "datamine": (interaction, args) => {
+        if (args[0] === "aIdjbNE") {
+            return "wow, you did it!"
+        }
+
+        return "that's not it!"
     },
 
     "ls": filesRequiredCommand((interaction) => {
@@ -408,7 +430,7 @@ const commands = {
     "cat": filesRequiredCommand(async (interaction, args) => {
         const fileName = args[0];
         if (!fileName) {
-            return "usage: cat <file>";
+            return "usage: cat <file> [--key <key>]";
         }
 
         const currentDirString = getUserDirectory(interaction.user.id);
@@ -462,6 +484,8 @@ const commands = {
             let output = "";
             const charactersPerSlice = 64;
 
+            // the key is wrong, so we create a jumbled mess based on the file and the key provided
+            // (this also ensures the same key gives the same output)
             for (let i = 0; i < Math.ceil(fileContents.length / charactersPerSlice); i++) {
                 const sliced = fileContents.slice(i * charactersPerSlice, (i + 1) * charactersPerSlice);
                 const cryptedBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(sliced + key))
@@ -470,6 +494,7 @@ const commands = {
                 output += hashText;
             }
 
+            // give the user a nudge in the right direction; better not to send them on wild goose chases
             if (key === "viaCat") {
                 output += "\n\n!! this file is encrypted, use the --key option to decrypt it";
             } else {

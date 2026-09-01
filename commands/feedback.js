@@ -73,7 +73,7 @@ module.exports = {
 
             if (!feedback) return await interaction.reply({ content: 'this one doesn\'t even exist? how?', ephemeral: true });
             if (feedback.userId !== interaction.user.id && interaction.user.id !== ownerId) return await interaction.reply({ content: 'you don\'t have permission to delete this...', ephemeral: true });
-            
+
             if (feedback.userId === interaction.user.id && interaction.user.id !== ownerId) {
                 await feedback.destroy();
                 await interaction.update(await buildFeedbackEmbed(interaction, feedback.type));
@@ -144,7 +144,7 @@ async function buildFeedbackEmbed(interaction, category) {
     const feedbacks = await database.Feedback.findAll({
         where: { type: category },
         order: [['createdAt', 'DESC']], // newest first
-        
+
         // TODO: pagination
         limit: 25 // max 25 since more may not fit
     });

@@ -7,13 +7,13 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('version')
         .setDescription('view the bot\'s version')
-            .setDescription('view a changelog for a specific version')
-            .addStringOption(option =>
-                option.setName('version')
-                    .setDescription('the version to view')
-                    .setRequired(false)
-                    .setAutocomplete(true)
-            )
+        .setDescription('view a changelog for a specific version')
+        .addStringOption(option =>
+            option.setName('version')
+                .setDescription('the version to view')
+                .setRequired(false)
+                .setAutocomplete(true)
+        )
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
     async execute(interaction) {
         if (process.env.BETA_TEST === 'true') {
@@ -61,7 +61,7 @@ module.exports = {
         announce: async (interaction) => {
             const description = interaction.fields.getTextInputValue('description');
             const type = interaction.fields.getStringSelectValues('importance')[0];
-            
+
             const currentVerInfo = getVersionInfo(await getLatestVersion());
 
             const newVersion = await database.Version.create({
@@ -139,7 +139,7 @@ function getVersionEmbed(versionData) {
         .setDescription(versionData.description)
         .setTimestamp(versionData.releasedAt)
         .setColor(versionData.importance === 'major' ? '#2c2cde' : versionData.importance === 'minor' ? '#2c76de' : versionData.importance === 'patch' ? '#5aa4b0' : '#52827c');
-}   
+}
 
 async function getVersionMessage(version) {
     let versionData = await database.Version.findOne({
@@ -177,7 +177,7 @@ async function getVersionMessage(version) {
             .setDisabled(true);
         row.addComponents(prevVerButton);
     }
-    
+
     if (versionData.dbId < await database.Version.count()) {
         const nextVer = await database.Version.findOne({
             where: {

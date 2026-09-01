@@ -44,7 +44,7 @@ module.exports = {
             if (type === 'global') {
                 await interaction.update(await getGlobalMessage(selfId.replace("global", "") || interaction.user.id));
                 return;
-            } 
+            }
 
             await interaction.update(await getUserMessage(type || interaction.user.id, interaction, selfId, layer));
         })
@@ -82,7 +82,7 @@ async function getGlobalMessage(selfId) {
 
     const container = new ContainerBuilder()
         .setAccentColor(0xbd6fb8)
-        .addTextDisplayComponents((textDisplay) => 
+        .addTextDisplayComponents((textDisplay) =>
             textDisplay.setContent(`### global stats\n` +
                 `${formatNumber(playerCount, formatSettings)} people have pinged at least once\n` +
                 `\`${formatNumber(totalScore, formatSettings)} pts\` gained in total\n` +
@@ -97,7 +97,7 @@ async function getGlobalMessage(selfId) {
                 textDisplay.setContent(`as of <t:${Math.floor(Date.now() / 1000)}:S>`)
             ).setButtonAccessory(refreshButton)
         )
-    
+
     return {
         embeds: [],
         components: [container],
@@ -131,12 +131,12 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
 
     const container = new ContainerBuilder()
         .setAccentColor(0x6fa7bd)
-        .addTextDisplayComponents((textDisplay) => 
+        .addTextDisplayComponents((textDisplay) =>
             textDisplay.setContent("### personal stats\n" + desc)
-    )
+        )
 
     function addToContainer(text) {
-        container.addTextDisplayComponents((textDisplay) => 
+        container.addTextDisplayComponents((textDisplay) =>
             textDisplay.setContent(text)
         ).addSeparatorComponents((separator) =>
             separator.setSpacing(SeparatorSpacingSize.Small)
@@ -193,7 +193,7 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
         .setCustomId(`stats:layer-${userId}-${selfId}`)
         .setMinValues(1)
         .setMaxValues(1)
-    
+
     for (const prestigeLayer of PrestigeLayers.toReversed()) {
         if (prestigeLayer === "eternity" && totalStats.eternities === 0) continue;
         if (prestigeLayer === "tear" && totalStats.tears === 0) continue;

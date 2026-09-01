@@ -7,13 +7,13 @@ const { getEmoji } = require('../helpers/emojis.js');
 const { getMultiBuyCost, customMultibuyModalSubmit, parseMultibuySetting } = require('../helpers/multibuy.js');
 
 module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('ponder')
-		.setDescription('Learn to know the limits, and yourself.')
+    data: new SlashCommandBuilder()
+        .setName('ponder')
+        .setDescription('Learn to know the limits, and yourself.')
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
-	async execute(interaction) {
+    async execute(interaction) {
         await interaction.reply(await getEditMessage(interaction, PipUpgradeTypes.BONUS, 1));
-	},
+    },
     buttons: {
         delete: (async interaction => {
             await interaction.update({ content: "(...)", components: [] });
@@ -71,18 +71,18 @@ module.exports = {
             const mbr = getMultiBuyCost(buySetting, upgradeClass, playerData.pip, playerUpgradeLevel);
             const price = mbr.price;
             const levels = mbr.levels;
-            
+
             if (price > playerData.pip) {
                 const msg = ['oh.']
 
                 const button = new ButtonBuilder()
                     .setCustomId('ponder:delete')
-                    .setLabel(msg[Math.floor(Math.random()*msg.length)])
+                    .setLabel(msg[Math.floor(Math.random() * msg.length)])
                     .setStyle(ButtonStyle.Secondary)
 
                 await interaction.update(await getEditMessage(interaction, upgradeClass.type())); // fix dropdown remaining after failed upgrade
                 return await interaction.followUp({
-                    content: `You can't afford that. (Missing \`${formatNumber(price-playerData.pip, { options: playerData.formatSettings })} PIP\`)`,
+                    content: `You can't afford that. (Missing \`${formatNumber(price - playerData.pip, { options: playerData.formatSettings })} PIP\`)`,
                     components: [new ActionRowBuilder().addComponents(button)]
                 })
             }
@@ -113,11 +113,11 @@ module.exports = {
 
             const button = new ButtonBuilder()
                 .setCustomId('ponder:delete')
-                .setLabel(msg[Math.floor(Math.random()*msg.length)])
+                .setLabel(msg[Math.floor(Math.random() * msg.length)])
                 .setStyle(ButtonStyle.Success)
-            
+
             await interaction.update(await getEditMessage(interaction, upgradeClass.type(), buySetting));
-        
+
             if (followupType !== 'none') {
                 return await interaction.followUp({
                     content: `**${upgradeClass.getDetails().name}** is now level ${playerUpgradeLevel}. (\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\` left)`,
@@ -130,7 +130,7 @@ module.exports = {
 }
 
 async function getEditMessage(interaction, category, buySetting) {
-    const [playerData, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id }})
+    const [playerData,] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
     const stats = await playerData.stats();
     if (stats.total.eternities === 0) {
         const button = new ButtonBuilder()
@@ -156,15 +156,15 @@ async function getEditMessage(interaction, category, buySetting) {
     const select = new StringSelectMenuBuilder()
         .setCustomId(`ponder:buy-${buySetting}`)
         .setPlaceholder('pick an upgrade')
-    
+
     const description = `You have **__\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\`__**. Spend wisely.
 You're buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerData.formatSettings }) : buySetting}** upgrade${buySetting === 1 ? '' : 's'} at a time.\n`
-    
+
     const container = new ContainerBuilder()
         .setAccentColor(0x162b94)
         .addTextDisplayComponents((textDisplay) => textDisplay.setContent("### Ponder \n" + description))
-    
-    const multiBuys = [1,3,10,'MAX']
+
+    const multiBuys = [1, 3, 10, 'MAX']
     const multiBuyButtons = []
     for (const multiBuy of multiBuys) {
         const button = new ButtonBuilder()
@@ -205,11 +205,11 @@ You're buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: pl
         }
 
         if (upgrade.getPrice(upgradeLevel) === null) {
-            addToContainer(`**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (MAX)**\n*"${upgrade.getDetails().flavor}"*\n${upgrade.getDetails().description}\nCurrently ${upgrade.getEffectString(upgradeLevel)}`) 
+            addToContainer(`**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (MAX)**\n*"${upgrade.getDetails().flavor}"*\n${upgrade.getDetails().description}\nCurrently ${upgrade.getEffectString(upgradeLevel)}`)
             continue;
         }
 
-        const {price, levels} = getMultiBuyCost(buySetting, upgrade, playerData.pip, upgradeLevel);
+        const { price, levels } = getMultiBuyCost(buySetting, upgrade, playerData.pip, upgradeLevel);
 
         const maxSuffix = upgrade.getMax ? `/${upgrade.getMax()}` : ""
         addToContainer(`\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatSettings })}${maxSuffix})**

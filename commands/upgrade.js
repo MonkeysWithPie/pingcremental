@@ -71,24 +71,26 @@ module.exports = {
                     playerData.upgrades[ptUpgrade] = playerData.prestigeUpgrades.remnants;
                 }
             }
-            
-            playerData.changed('upgrades', true) 
+
+            playerData.changed('upgrades', true)
 
             await interaction.update({ content: `*it is done.*\n-# you gained __\`${formatNumber(gainedPip, { options: playerData.formatSettings })} PIP\`__, so you now have __\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\`__`, components: [] });
             if (firstEternity) {
-                await interaction.followUp({ content: `
-*welcome to Eternity. congratulations on making it here.*
+                await interaction.followUp({
+                    content:
+`*welcome to Eternity. congratulations on making it here.*
 *i suppose you're wondering why you would even want to be here.*
 *Eternity brings you the ability to look within yourself, to see your flaws and strengths and to exploit them.*
 *good luck, pinger.*
-${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
+${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral
+                });
                 await awardBadge(interaction.user.id, 'foreverbound', interaction.client);
             }
 
             if (stats.total.tears < 1 && getTearRequirement(playerData.tears) === playerData.eternities) {
                 await interaction.followUp({
-                    content: 
-`*you've been looking for something more, haven't you...?*
+                    content:
+                        `*you've been looking for something more, haven't you...?*
 *there may not be much more eternity can give you, but there's always another way to obtain power.*
 *heed the universe's call. tear it apart and weave it anew.*
 *${getEmbeddedCommand("weave")}*`,
@@ -148,7 +150,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
                 price = mbr.price;
                 levels = mbr.levels;
             }
-            
+
 
             // player is poor (L)
             if (price > playerData.score) {
@@ -168,11 +170,11 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
             }
 
             if (upgradeId === 'eternity') {
-                await interaction.update(await getEditMessage(interaction, upgradeClass.type(), buySetting)); 
+                await interaction.update(await getEditMessage(interaction, upgradeClass.type(), buySetting));
                 if (playerData.bp < 10000) { return await interaction.followUp({ content: `*you shouldn't be here, yet.*`, flags: MessageFlags.Ephemeral }) }
                 return await interaction.followUp({
-                    content: 
-`*Eternity calls for you, but you must make sure you're ready.*
+                    content:
+                        `*Eternity calls for you, but you must make sure you're ready.*
 ***are you?***
 -# this will **reset** your current upgrades, \`pts\`, and clicks and give you __${formatNumber(getEternityPip(playerData, { options: playerData.formatSettings }))} PIP__ from your __\`${formatNumber(playerData.bp, { options: playerData.formatSettings })} BP\`__.`,
                     components: [
@@ -226,7 +228,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
                     flags: ephemeral
                 })
             }
-            
+
         })
     },
     modals: {
@@ -243,7 +245,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral });
 }
 
 async function getEditMessage(interaction, category, buySetting = 1) {
-    const [playerData, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
+    const [playerData,] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
     const stats = await playerData.stats();
     if (stats.total.clicks < 150) { // prevent upgrading before 150 clicks
         const button = new ButtonBuilder()
@@ -273,11 +275,11 @@ async function getEditMessage(interaction, category, buySetting = 1) {
     const select = new StringSelectMenuBuilder()
         .setCustomId(`upgrade:buy-${buySetting}`)
         .setPlaceholder('pick an upgrade')
-    
-    const description = 
-`you have **__\`${formatNumber(playerData.score, { options: playerData.formatSettings, decimalPlaces: 4 })} pts\`__** to spend...
+
+    const description =
+        `you have **__\`${formatNumber(playerData.score, { options: playerData.formatSettings, decimalPlaces: 4 })} pts\`__** to spend...
 buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerData.formatSettings }) : buySetting}** upgrade${buySetting === 1 ? '' : 's'} per click...\n`
-    
+
 
     const container = new ContainerBuilder()
         .setAccentColor(0x73c9ae)
@@ -285,7 +287,7 @@ buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerDat
             textDisplay.setContent(`### upgrades\n${description}`)
         )
 
-    const multiBuys = [1,5,25,'MAX']
+    const multiBuys = [1, 5, 25, 'MAX']
     const multiBuyButtons = []
     for (const multiBuy of multiBuys) {
         const button = new ButtonBuilder()
@@ -312,18 +314,18 @@ buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerDat
         )
     }
 
-    const context = { 
-        upgrades: pUpgrades, 
+    const context = {
+        upgrades: pUpgrades,
         stats,
-        bp: playerData.bp, 
-        fabrics: playerData.equippedFabrics 
+        bp: playerData.bp,
+        fabrics: playerData.equippedFabrics
     };
 
     for (const [upgradeId, upgrade] of Object.entries(upgrades.pts)) {
         // go through each upgrade and check if should be displayed
         const upgradeLevel = pUpgrades[upgradeId] ?? 0
         if (upgrade.type() !== category) continue; // wrong category
-        
+
         const unlocked = upgrade.unlockRequirements(context);
         if (!unlocked.showable) continue; // hidden
         if (!unlocked.buyable) {
@@ -334,8 +336,8 @@ buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerDat
             addToContainer(`**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (MAX)**\n${upgrade.getDetails().description}\nCurrently ${upgrade.getEffectString(upgradeLevel)}`)
             continue;
         }
-        
-        const {price, levels} = getMultiBuyCost(buySetting, upgrade, playerData.score, upgradeLevel);
+
+        const { price, levels } = getMultiBuyCost(buySetting, upgrade, playerData.score, upgradeLevel);
 
         const maxSuffix = upgrade.getMax ? `/${upgrade.getMax()}` : ""
         addToContainer(`\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatSettings, decimalPlaces: 6 })}${maxSuffix})**

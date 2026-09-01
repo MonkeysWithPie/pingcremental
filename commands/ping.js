@@ -81,7 +81,7 @@ async function pingResponse(interaction, isSuper = false) {
         })
     }
 
-    const {score, displays, currentEffects, context} = await ping(interaction, isSuper, { developmentMode });
+    const { score, displays, currentEffects, context } = await ping(interaction, isSuper, { developmentMode });
 
     const playerProfile = await database.Player.findByPk(`${interaction.user.id}`);
     const pingFormat = playerProfile.settings.pingFormat || "expanded";
@@ -98,7 +98,7 @@ async function pingResponse(interaction, isSuper = false) {
     /* SAVE STATS */
     context.totalScore = playerProfile.score + score;
     const pingMessage = pingMessages(context.ping, context); // get the ping message
-    
+
     const stats = await playerProfile.stats();
 
     // click saving
@@ -120,12 +120,12 @@ async function pingResponse(interaction, isSuper = false) {
 
     // high score and streak saving
     for (const layerStat of Object.values(stats)) {
-        if (currentEffects.blueCombo > layerStat.blueStreak) 
+        if (currentEffects.blueCombo > layerStat.blueStreak)
             layerStat.blueStreak = currentEffects.blueCombo;
 
         if (score > layerStat.highScore)
             layerStat.highScore = score;
-        
+
         if (currentEffects.specials.artisanCombo > layerStat.highestArtisanCombo)
             layerStat.highestArtisanCombo = currentEffects.specials.artisanCombo;
         if (currentEffects.specials.orchestraCombo > layerStat.highestOrchestraCombo)
@@ -134,13 +134,13 @@ async function pingResponse(interaction, isSuper = false) {
             layerStat.highestCoinflipCount = currentEffects.specials.coinflipCount;
         if (currentEffects.specials.pigScore > layerStat.highestPigScore)
             layerStat.highestPigScore = currentEffects.specials.pigScore;
-        
+
         if (layerStat.changed) await layerStat.save();
     }
 
     // score saving
     playerProfile.score += score;
-    
+
     // etc
     playerProfile.bp = Math.min(currentEffects.bp + playerProfile.bp, currentEffects.bpMax);
     playerProfile.apt += currentEffects.apt || 0;
@@ -148,8 +148,8 @@ async function pingResponse(interaction, isSuper = false) {
 
 
     // badges
-    if (currentEffects.blueCombo >= 10) { 
-        await awardBadge(interaction.user.id, 'blue stupor', interaction.client); 
+    if (currentEffects.blueCombo >= 10) {
+        await awardBadge(interaction.user.id, 'blue stupor', interaction.client);
     }
     if (currentEffects.rare) {
         await awardBadge(interaction.user.id, 'lucky', interaction.client);
@@ -184,7 +184,7 @@ async function pingResponse(interaction, isSuper = false) {
         return await interaction.update({
             content:
                 `${pingMessage}
-you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCommand(`upgrade`)}?`, 
+you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCommand(`upgrade`)}?`,
             components: [disabledRow],
             embeds: [],
         })
@@ -305,7 +305,7 @@ function getButtonRows(currentEffects) {
     if (!(currentEffects.specials.budge) || !(currentEffects.spawnedSuper)) {
         row.addComponents(again);
     }
-    
+
     if (currentEffects.spawnedSuper) {
         const superPing = new ButtonBuilder()
             .setCustomId('ping:super')

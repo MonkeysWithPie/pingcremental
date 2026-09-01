@@ -49,31 +49,8 @@ module.exports = {
         ),
     async execute(interaction) {
         if (interaction.options.getSubcommand() === 'view') {
-            // TODO: pagination
-
             const user = interaction.options.getUser('user') || interaction.user;
-            const player = await database.Player.findByPk(`${user.id}`);
-
-            if (!player || player.badges.length === 0) {
-                return await interaction.reply({ content: `${getEmoji('badge_none_1')} ${user.username} has no badges.`, flags: MessageFlags.Ephemeral });
-            }
-
-            const badges = getBadgesByName(...player.badges);
-
-            const userDisplay = await player.getUserDisplay(interaction.client, database);
-            const container = new ContainerBuilder()
-                .setAccentColor(0xd1b586)
-                .addTextDisplayComponents((textDisplay) =>
-                    textDisplay.setContent(`### badges of ${userDisplay}`)
-                )
-
-            for (const badge of badges) {
-                container.addTextDisplayComponents((textDisplay) =>
-                    textDisplay.setContent(badgeDisplay(badge))
-                )
-            }
-
-            return await interaction.reply({ components: [container], flags: MessageFlags.IsComponentsV2 });
+            return await interaction.reply(await getUserPage(interaction, user.id));
         }
         else if (interaction.options.getSubcommand() === 'list') {
             return await interaction.reply(await getListPage(interaction, BADGE_TIERS.SILVER));
@@ -156,6 +133,9 @@ module.exports = {
             const tier = args.split(',')[0];
             const page = args.split(',')[1] || 1;
             await interaction.update(await getListPage(interaction, parseInt(tier), parseInt(page)));
+        },
+        "user": async (interaction, user, page) => {
+            await interaction.update(await getUserPage(interaction, user, parseInt(page)));
         }
     },
     async autocomplete(interaction) {
@@ -175,6 +155,55 @@ module.exports = {
 
         await interaction.respond(options);
     }
+}
+
+async function getUserPage(interaction, userId, page = 1) {
+    const player = await database.Player.findByPk(userId);
+    const badgeCount = player.badges.length
+
+    if (!player || badgeCount === 0) {
+        return await interaction.reply({ content: `${getEmoji('badge_none_1')} <@${userId}> has no badges.`, flags: MessageFlags.Ephemeral });
+    }
+
+    const badges = getBadgesByName(...player.badges).slice((page - 1) * BADGES_PER_PAGE, page * BADGES_PER_PAGE);
+
+    const userDisplay = await player.getUserDisplay(interaction.client, database);
+    const container = new ContainerBuilder()
+        .setAccentColor(0xd1b586)
+        .addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`### badges of ${userDisplay}`)
+        )
+
+    for (const badge of badges) {
+        container.addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(badgeDisplay(badge))
+        )
+    }
+
+    if (badgeCount > BADGES_PER_PAGE) {
+        const pageCount = Math.ceil(badgeCount / BADGES_PER_PAGE);
+
+        const leftButton = new ButtonBuilder()
+            .setCustomId(`badges:user-${userId}-${page - 1}`)
+            .setLabel('<--')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(page === 1);
+        if (page - 1 === 1) {
+            leftButton.setCustomId(`badges:user-${userId}`)
+        }
+
+        const rightButton = new ButtonBuilder()
+            .setCustomId(`badges:user-${userId}-${page + 1}`)
+            .setLabel('-->')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(page >= pageCount);
+
+        container.addActionRowComponents((actionRow) =>
+            actionRow.setComponents(leftButton, rightButton)
+        )
+    }
+
+    return await interaction.reply({ components: [container], flags: MessageFlags.IsComponentsV2 });
 }
 
 function getListPage(interaction, tier, page = 1) {

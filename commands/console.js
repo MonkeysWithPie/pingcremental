@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageFlags, InteractionContextType } = require("discord.js");
+const { SlashCommandBuilder, MessageFlags, InteractionContextType, TextInputStyle, LabelBuilder, StringSelectMenuBuilder, ModalBuilder, StringSelectMenuOptionBuilder, TextInputBuilder } = require("discord.js");
 const database = require("../helpers/database");
 const util = require("node:util");
 const { cacheCommandIds } = require("../helpers/embedCommand");
@@ -256,6 +256,55 @@ const commands = {
         obj[key] = value;
         await obj.save();
         return `OK!\nSet ${key} to ${value} for ${userId} in layer ${layer}`;
+    }),
+    "update": ownerRequiredCommand(async (interaction, ) => {
+        if (process.env.BETA_TEST === 'true') {
+            return "versioning isn't available in beta!";
+        }
+
+        const descriptionLabel = new LabelBuilder()
+            .setLabel('description of the changes')
+            .setTextInputComponent(
+                new TextInputBuilder()
+                    .setStyle(TextInputStyle.Paragraph)
+                    .setRequired(true)
+                    .setCustomId('description')
+            );
+
+        const importanceSelect = new StringSelectMenuBuilder()
+            .setCustomId('importance')
+            .setPlaceholder('select the importance of the update')
+            .setMaxValues(1)
+            .addOptions(
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Major')
+                    .setValue('major')
+                    .setDescription('new prestige layers or other major features'),
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Minor')
+                    .setValue('minor')
+                    .setDescription('sizable changes like new upgrades or small reworks'),
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Patch')
+                    .setValue('patch')
+                    .setDescription('small changes like balancing or bug fixes'),
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Hotfix')
+                    .setValue('hotfix')
+                    .setDescription('bug fixes')
+            );
+
+        const modal = new ModalBuilder()
+            .setCustomId(`version:announce`)
+            .setTitle(`announcing a new version...`)
+            .addLabelComponents(
+                descriptionLabel,
+                new LabelBuilder()
+                    .setLabel('importance level')
+                    .setStringSelectMenuComponent(importanceSelect)
+            );
+        
+        await interaction.showModal(modal);
     }),
 
     "meow": (interaction, args) => {

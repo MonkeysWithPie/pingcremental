@@ -1,93 +1,31 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, LabelBuilder } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder } = require('discord.js');
 const database = require('./../helpers/database.js');
 const sequelize = require('sequelize');
 const getLatestVersion = require('./../helpers/versions.js');
-const ownerId = process.env.OWNER_ID;
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('update')
-        .setDescription('view and change the bot\'s version')
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('view')
-                .setDescription('view a changelog for a specific version')
-                .addStringOption(option =>
-                    option.setName('version')
-                        .setDescription('the version to view')
-                        .setRequired(false)
-                        .setAutocomplete(true)
-                )
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('announce')
-                .setDescription('officially announce a new version')
-        )
+        .setName('version')
+        .setDescription('view the bot\'s version')
+            .setDescription('view a changelog for a specific version')
+            .addStringOption(option =>
+                option.setName('version')
+                    .setDescription('the version to view')
+                    .setRequired(false)
+                    .setAutocomplete(true)
+            )
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
     async execute(interaction) {
         if (process.env.BETA_TEST === 'true') {
             return await interaction.reply({ content: "versioning isn't available in beta!", flags: MessageFlags.Ephemeral });
         }
 
-        if (interaction.options.getSubcommand() === 'view') {
-            const version = interaction.options.getString('version') || 'latest';
-            if (version === 'none') {
-                return await interaction.reply({ content: 'no, that\'s not a version, what are you doing?', flags: MessageFlags.Ephemeral });
-            }
-            await interaction.reply(await getVersionMessage(version));
-            return;
-        } 
-        else if (interaction.options.getSubcommand() === 'announce') {
-            if (interaction.user.id !== ownerId) {
-                await interaction.reply({ content: 'i don\'t think you\'re the right person for the job here, sorry', flags: MessageFlags.Ephemeral });
-                return;
-            }
-
-            const descriptionLabel = new LabelBuilder()
-                .setLabel('description of the changes')
-                .setTextInputComponent(
-                    new TextInputBuilder()
-                        .setStyle(TextInputStyle.Paragraph)
-                        .setRequired(true)
-                        .setCustomId('description')
-                );
-
-            const importanceSelect = new StringSelectMenuBuilder()
-                .setCustomId('importance')
-                .setPlaceholder('select the importance of the update')
-                .setMaxValues(1)
-                .addOptions(
-                    new StringSelectMenuOptionBuilder()
-                        .setLabel('Major')
-                        .setValue('major')
-                        .setDescription('new prestige layers or other major features'),
-                    new StringSelectMenuOptionBuilder()
-                        .setLabel('Minor')
-                        .setValue('minor')
-                        .setDescription('sizable changes like new upgrades or small reworks'),
-                    new StringSelectMenuOptionBuilder()
-                        .setLabel('Patch')
-                        .setValue('patch')
-                        .setDescription('small changes like balancing or bug fixes'),
-                    new StringSelectMenuOptionBuilder()
-                        .setLabel('Hotfix')
-                        .setValue('hotfix')
-                        .setDescription('bug fixes')
-                );
-
-            const modal = new ModalBuilder()
-                .setCustomId(`update:announce`)
-                .setTitle(`announcing a new version...`)
-                .addLabelComponents(
-                    descriptionLabel,
-                    new LabelBuilder()
-                        .setLabel('importance level')
-                        .setStringSelectMenuComponent(importanceSelect)
-                );
-            
-            await interaction.showModal(modal);
+        const version = interaction.options.getString('version') || 'latest';
+        if (version === 'none') {
+            return await interaction.reply({ content: 'no, that\'s not a version, what are you doing?', flags: MessageFlags.Ephemeral });
         }
+        await interaction.reply(await getVersionMessage(version));
+        return;
     },
     async autocomplete(interaction) {
         if (interaction.options.getSubcommand() === 'view') {
@@ -98,7 +36,7 @@ module.exports = {
             });
 
             if (!versions || versions.length === 0) {
-                await interaction.respond([{ name: 'no versions found??', value: 'none' }]);
+                await interaction.respond([]);
                 return;
             }
 
@@ -108,7 +46,7 @@ module.exports = {
             }
 
             if (!versions || versions.length === 0) {
-                await interaction.respond([{ name: 'nothing matches your search', value: 'none' }]);
+                await interaction.respond([]);
             }
 
             await interaction.respond(choices.map(choice => ({ name: choice, value: choice })));
@@ -227,13 +165,13 @@ async function getVersionMessage(version) {
             }
         });
         const prevVerButton = new ButtonBuilder()
-            .setCustomId(`update:ver-${lastVer.verNum}`)
+            .setCustomId(`version:ver-${lastVer.verNum}`)
             .setLabel(`<- ${lastVer.verNum}`)
             .setStyle(ButtonStyle.Secondary);
         row.addComponents(prevVerButton);
     } else {
         const prevVerButton = new ButtonBuilder()
-            .setCustomId('update:ver-none')
+            .setCustomId('version:ver-none')
             .setLabel('<- x.x.x')
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(true);
@@ -247,13 +185,13 @@ async function getVersionMessage(version) {
             }
         });
         const nextVerButton = new ButtonBuilder()
-            .setCustomId(`update:ver-${nextVer.verNum}`)
+            .setCustomId(`version:ver-${nextVer.verNum}`)
             .setLabel(`${nextVer.verNum} ->`)
             .setStyle(ButtonStyle.Secondary);
         row.addComponents(nextVerButton);
     } else {
         const nextVerButton = new ButtonBuilder()
-            .setCustomId('update:ver-none')
+            .setCustomId('version:ver-none')
             .setLabel('x.x.x ->')
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(true);

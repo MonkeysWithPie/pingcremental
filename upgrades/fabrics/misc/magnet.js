@@ -7,19 +7,20 @@ module.exports = {
     getDetails() {
         return {
             description: 
-`gain **1** APT per 2 minutes not pinging, up to a maximum of **720** (24 hours) without claiming.`,
+`gain **1** APT per 2 minutes not pinging, up to a maximum of **600** (20 hours) without claiming.`,
             name: "APT Magnet Fabric", // this does mean APT is canonically metal
             emoji: "🧲",
         }
     }, 
-    getEffect(_level, context) {
+    getEffect(level, context) {
+        // TODO this breaks with autopinging since autoping sets lastPing
         if (context.autopinging) return {};
 
         const timeSinceLastPing = Date.now() - context.lastPing;
-        const aptGain = Math.min(Math.floor(timeSinceLastPing / (2 * 60 * 1000)), 720);
+        const aptGain = Math.min(Math.floor(timeSinceLastPing / (2 * 60 * 1000)), 600);
         
         return {
-            apt: aptGain
+            apt: aptGain * level
         };
     },
     type() { return FabricUpgradeTypes.MISC },

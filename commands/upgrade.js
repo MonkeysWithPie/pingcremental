@@ -247,13 +247,13 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral
 async function getEditMessage(interaction, category, buySetting = 1) {
     const [playerData,] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
     const stats = await playerData.stats();
-    if (stats.total.clicks < 150) { // prevent upgrading before 150 clicks
+    if (stats.total.clicks < 50) {
         const button = new ButtonBuilder()
             .setCustomId('upgrade:delete')
             .setLabel('oh... okay')
             .setStyle(ButtonStyle.Secondary)
         return {
-            content: `*upgrades? what upgrades? you should go back to pinging.*\n-# (${stats.total.clicks}/150)`,
+            content: `*upgrades? what upgrades? you should go back to pinging.*\n-# (${stats.total.clicks}/50)`,
             components: [new ActionRowBuilder().addComponents(button)]
         }
     }

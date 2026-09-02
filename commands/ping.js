@@ -172,8 +172,8 @@ async function pingResponse(interaction, isSuper = false) {
 
     await playerProfile.save();
 
-    // show upgrade popup after 150 clicks
-    if (stats.total.clicks === 150) {
+    // show upgrade popup when it unlocks
+    if (stats.total.clicks === 50) {
         const button = new ButtonBuilder()
             .setLabel('that looks important...')
             .setStyle(ButtonStyle.Secondary)

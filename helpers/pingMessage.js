@@ -602,7 +602,6 @@ function get(ping, context) {
             `did you know \`1,000,000 pts\` is called a megapt?`,
             `if you keep clicking like this, you'll be the next clicker extraordinaire`,
             "i'm glad it's a button and not a command",
-            totalClicks >= 150 ? `there's no... upgrades...? oh, wait` : `there's no upgrades for this, by the way`,
             `hopefully this ping isn't too much to deal with while you click away`,
             `how come you like clicking this so much?`,
             `i mean, i get it, clicking can be fun, but don't you have other things to do? like sleep? eat?`,

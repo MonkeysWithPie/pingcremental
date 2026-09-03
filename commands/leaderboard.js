@@ -19,10 +19,6 @@ module.exports = {
             await interaction.deferUpdate();
             await interaction.editReply(await getMessage(interaction, leaderboard));
         }),
-        ac: (async (interaction, leaderboard) => {
-            await interaction.deferUpdate();
-            await interaction.editReply(await getMessage(interaction, leaderboard));
-        })
     },
     dropdowns: {
         select: (async (interaction) => {
@@ -44,6 +40,16 @@ async function getMessage(interaction, leaderboardType) {
             layer: 'total',
         }
     })
+    const interactionPlayer = await database.Player.findByPk(interaction.user.id);
+    
+    async function formatPlayer(player, score, leaderboard) {
+        let userDisplay = await player.getUserDisplay(interaction.client);
+        if (interaction.user.id === player.userId) {
+            userDisplay = `__${userDisplay}__` // highlight the user's own score
+        }
+
+        return `**${userDisplay}** - \`${formatNumber(score, { decimalPlaces: 5, options: interactionPlayer?.formatSettings })}\` ${leaderboardTypes[leaderboard].metric}`
+    }
 
     const leaderboardEmojis = []
     for (let i = 0; i < 10; i++) {
@@ -59,9 +65,9 @@ async function getMessage(interaction, leaderboardType) {
         position++;
         if (position > 10) break; // only show the top 10 players
 
+        const emoji = leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1];
         description +=
-            `
-${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await formatPlayer(player, stats[leaderboardType], leaderboardType, interaction)}`
+            `${emoji} ${await formatPlayer(player, stats[leaderboardType], leaderboardType )}`
         showedSelf = showedSelf || (interaction.user.id === player.userId);
     }
 
@@ -76,14 +82,14 @@ ${leaderboardEmojis[Math.min(leaderboardEmojis.length, position) - 1]} ${await f
 
         if (userIndex >= 11) {
             const statBelow = topStats[userIndex - 1];
-            description += `\n#${userIndex} ${await formatPlayer(await statBelow.getUser(), statBelow[leaderboardType], leaderboardType, interaction)}`
+            description += `\n#${userIndex} ${await formatPlayer(await statBelow.getUser(), statBelow[leaderboardType], leaderboardType)}`
         }
 
-        description += `\n#${userIndex + 1} ${await formatPlayer(interaction.user.id, topStats[userIndex][leaderboardType], leaderboardType, interaction)}`
+        description += `\n#${userIndex + 1} ${await formatPlayer(interaction.user.id, topStats[userIndex][leaderboardType], leaderboardType)}`
 
         if (userIndex !== topStats.length - 1) {
             const statAbove = topStats[userIndex + 1];
-            description += `\n#${userIndex + 2} ${await formatPlayer(await statAbove.getUser(), statAbove[leaderboardType], leaderboardType, interaction)}`
+            description += `\n#${userIndex + 2} ${await formatPlayer(await statAbove.getUser(), statAbove[leaderboardType], leaderboardType)}`
         }
     }
 
@@ -186,15 +192,4 @@ function initTypes() {
             metric: "rare pings discovered"
         },
     }
-}
-
-// TODO: fix
-async function formatPlayer(player, score, leaderboard, interaction) {
-    let userDisplay = await player.getUserDisplay(interaction.client);
-    if (interaction.user.id === player.userId) {
-        userDisplay = `__${userDisplay}__` // highlight the user's own score
-    }
-
-    // TODO: format options
-    return `**${userDisplay}** - \`${formatNumber(score, { decimalPlaces: 5 })}\` ${leaderboardTypes[leaderboard].metric}`
 }

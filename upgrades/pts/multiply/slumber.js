@@ -30,7 +30,7 @@ module.exports = {
 
         const timeSinceLastPing = Date.now() - context.lastPing;
 
-        if (timeSinceLastPing >= intervalMs) {
+        if (timeSinceLastPing >= intervalMs && !context.autopinging) {
             const earnedClicks = Math.floor(timeSinceLastPing / intervalMs);
             clicks += earnedClicks;
             clicks = Math.min(clicks, maxClicks);

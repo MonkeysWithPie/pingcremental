@@ -185,7 +185,6 @@ async function doAutoping(interaction, count) {
 
         storedCache.profile.slumberClicks += currentEffects.slumberClicks || 0;
         storedCache.profile.glimmerClicks += currentEffects.glimmerClicks || 0;
-        storedCache.profile.lastPing = Date.now();
 
         if (currentEffects.artisanClickedSymbol) {
             nextPingArtisan = currentEffects.artisanNextSymbols[0];
@@ -227,7 +226,6 @@ async function doAutoping(interaction, count) {
     player.increaseStat('luckyPings', pingDataTotal.rares);
     player.increaseStat('bluePings', pingDataTotal.blues);
     player.increaseStat('bluePingsMissed', pingDataTotal.bluesMissed);
-    player.lastPing = Date.now();
 
     await player.save();
     await refreshAPT(player);

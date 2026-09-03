@@ -13,7 +13,6 @@ module.exports = {
         }
     }, 
     getEffect(level, context) {
-        // TODO this breaks with autopinging since autoping sets lastPing
         if (context.autopinging) return {};
 
         const timeSinceLastPing = Date.now() - context.lastPing;

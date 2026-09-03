@@ -26,10 +26,18 @@ module.exports = {
         const fullCommand = interaction.options.getString('command');
         const command = fullCommand.split(" ")[0];
         const args = fullCommand.split(" ").slice(1) || [];
+        const [interactionPlayer] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
+        const userCommandsUnlocked = interactionPlayer.unlockedCommands;
 
         let output;
         if (commands[command]) {
             output = await commands[command](interaction, args);
+
+            if (!userCommandsUnlocked.includes(command)) {
+                userCommandsUnlocked.push(command);
+                interactionPlayer.unlockedCommands = userCommandsUnlocked;
+                await interactionPlayer.save();
+            }
         } else {
             output = `command not found: ${command}`;
         }
@@ -163,6 +171,9 @@ function getUserDirectory(userId) {
 
 const ownerRequiredCommand = (command) => {
     return (interaction, args) => {
+        if (args[0] === "--help") {
+            return "a command for super secret things that only the owner can do";
+        }
         if (interaction.user.id !== ownerId)
             return "not for you!";
 
@@ -352,6 +363,10 @@ const commands = {
     }),
 
     "meow": (interaction, args) => {
+        if (args[0] === "--help") {
+            return "meow!"
+        }
+
         let count = parseInt(args[0]) || 1;
         let suff = "";
         if (count > 100) {
@@ -365,9 +380,16 @@ const commands = {
         return ":wyphsmall:";
     },
     "echo": (interaction, args) => {
+        if (args[0] === "--help") {
+            return "echoes back what you say"
+        }
         return "did it really say this?:\n" + args.join(" ");
     },
     "ping": async (interaction, args) => {
+        if (args[0] === "--help") {
+            return "measures the bot's actual latency";
+        }
+
         const now = Date.now();
         const command = `\`# ping${args[0] ? " " + args.join(" ") : ""}\``
         await interaction.reply({ content: `${command}\n\`\`\`measuring latency...\`\`\``, flags: MessageFlags.Ephemeral });
@@ -379,20 +401,34 @@ const commands = {
         return true;
     },
 
-    "help": () => {
-        // TODO make some commands hidden in the console and linked to the user profile
-        return `Available commands:
-- help: shows this message
-- ping: shows the bot's latency
-- echo <message>: echoes back the message
-- ls: lists files in the current directory
-- pwd: shows the directory you're in
-- cd <directory>: changes the current directory
-- cat <file> [--key <key>]: displays the contents of a file, optionally decrypting it with a key`
+    "help": async (interaction, args) => {
+        if (args[0] === "--help") {
+            return "you'd never believe what it does..."
+        }
+
+        const [playerProfile,] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
+        const unlockedCommands = playerProfile.unlockedCommands || [];
+        let resp = "Available commands:\n\n";
+
+        for (const command of unlockedCommands) {
+            if (!commands[command]) {
+                console.warn(`player ${interaction.user.id} has unlocked command ${command} but it doesn't exist`);
+            }
+
+            resp += `- ${command}   `;
+            const commandDescription = await commands[command](interaction, ["--help"]);
+            resp += commandDescription ? `: ${commandDescription}` : "(i'm not sure!)";
+        }
+
+        return resp;
     },
 
     // hi avid pingcremental fans! might attach a badge to this one later, so remember this
     "datamine": (interaction, args) => {
+        if (args[0] === "--help") {
+            return "who knows!"
+        }
+
         if (args[0] === "aIdjbNE") {
             return "wow, you did it!"
         }
@@ -400,7 +436,11 @@ const commands = {
         return "that's not it!"
     },
 
-    "ls": filesRequiredCommand((interaction) => {
+    "ls": filesRequiredCommand((interaction, args) => {
+        if (args[0] === "--help") {
+            return "lists the files in the current directory";
+        }
+
         const currentDirString = getUserDirectory(interaction.user.id);
         const workingDir = getConsoleDir(currentDirString);
         let output = `${currentDirString} CONTENTS`;
@@ -429,10 +469,17 @@ const commands = {
 
         return output;
     }),
-    "pwd": filesRequiredCommand((interaction) => {
+    "pwd": filesRequiredCommand((interaction, args) => {
+        if (args[0] === "--help") {
+            return "prints the current working directory";
+        }
         return getUserDirectory(interaction.user.id);
     }),
     "cd": filesRequiredCommand((interaction, args) => {
+        if (args[0] === "--help") {
+            return "changes the current working directory";
+        }
+
         const dirName = args.join(' ');
         const dirNameSplit = dirName.split('/').filter(d => d.length > 0);
 
@@ -468,6 +515,10 @@ const commands = {
         return;
     }),
     "cat": filesRequiredCommand(async (interaction, args) => {
+        if (args[0] === "--help") {
+            return "displays the contents of a file, optionally decrypting it with a key";
+        }
+
         const fileName = args[0];
         if (!fileName) {
             return "usage: cat <file> [--key <key>]";

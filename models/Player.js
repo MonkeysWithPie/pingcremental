@@ -141,6 +141,18 @@ module.exports = (sequelize) => {
 			set() { return; }
 		},
 
+		consoleUnlocks: {
+			type: DataTypes.STRING,
+			allowNull: false,
+			defaultValue: 'help,ping,echo,ls,pwd,cd,cat',
+			get() {
+				return this.getDataValue('consoleUnlocks').split(',').filter(x => x !== '');
+			},
+			set(value) {
+				this.setDataValue('consoleUnlocks', value.join(','));
+			}
+		},
+
 		// prestige data
 		bp: {
 			type: DataTypes.NUMBER,

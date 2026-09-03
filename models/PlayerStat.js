@@ -32,7 +32,13 @@ module.exports = (sequelize) => {
 
         aptClicks: {
             type: DataTypes.NUMBER,
-            defaultValue: 0,
+            defaultValue: -1,
+            set(val) {
+                if (this.getDataValue('aptClicks') === -1 && val !== 0) {
+                    val++;
+                }
+                this.setDataValue('aptClicks', val);
+            }
         },
 
         bluePings: {

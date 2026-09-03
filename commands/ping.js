@@ -221,12 +221,12 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
     }
 
 
+    const scoreLine = `\`${formatNumber(playerProfile.score, { decimalPlaces: 4, options: playerProfile.formatSettings })} pts\` (**\`+${formatNumber(score, { decimalPlaces: 3, options: playerProfile.formatSettings })}\`**)\n-# ${displayDisplay}`
     try {
         // update ping
         await interaction.update({
             content:
-                `${pingMessage}
-\`${formatNumber(playerProfile.score, { decimalPlaces: 4, options: playerProfile.formatSettings })} pts\` (**\`+${formatNumber(score, { decimalPlaces: 3, options: playerProfile.formatSettings })}\`**)\n-# ${displayDisplay}`,
+                `${pingMessage}\n${scoreLine}`,
             components: components,
             embeds: [],
         });
@@ -235,14 +235,29 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
         if (error.code === 200000) {
             await interaction.update({
                 content:
-                    `this ping message is non-offensive, and contains nothing that will anger AutoMod! (${ping}ms)
-\`${formatNumber(playerProfile.score, true, 4)} pts\` (**\`+${formatNumber(score, true, 3)}\`**)\n-# ${displayDisplay}`,
+                    `this ping message is non-offensive, and contains nothing that will anger AutoMod! (${ping}ms)\n${scoreLine}`,
                 components: components,
                 embeds: [],
             });
         } else {
             throw error; // rethrow if not automod 
         }
+    }
+
+    if (currentEffects.apt && stats.total.aptClicks === -1) {
+        stats.total.aptClicks = 0;
+        await stats.total.save();
+
+        const button = new ButtonBuilder()
+            .setLabel('intriguing!')
+            .setStyle(ButtonStyle.Secondary)
+            .setCustomId('ping:delete')
+        
+        await interaction.followUp({
+            content: `you've just found some **APT**!\nAPT is a special currency used to ping multiple times for you. check it out in ${getEmbeddedCommand(`autoping`)}!`,
+            components: [new ActionRowBuilder().addComponents(button)],
+            flags: MessageFlags.Ephemeral
+        })
     }
 
     if (currentEffects.rare) {

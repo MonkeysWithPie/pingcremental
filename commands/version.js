@@ -28,29 +28,27 @@ module.exports = {
         return;
     },
     async autocomplete(interaction) {
-        if (interaction.options.getSubcommand() === 'view') {
-            const focusedValue = interaction.options.getFocused();
-            const versions = await database.Version.findAll({
-                attributes: ['verNum'],
-                order: [['releasedAt', 'DESC']],
-            });
+        const focusedValue = interaction.options.getFocused();
+        const versions = await database.Version.findAll({
+            attributes: ['verNum'],
+            order: [['releasedAt', 'DESC']],
+        });
 
-            if (!versions || versions.length === 0) {
-                await interaction.respond([]);
-                return;
-            }
-
-            let choices = versions.map(v => v.verNum).filter(v => v.includes(focusedValue));
-            if (choices.length > 25) {
-                choices = choices.slice(0, 25);
-            }
-
-            if (!versions || versions.length === 0) {
-                await interaction.respond([]);
-            }
-
-            await interaction.respond(choices.map(choice => ({ name: choice, value: choice })));
+        if (!versions || versions.length === 0) {
+            await interaction.respond([]);
+            return;
         }
+
+        let choices = versions.map(v => v.verNum).filter(v => v.includes(focusedValue));
+        if (choices.length > 25) {
+            choices = choices.slice(0, 25);
+        }
+
+        if (!versions || versions.length === 0) {
+            await interaction.respond([]);
+        }
+
+        await interaction.respond(choices.map(choice => ({ name: choice, value: choice })));
     },
     buttons: {
         ver: async (interaction, version) => {

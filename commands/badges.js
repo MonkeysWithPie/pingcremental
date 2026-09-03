@@ -89,12 +89,12 @@ module.exports = {
 
 async function getUserPage(interaction, userId, page = 1) {
     const player = await database.Player.findByPk(userId);
-    const badgeCount = player.badges.length
-
+    const badgeCount = player?.badges?.length
+    
     if (!player || badgeCount === 0) {
-        return await interaction.reply({ content: `${getEmoji('badge_none_1')} <@${userId}> has no badges.`, flags: MessageFlags.Ephemeral });
+        return { content: `${getEmoji('badge_none_1')} <@${userId}> has no badges.`, flags: MessageFlags.Ephemeral };
     }
-
+    
     const badges = getBadgesByName(...player.badges).slice((page - 1) * BADGES_PER_PAGE, page * BADGES_PER_PAGE);
 
     const userDisplay = await player.getUserDisplay(interaction.client, database);
@@ -133,7 +133,7 @@ async function getUserPage(interaction, userId, page = 1) {
         )
     }
 
-    return await interaction.reply({ components: [container], flags: MessageFlags.IsComponentsV2 });
+    return { components: [container], flags: MessageFlags.IsComponentsV2 };
 }
 
 function getListPage(interaction, tier, page = 1) {

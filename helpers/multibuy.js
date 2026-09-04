@@ -7,6 +7,19 @@ function getMultiBuyCost(buySetting, upgrade, score, playerUpgradeLevel) {
     let levels = 0;
 
     if (buySetting === 'MAX') {
+        // fallback for upgrades that have a low level, since algorithm below is better
+        // for upgrades with high caps
+        if (upgrade.theoreticalMax < 50) {
+            while (price <= score) {
+                const upgradePrice = upgrade.getPrice(playerUpgradeLevel + levels);
+                if (upgradePrice === null || upgradePrice + price === Infinity) break;
+                price += upgradePrice
+                levels++;
+            }
+
+            return { price, levels }
+        }
+
         // TODO: improve logic here when i'm less tired
         let exp = 0;
         let upperLimitHit = false;

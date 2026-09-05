@@ -2,6 +2,24 @@ const { MessageFlags } = require("discord.js");
 
 const REASONABLE_OOM_THRESHOLD = 6;
 
+function multiBuyExact(upgrade, score, playerUpgradeLevel) {
+    let price = 0;
+    let levels = 0;
+
+    do {
+        const upgradePrice = upgrade.getPrice(playerUpgradeLevel + levels);
+        if (upgradePrice === null || upgradePrice + price === Infinity) break;
+        price += upgradePrice
+        levels++;
+    } while (price <= score)
+
+    if (levels > 1 && price > score) {
+        levels--;
+        price -= upgrade.getPrice(playerUpgradeLevel + levels);
+    }
+    return { price, levels }
+}
+
 function getMultiBuyCost(buySetting, upgrade, score, playerUpgradeLevel) {
     let price = 0;
     let levels = 0;
@@ -10,23 +28,15 @@ function getMultiBuyCost(buySetting, upgrade, score, playerUpgradeLevel) {
         // fallback for upgrades that have a low level, since algorithm below is better
         // for upgrades with high caps
         if (upgrade.theoreticalMax < 50) {
-            while (price <= score) {
-                const upgradePrice = upgrade.getPrice(playerUpgradeLevel + levels);
-                if (upgradePrice === null || upgradePrice + price === Infinity) break;
-                price += upgradePrice
-                levels++;
-            }
-
-            return { price, levels }
+            return multiBuyExact(upgrade, score, playerUpgradeLevel);
         }
 
-        // TODO: improve logic here when i'm less tired
         let exp = 0;
         let upperLimitHit = false;
 
         // find a starting level (for large counts of pts)
         while (true) {
-            price = upgrade.getPrice(levels)
+            price = upgrade.getPrice(playerUpgradeLevel + levels)
             const priceTooHigh = Math.log10(score) - Math.log10(price) < REASONABLE_OOM_THRESHOLD;
             const priceInvalid = price === null || price === Infinity || priceTooHigh
             if (priceInvalid) {
@@ -47,18 +57,24 @@ function getMultiBuyCost(buySetting, upgrade, score, playerUpgradeLevel) {
             }
             if (levels === oldLevel) break;
         }
-        levels--;
-        price = upgrade.getPrice(levels)
+        if (levels > 0) levels--;
         if (playerUpgradeLevel + levels > upgrade.theoreticalMax) {
             levels = upgrade.theoreticalMax - playerUpgradeLevel;
         }
-
+        price = upgrade.getPrice(playerUpgradeLevel + levels);
+        
         // loop through all levels that are affordable
-        while (price <= score) {
+        do {
             const upgradePrice = upgrade.getPrice(playerUpgradeLevel + levels);
             if (upgradePrice === null || upgradePrice + price === Infinity) break;
             price += upgradePrice
             levels++;
+        } while (price <= score)
+
+        // the result is probably inaccurate, so we can just calculate the flat price
+        // TODO improve algorithm so this branch isn't necessary? not that it matters a ton
+        if (levels <= 10) {
+            return multiBuyExact(upgrade, score, playerUpgradeLevel);
         }
 
         // remove the last level that was too expensive (sometimes doesn't happen due to level maxes)

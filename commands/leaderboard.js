@@ -2,6 +2,7 @@ const { SlashCommandBuilder, InteractionContextType, ButtonBuilder, ButtonStyle,
 const database = require('./../helpers/database.js')
 const formatNumber = require('./../helpers/formatNumber.js');
 const { getEmoji } = require('../helpers/emojis.js');
+const { Op } = require('sequelize');
 
 let leaderboardTypes = null;
 
@@ -38,6 +39,9 @@ async function getMessage(interaction, leaderboardType) {
         order: [[leaderboardType, 'DESC']], // highest first
         where: {
             layer: 'total',
+            [leaderboardType]: {
+                [Op.gt]: 0
+            }
         }
     })
     const interactionPlayer = await database.Player.findByPk(interaction.user.id);
@@ -48,7 +52,7 @@ async function getMessage(interaction, leaderboardType) {
             userDisplay = `__${userDisplay}__` // highlight the user's own score
         }
 
-        return `**${userDisplay}** - \`${formatNumber(score, { decimalPlaces: 5, options: interactionPlayer?.formatSettings })}\` ${leaderboardTypes[leaderboard].metric}`
+        return `**${userDisplay}** - \`${formatNumber(score, { decimalPlaces: 6, options: interactionPlayer?.formatSettings })}\` ${leaderboardTypes[leaderboard].metric}\n`
     }
 
     const leaderboardEmojis = []
@@ -71,27 +75,31 @@ async function getMessage(interaction, leaderboardType) {
         showedSelf = showedSelf || (interaction.user.id === player.userId);
     }
 
-    if (!showedSelf) {
-        // find position of the user
-        const userIndex = await topStats.findIndex(async stat => (await stat.getUser()).userId === interaction.user.id);
-
+    // find position of the user
+    const userIndex = await topStats.findIndex(stat => stat.UserUserId === interaction.user.id);
+    if (!showedSelf && userIndex !== -1) {
         // show next user and user below
         if (userIndex >= 12) {
-            description += `\n...`
+            description += `...\n`
         }
 
         if (userIndex >= 11) {
             const statBelow = topStats[userIndex - 1];
-            description += `\n#${userIndex} ${await formatPlayer(await statBelow.getUser(), statBelow[leaderboardType], leaderboardType)}`
+            description += `#${userIndex} ${await formatPlayer(await statBelow.getUser(), statBelow[leaderboardType], leaderboardType)}`
         }
 
-        description += `\n#${userIndex + 1} ${await formatPlayer(interaction.user.id, topStats[userIndex][leaderboardType], leaderboardType)}`
+        const userStat = topStats[userIndex];
+        description += `#${userIndex + 1} ${await formatPlayer(await userStat.getUser(), topStats[userIndex][leaderboardType], leaderboardType)}`
 
         if (userIndex !== topStats.length - 1) {
             const statAbove = topStats[userIndex + 1];
-            description += `\n#${userIndex + 2} ${await formatPlayer(await statAbove.getUser(), statAbove[leaderboardType], leaderboardType)}`
+            description += `#${userIndex + 2} ${await formatPlayer(await statAbove.getUser(), statAbove[leaderboardType], leaderboardType)}`
         }
     }
+    if (description === "") {
+        description = "huh... nobody's here! you could probably be the first!"
+    }
+    description = description.trim();
 
 
     const refreshButton = new ButtonBuilder()

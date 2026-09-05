@@ -27,7 +27,7 @@ module.exports = {
         const command = fullCommand.split(" ")[0];
         const args = fullCommand.split(" ").slice(1) || [];
         const [interactionPlayer] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
-        const userCommandsUnlocked = interactionPlayer.unlockedCommands;
+        const userCommandsUnlocked = interactionPlayer.consoleUnlocks;
 
         let output;
         if (commands[command]) {
@@ -35,7 +35,7 @@ module.exports = {
 
             if (!userCommandsUnlocked.includes(command)) {
                 userCommandsUnlocked.push(command);
-                interactionPlayer.unlockedCommands = userCommandsUnlocked;
+                interactionPlayer.consoleUnlocks = userCommandsUnlocked;
                 await interactionPlayer.save();
             }
         } else {
@@ -407,17 +407,19 @@ const commands = {
         }
 
         const [playerProfile,] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } });
-        const unlockedCommands = playerProfile.unlockedCommands || [];
-        let resp = "Available commands:\n\n";
+        const unlockedCommands = playerProfile.consoleUnlocks || [];
+        let resp = "Available commands:\n";
+
+        const maxLen = Math.max(...(unlockedCommands.map(c => c.length)));
 
         for (const command of unlockedCommands) {
             if (!commands[command]) {
                 console.warn(`player ${interaction.user.id} has unlocked command ${command} but it doesn't exist`);
             }
 
-            resp += `- ${command}   `;
+            resp += `\n- ${command} ${" ".repeat(maxLen - command.length)}| `;
             const commandDescription = await commands[command](interaction, ["--help"]);
-            resp += commandDescription ? `: ${commandDescription}` : "(i'm not sure!)";
+            resp += commandDescription ? `${commandDescription}` : "(i'm not sure!)";
         }
 
         return resp;

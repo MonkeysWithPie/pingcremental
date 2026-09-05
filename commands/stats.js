@@ -145,7 +145,7 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
 
     const basicsText = `__the basics__\n` +
         `${formatNumber(stats.clicks, formatSettings)} ping${stats.clicks === 1 ? '' : 's'}\n` +
-        (stats.aptClicks ? `${formatNumber(stats.aptClicks, formatSettings)} ping${stats.aptClicks === 1 ? '' : 's'} with APT\n` : '') +
+        (stats.aptClicks && stats.aptClicks !== -1 ? `${formatNumber(stats.aptClicks, formatSettings)} ping${stats.aptClicks === 1 ? '' : 's'} with APT\n` : '') +
         `\`${formatNumber(stats.score, formatSettings)} pts\` gained\n` +
         `\`${formatNumber(stats.highScore, formatSettings)} pts\` gained in a single ping\n` +
         `${formatNumber(stats.luckyPings, formatSettings)} lucky ping${stats.luckyPings === 1 ? '' : 's'}\n`;
@@ -155,8 +155,8 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
         const bluePingsText = `__blue pings__\n` +
             `${formatNumber(stats.bluePings, formatSettings)} blue ping${stats.bluePings === 1 ? '' : 's'} clicked\n` +
             `${formatNumber(stats.bluePingsMissed, formatSettings)} missed blue ping${stats.bluePingsMissed === 1 ? '' : 's'}\n` +
-            `${formatNumber(stats.bluePingMissRate, formatSettings)}% blue ping miss rate\n` +
-            `${formatNumber(stats.bluePingAppearRate, formatSettings)}% blue ping average rate\n` +
+            `${formatNumber(stats.bluePingMissRate * 100, formatSettings)}% blue ping miss rate\n` +
+            `${formatNumber(stats.bluePingAppearRate * 100, formatSettings)}% blue ping average rate\n` +
             `${formatNumber(stats.blueStreak, formatSettings)} blue ping${stats.blueStreak === 1 ? '' : 's'} in a row`
         addToContainer(bluePingsText);
     }

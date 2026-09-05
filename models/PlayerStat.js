@@ -15,6 +15,11 @@ module.exports = (sequelize) => {
             type: DataTypes.ENUM(PrestigeLayers)
         },
 
+        legacyStat: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
+
         score: {
             type: DataTypes.NUMBER,
             defaultValue: 0,

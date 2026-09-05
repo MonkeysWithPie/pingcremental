@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, InteractionContextType, MessageFlags, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ContainerBuilder, SeparatorSpacingSize } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, InteractionContextType, MessageFlags, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ContainerBuilder, SeparatorSpacingSize, SectionBuilder } = require('discord.js');
 const database = require('./../helpers/database.js');
 const formatNumber = require('./../helpers/formatNumber.js');
 const { PrestigeLayers } = require('../helpers/commonEnums.js');
@@ -143,29 +143,32 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
         )
     }
 
+    const eternityStatAsterisk = stats.legacyStat ? "*" : "";
+    const allStatAsterisk = (stats.legacyStat && layer === 'eternity') ? "*" : "";
+
     const basicsText = `__the basics__\n` +
         `${formatNumber(stats.clicks, formatSettings)} ping${stats.clicks === 1 ? '' : 's'}\n` +
         (stats.aptClicks && stats.aptClicks !== -1 ? `${formatNumber(stats.aptClicks, formatSettings)} ping${stats.aptClicks === 1 ? '' : 's'} with APT\n` : '') +
-        `\`${formatNumber(stats.score, formatSettings)} pts\` gained\n` +
-        `\`${formatNumber(stats.highScore, formatSettings)} pts\` gained in a single ping\n` +
-        `${formatNumber(stats.luckyPings, formatSettings)} lucky ping${stats.luckyPings === 1 ? '' : 's'}\n`;
+        `\`${formatNumber(stats.score, formatSettings)} pts\` gained${allStatAsterisk}\n` +
+        `\`${formatNumber(stats.highScore, formatSettings)} pts\` gained in a single ping${allStatAsterisk}\n` +
+        `${formatNumber(stats.luckyPings, formatSettings)} lucky ping${stats.luckyPings === 1 ? '' : 's'}${allStatAsterisk}\n`;
     addToContainer(basicsText);
 
     if (stats.bluePings > 0) {
         const bluePingsText = `__blue pings__\n` +
-            `${formatNumber(stats.bluePings, formatSettings)} blue ping${stats.bluePings === 1 ? '' : 's'} clicked\n` +
-            `${formatNumber(stats.bluePingsMissed, formatSettings)} missed blue ping${stats.bluePingsMissed === 1 ? '' : 's'}\n` +
-            `${formatNumber(stats.bluePingMissRate * 100, formatSettings)}% blue ping miss rate\n` +
-            `${formatNumber(stats.bluePingAppearRate * 100, formatSettings)}% blue ping average rate\n` +
-            `${formatNumber(stats.blueStreak, formatSettings)} blue ping${stats.blueStreak === 1 ? '' : 's'} in a row`
+            `${formatNumber(stats.bluePings, formatSettings)} blue ping${stats.bluePings === 1 ? '' : 's'} clicked${allStatAsterisk}\n` +
+            `${formatNumber(stats.bluePingsMissed, formatSettings)} missed blue ping${stats.bluePingsMissed === 1 ? '' : 's'}${allStatAsterisk}\n` +
+            `${formatNumber(stats.bluePingMissRate * 100, formatSettings)}% blue ping miss rate${allStatAsterisk}\n` +
+            `${formatNumber(stats.bluePingAppearRate * 100, formatSettings)}% blue ping average rate${allStatAsterisk}\n` +
+            `${formatNumber(stats.blueStreak, formatSettings)} blue ping${stats.blueStreak === 1 ? '' : 's'} in a row${allStatAsterisk}`
         addToContainer(bluePingsText);
     }
 
     if (stats.eternities > 0) {
         const eternitiesText = `__eternities__\n` +
-            `${formatNumber(stats.eternities, formatSettings)} eternit${stats.eternities === 1 ? 'y' : 'ies'}\n` +
-            `${formatNumber(stats.bp, formatSettings)} BP gained\n` +
-            `${formatNumber(stats.pip, formatSettings)} PIP obtained\n` +
+            `${formatNumber(stats.eternities, formatSettings)} eternit${stats.eternities === 1 ? 'y' : 'ies'}${eternityStatAsterisk}\n` +
+            `${formatNumber(stats.bp, formatSettings)} BP gained${eternityStatAsterisk}\n` +
+            `${formatNumber(stats.pip, formatSettings)} PIP obtained${eternityStatAsterisk}\n` +
             `${formatNumber(stats.removedUpgrades, formatSettings)} upgrades lost from eternities`
         addToContainer(eternitiesText);
     }
@@ -211,11 +214,18 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
         .setLabel('refresh')
         .setStyle(ButtonStyle.Secondary)
 
-    container.addSectionComponents((section) =>
-        section.addTextDisplayComponents((textDisplay) =>
+    const section = new SectionBuilder()
+        .addTextDisplayComponents((textDisplay) =>
             textDisplay.setContent(`as of <t:${Math.floor(when / 1000)}:S>`)
         ).setButtonAccessory(refreshButton)
-    ).addActionRowComponents((actionRow) => actionRow.addComponents(dropdown))
+    if ((layer === "total" && stats.eternities > 0 && stats.legacyStat) || (stats.legacyStat && layer === "eternity")) {
+        section.addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`-# \\*these stats were not recorded until v3.0.0.`)
+        )
+    }
+
+    container.addSectionComponents(section)
+        .addActionRowComponents((actionRow) => actionRow.addComponents(dropdown))
 
     return {
         embeds: [],

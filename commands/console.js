@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageFlags, InteractionContextType, TextInputStyle, LabelBuilder, StringSelectMenuBuilder, ModalBuilder, StringSelectMenuOptionBuilder, TextInputBuilder } = require("discord.js");
+const { SlashCommandBuilder, MessageFlags, InteractionContextType, TextInputStyle, LabelBuilder, StringSelectMenuBuilder, ModalBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, AttachmentBuilder } = require("discord.js");
 const database = require("../helpers/database");
 const util = require("node:util");
 const { cacheCommandIds, getEmbeddedCommand } = require("../helpers/embedCommand");
@@ -45,6 +45,9 @@ module.exports = {
         if (!output) {
             return await interaction.reply({ content: `\`# ${fullCommand}\``, flags: MessageFlags.Ephemeral });
         }
+        if (output instanceof AttachmentBuilder) {
+            return await interaction.reply({ content: `\`# ${fullCommand}\``, files: [output], flags: MessageFlags.Ephemeral });
+        }
         if (output === true) {
             return;
         }
@@ -56,7 +59,7 @@ module.exports = {
 
 
 
-const files = {};
+let files = {};
 
 function registerFiles() {
     let data;
@@ -78,7 +81,7 @@ function registerFiles() {
         const splitLine = line.split(":");
         const fileName = splitLine[0].trim();
         const fileData = splitLine[1]?.split("//")[0].trim().split(" ");
-        const fileTabs = splitLine[0].replace(fileName, "").length / 4;
+        const fileTabs = splitLine[0].replace(fileName, "").length;
 
         while (fileTabs < tabs) {
             if (!currentDir.parent) throw new Error(`${currentDir.name} has no parent (this shouldn't be possible)`);
@@ -118,7 +121,7 @@ function registerFiles() {
                 key = key.trim();
             }
 
-            const newFile = { name: fileName, fileType: fileType, contentPath: contentDir, type: 'file', decryptKey: key, locked: fileData.indexOf(' locked ') !== -1 };
+            const newFile = { name: fileName, fileType: fileType, contentPath: contentDir, type: 'file', decryptKey: key, locked: fileData.indexOf('locked') !== -1 };
 
             currentDir.files.push(newFile);
         }
@@ -157,7 +160,9 @@ function getConsoleFileData(file) {
         }
     }
 
-    return path.join(file.contentPath);
+    const attachment = new AttachmentBuilder(path.join(file.contentPath));
+
+    return attachment;
 }
 
 function getUserDirectory(userId) {
@@ -234,6 +239,8 @@ const commands = {
     "recache": ownerRequiredCommand(async (interaction) => {
         await initEmojis(interaction.client);
         await cacheCommandIds();
+        files = {};
+        registerFiles();
         return "OK!";
     }),
     "data": ownerRequiredCommand(async (interaction, args) => {
@@ -445,7 +452,7 @@ const commands = {
 
         const currentDirString = getUserDirectory(interaction.user.id);
         const workingDir = getConsoleDir(currentDirString);
-        let output = `${currentDirString} CONTENTS`;
+        let output = `${currentDirString} contents`;
 
         for (const file of workingDir.files) {
             if (file.locked) {
@@ -514,14 +521,14 @@ const commands = {
         }
 
         userDirectories[interaction.user.id] = newDirString;
-        return;
+        return commands.ls(interaction, []);
     }),
     "cat": filesRequiredCommand(async (interaction, args) => {
         if (args[0] === "--help") {
             return "displays the contents of a file, optionally decrypting it with a key";
         }
 
-        const fileName = args[0];
+        const fileName = args.join(' ').split(' --')[0].trim();
         if (!fileName) {
             return "usage: cat <file> [--key <key>]";
         }
@@ -569,6 +576,9 @@ const commands = {
             }
         }
         const fileContents = getConsoleFileData(file);
+        if (file.fileType === 'attachment') {
+            return fileContents;
+        }
 
         if (key !== file.decryptKey && file.decryptKey) {
             if (key === undefined) {

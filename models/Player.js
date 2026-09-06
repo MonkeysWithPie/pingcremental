@@ -144,7 +144,7 @@ module.exports = (sequelize) => {
 		consoleUnlocks: {
 			type: DataTypes.STRING,
 			allowNull: false,
-			defaultValue: 'help,ping,echo,ls,pwd,cd,cat',
+			defaultValue: '',
 			get() {
 				return this.getDataValue('consoleUnlocks').split(',').filter(x => x !== '');
 			},

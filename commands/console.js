@@ -31,6 +31,11 @@ module.exports = {
 
         let output;
         if (commands[command]) {
+            if (userCommandsUnlocked.length === 0) {
+                userCommandsUnlocked.push("help", "ping", "echo", "ls", "pwd", "cd", "cat");
+                interactionPlayer.consoleUnlocks = userCommandsUnlocked;
+                await interactionPlayer.save();
+            }
             output = await commands[command](interaction, args);
 
             if (!userCommandsUnlocked.includes(command)) {
@@ -40,6 +45,10 @@ module.exports = {
             }
         } else {
             output = `command not found: ${command}`;
+
+            if (userCommandsUnlocked.length === 0) {
+                output += `\n\nTIP: try using \`# help\` to see a list of available commands`;
+            }
         }
 
         if (!output) {

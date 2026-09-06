@@ -4,7 +4,7 @@ const util = require("node:util");
 const { cacheCommandIds, getEmbeddedCommand } = require("../helpers/embedCommand");
 const { initEmojis } = require("../helpers/emojis");
 const pingMessages = require("../helpers/pingMessage");
-const { readFileSync } = require("node:fs");
+const { readFileSync, existsSync, readdirSync } = require("node:fs");
 const path = require("node:path");
 const { getBadgeByName } = require("../helpers/badgeUtils");
 
@@ -443,6 +443,27 @@ const commands = {
         }
 
         return "that's not it!"
+    },
+
+    "catpic": (interaction, args) => {
+        if (args[0] === "--help") {
+            return "view a random cat picture"
+        }
+
+        const dir = path.join(__dirname, "../data/console/cat");
+        if (!existsSync(dir)) {
+            return "there are no cats! 3:";
+        }
+
+        const files = readdirSync(dir);
+        if (files.length === 0) {
+            return "there are no cats! 3:";
+        }
+
+        const randomFile = files[Math.floor(Math.random() * files.length)];
+        const attachment = new AttachmentBuilder(path.join(dir, randomFile));
+
+        return attachment;
     },
 
     "ls": filesRequiredCommand((interaction, args) => {

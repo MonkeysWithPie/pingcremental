@@ -1,4 +1,4 @@
-const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { PipUpgradeTypes } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
@@ -7,25 +7,27 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "start with __10,000__ pts",
+            description: "start with __10,000__ `pts`",
             name: "Distant Memories",
             emoji: getEmoji('ponder_memory', "🧠"),
             flavor: "your past isn't worthless. don't forget it.",
         }
     },
     getEffectString(level) {
-        return `${level*10}K pts`
+        return `${level*10}K \`pts\``
     },
-    getEffect(level, context) {
+    getEffect() {
         return {
             special: {
                 startPts: 10000,
             },
         }
     },
-    upgradeRequirements() {
-        return { beginning: 1 };
+    unlockRequirements(context) {
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity's Welcome'" };
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 301 },
-    type() { return PipUpgradeTypes.KEEP }
+    type() { return PipUpgradeTypes.KEEP },
+    section() { return 0; }
 }

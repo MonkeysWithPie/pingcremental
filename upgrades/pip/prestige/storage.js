@@ -1,4 +1,4 @@
-const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { PipUpgradeTypes } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
@@ -7,21 +7,23 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "gain __+2,500__ max bp",
+            description: "increase your max bp by __x1.25__",
             name: "Stellar Strength",
             emoji: getEmoji('ponder_storage', "🪐"),
             flavor: "carry the weight of the stars.",
         }
     },
     getEffectString(level) {
-        return `+${(level*2.5).toFixed(1)}K`
+        return `x${((level * 0.25) + 1).toFixed(2)}`;
     },
-    getEffect(level, context) {
-        return {}
+    getEffect(level) {
+        return { special: { bpStorageMult: ((level ? level : 0) * 0.25) + 1 } }
     },
-    upgradeRequirements() {
-        return { beginning: 1 };
+    unlockRequirements(context) {
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity's Welcome'" };
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 401 },
-    type() { return PipUpgradeTypes.PRESTIGE }
+    type() { return PipUpgradeTypes.PRESTIGE },
+    section() { return 0; }
 }

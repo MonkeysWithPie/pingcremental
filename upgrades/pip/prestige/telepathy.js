@@ -1,5 +1,6 @@
-const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { PipUpgradeTypes } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: storageUnlockRequirements } = require('./storage.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -16,16 +17,20 @@ module.exports = {
     getEffectString(level) {
         return `x${((level*0.25) + 1).toFixed(2)}`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             special: {
-                "pip": ((level ? level : 0)*0.25) + 1,
+                pipMult: ((level ? level : 0)*0.25) + 1,
             },
         }
     },
-    upgradeRequirements() {
-        return { storage: 2 };
+    unlockRequirements(context) {
+        if (!(storageUnlockRequirements(context).buyable)) return { showable: false };
+        const storageLevel = context.upgrades.storage || 0;
+        if (storageLevel < 2) return { showable: true, buyable: false, reason: `'Stellar Strength' ${storageLevel}/2` };
+        return { showable: true, buyable: true };
     },
-    sortOrder() { return 403 },
-    type() { return PipUpgradeTypes.PRESTIGE }
+    sortOrder() { return 402 },
+    type() { return PipUpgradeTypes.PRESTIGE },
+    section() { return 0; }
 }

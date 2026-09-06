@@ -1,38 +1,33 @@
-const { UpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: redshiftUnlockRequirements } = require('../blue/redshift.js');
 
 module.exports = {
     getPrice(currentLevel) {
-        let price = 100;
-        let prevPrice = 100;
-        let temp = 0;
-
-        for (let i = 0; i < currentLevel; i++) {
-            temp = prevPrice;
-            prevPrice = price;
-            price += temp;
-        }
-
-        return price;
+        return Math.round(100 * (1.45**(currentLevel)));
     },
     getDetails() {
         return {
-            description: "gain __x1.02__ pts",
+            description: "gain __x1.02__ `pts`",
             name: "fine, just have a multiplier",
-            emoji: getEmoji('upgrade_multiplier', "**X**"),
+            emoji: getEmoji('upgrade_multiplier', "X"),
         }
     },
     getEffectString(level) {
         return `x${(1+level*0.02).toFixed(2)}`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             multiply: 1+level*0.02,
         }
     },
-    isBuyable(context) {
-        return context.upgrades && context.upgrades.redshift;
+    unlockRequirements(context) {
+        if (!redshiftUnlockRequirements(context).buyable) return { showable: false };
+        if (!context.upgrades.redshift) return { showable: true, buyable: false, reason: "buy 'redshift'" };
+
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 14 },
-    type() { return UpgradeTypes.MULT_BONUS }
+    type() { return UpgradeTypes.MULT_BONUS },
+    section() { return PingCalculationStates.SCORING; }
 }

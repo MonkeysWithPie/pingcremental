@@ -1,5 +1,6 @@
-const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: riggedUnlockRequirements } = require('./rigged.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -7,23 +8,29 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "RNG events like rare pings are __x1.5__ as likely to occur",
+            description: "ping __0.5__ extra times, pick the best result (0.5 = 50% of 1 extra)",
             name: "Favored",
             emoji: getEmoji('ponder_favored', "🍀"),
             flavor: "little hints that the universe is on your side.",
         }
     },
     getEffectString(level) {
-        return `x${((level*0.5)+1).toFixed(1)}`
+        return `${(level*0.5).toFixed(1)} pings`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
-            RNGmult: (level*0.5),
+            special: {
+                "rerolls": level * 0.5,
+            }
         }
     },
-    upgradeRequirements() {
-        return { rigged: 1 };
+    unlockRequirements(context) {
+        if (!(riggedUnlockRequirements(context).buyable)) return { showable: false };
+        if (!context.upgrades.rigged) return { showable: true, buyable: false, reason: `buy 'Loaded Dice'` };
+        
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 202 }, // NO WAY CELESTE REFERNECE!?!?/
-    type() { return PipUpgradeTypes.MISC }
+    type() { return PipUpgradeTypes.MISC },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
 }

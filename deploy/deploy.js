@@ -1,5 +1,6 @@
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const { REST, Routes } = require('discord.js');
+const database = require('../helpers/database.js');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -10,10 +11,9 @@ const clientId = process.env.DISCORD_CLIENT_ID;
 if (!clientId) throw new Error('variable in .env missing: DISCORD_CLIENT_ID');
 
 const commands = [];
-// Grab all the command folders from the commands directory you created earlier
-const commandsPath = path.join(__dirname, 'commands');
+const commandsPath = path.join(__dirname, '../commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-// Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
+
 for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
 	const command = require(filePath);
@@ -24,23 +24,31 @@ for (const file of commandFiles) {
 	}
 }
 
-// Construct and prepare an instance of the REST module
 const rest = new REST().setToken(token);
 
-// and deploy your commands!
 (async () => {
 	try {
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
+		
+		await database.CachedCommand.destroy({ where: {} }); // clear old commands
 
-		// The put method is used to fully refresh all commands in the guild with the current set
 		const data = await rest.put(
 			Routes.applicationCommands(clientId),
 			{ body: commands },
 		);
 
+		for (const comm of data) {
+			await database.CachedCommand.upsert({
+				name: comm.name,
+				id: comm.id,
+			});
+		}
+
 		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
 	} catch (error) {
-		// And of course, make sure you catch and log any errors!
 		console.error(error);
+	} finally {
+		await database.CachedCommand.sequelize.close();
+		process.exit(0);
 	}
 })();

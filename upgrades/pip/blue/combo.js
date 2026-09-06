@@ -1,5 +1,6 @@
-const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: indigoUnlockRequirements } = require('./indigo.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -7,7 +8,7 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "gain __1.15x__ pts for each blue ping in the current combo",
+            description: "gain __1.15x__ `pts` for each blue ping in the current combo",
             name: "Chain Combo",
             emoji: getEmoji('ponder_combo', "🔗"),
             flavor: "a rare coincidence twisted to an incredible feat.",
@@ -22,9 +23,14 @@ module.exports = {
         }
         return {}
     },
-    upgradeRequirements() {
-        return { indigo: 4 };
+    unlockRequirements(context) {
+        if (!indigoUnlockRequirements(context).buyable) return { showable: false };
+        const indigoLevel = context.upgrades.indigo || 0;
+        if (indigoLevel < 4) return { showable: true, buyable: false, reason: `'Indigo Vision' ${indigoLevel}/4` };
+
+        return { showable: true, buyable: true };
     },
-    sortOrder() { return 105 },
-    type() { return PipUpgradeTypes.BLUE_PING }
+    sortOrder() { return 106 },
+    type() { return PipUpgradeTypes.BLUE_PING },
+    section() { return PingCalculationStates.SCORING; }
 }

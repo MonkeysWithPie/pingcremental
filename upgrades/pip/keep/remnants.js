@@ -1,9 +1,10 @@
-const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { PipUpgradeTypes } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: memoryUnlockRequirements } = require('./memory.js');
 
 module.exports = {
     getPrice(currentLevel) {
-        return 12**(currentLevel+2) + 1111;
+        return 10**(currentLevel+2) + 1111;
     },
     getDetails() {
         return {
@@ -16,16 +17,21 @@ module.exports = {
     getEffectString(level) {
         return `lv${level}`
     },
-    getEffect(level, context) {
+    getEffect() {
         return {
             special: {
                 upgrades: ['slow','usability','multiplier','blueshift','pipiping',]
             }
         }
     },
-    upgradeRequirements() {
-        return { memory: 2 };
+    unlockRequirements(context) {
+        if (!(memoryUnlockRequirements(context).buyable)) return { showable: false };
+        const memoryLevel = context.upgrades.memory || 0;
+        if (memoryLevel < 2) return { showable: true, buyable: false, reason: `'Distant Memories' ${memoryLevel}/2` };
+        
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 302 },
-    type() { return PipUpgradeTypes.KEEP }
+    type() { return PipUpgradeTypes.KEEP },
+    section() { return 0; }
 }

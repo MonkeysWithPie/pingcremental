@@ -1,46 +1,67 @@
-function formatNumber(num, shortHand = false, decimalPlaces = 2) {
+const Notations = require("@antimatter-dimensions/notations")
+
+const TEMP_REPLACEMENT = "—";
+
+function formatNumber(num, { decimalPlaces = 2, shortHand = true, shortHandPlaces = 0, options = {
+    swapCommas: false,
+    formatMode: "standard",
+} } = {}) {
     if (num === null || num === undefined) return '0'; // handle null or undefined values
     if (!isFinite(num)) return num === Infinity ? 'Infinity' : 'NaN'; // handle special values
 
-    const numStr = num.toString();
-
-    const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', // 10^30
-                      'Dc', 'Ud', 'Dd', 'Td', 'Qtd', 'Qd', 'Sxd', 'Spd', 'Od', 'Nd', // 10^60
-                      'Vg', 'Uvg', 'Dvg', 'Trv', 'Qtv', 'Qiv', 'Sxv', 'Spv', 'Ocv', // 10^87
-                      'Ndv', 'Tg', 'Utg', 'Dtg'];  // 10^99
-
-    //get magnitude
     const magnitude = Math.floor(Math.log10(num));
-
-    //if number is above e100 then just use exponent
-    if (magnitude >= 100) {
-        return num.toExponential(decimalPlaces);
+    let showFullNum;
+    if (options.formatMode === "scientific") { // only notation that uses `1e4` instead of `10k`
+        showFullNum = magnitude <= decimalPlaces;
+    } else {
+        const mag2 = Math.floor(magnitude / 3) * 3;
+        showFullNum = mag2 <= decimalPlaces;
     }
 
-    if (numStr.includes("e")) { 
-        const suffixIndex = Math.floor(magnitude / 3);
-        const baseNum = (num / Math.pow(10, suffixIndex * 3)).toFixed(decimalPlaces);
-        return baseNum + (suffixes[suffixIndex] || '');
+    // e.g. 1,000 with 4 decimals doesn't get rounded to 1.000k, instead being 1,000
+    if (showFullNum || !shortHand) {
+        const integerPart = Math.floor(num);
+        const decimalPart = num - integerPart;
+        if (decimalPart < 1e-6) {
+            return integerPart.toLocaleString().replace(",", options.swapCommas ? "." : ",");
+        }
+
+        const roundedDecimal = decimalPart.toFixed(shortHand ? decimalPlaces - magnitude : shortHandPlaces).slice(2);
+
+        return integerPart.toLocaleString().replace(",", options.swapCommas ? "." : ",") 
+            + (roundedDecimal ? (options.swapCommas ? "," : ".") + roundedDecimal : "");
     }
 
-    if (numStr.length < 4) return numStr;
-
-    const suffixIndex = Math.floor((numStr.length - 1) / 3);
-    if (decimalPlaces >= suffixIndex * 3) {
-        decimalPlaces = suffixIndex * 3;
-        shortHand = false;
+    let notation;
+    switch (options.formatMode) {
+        case "scientific":
+            notation = new Notations.ScientificNotation();
+            break;
+        
+        case "engineering":
+            notation = new Notations.EngineeringNotation();
+            break;
+        
+        case "letters":
+            notation = new Notations.LettersNotation();
+            break;
+        
+        case "standard":
+        default:
+            notation = new Notations.StandardNotation();
     }
 
-    if (!shortHand) {
-        return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    let formatted = notation.format(num, decimalPlaces)
+        .replace(" ", ""); // remove space before suffix
+
+    if (options.swapCommas) {
+        formatted = formatted
+            .replace(",", TEMP_REPLACEMENT)
+            .replace(".", ",")
+            .replace(TEMP_REPLACEMENT, ".");
     }
 
-    const baseNum = (
-        Math.ceil((num * (10 ** (decimalPlaces + 1)) / Math.pow(10, suffixIndex * 3))) /
-        (10 ** (decimalPlaces + 1))
-    ).toFixed(decimalPlaces);
-
-    return baseNum + suffixes[suffixIndex];
+    return formatted;
 }
 
 module.exports = formatNumber;

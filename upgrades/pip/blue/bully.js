@@ -1,9 +1,10 @@
-const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: senseUnlockRequirements } = require('./sense.js');
 
 module.exports = {
     getPrice(currentLevel) {
-        return currentLevel === 0 ? 1814 : null;
+        return currentLevel === 0 ? 814 : null;
     },
     getDetails() {
         return {
@@ -16,14 +17,19 @@ module.exports = {
     getEffectString(level) {
         return level === 0 ? "move" : "delete"
     },
-    getEffect(level, context) {
+    getEffect() {
         return {
-            special: { "bully": context.spawnedSuper },
+            special: { "bully": true },
         }
     },
-    upgradeRequirements() {
-        return { sense: 1 };
+    unlockRequirements(context) {
+        if (!senseUnlockRequirements(context).buyable) return { showable: false };
+        if (!context.upgrades.sense) return { showable: true, buyable: false, reason: "buy 'Sixth Sense'" };
+
+        return { showable: true, buyable: true };
     },
-    sortOrder() { return 103 },
-    type() { return PipUpgradeTypes.BLUE_PING }
+    sortOrder() { return 102 },
+    type() { return PipUpgradeTypes.BLUE_PING },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL; },
+    getMax() { return 1; }
 }

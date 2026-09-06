@@ -1,52 +1,93 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, InteractionContextType, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder, ContainerBuilder, SeparatorSpacingSize } = require('discord.js');
 const { upgrades } = require('./../helpers/upgrades.js')
 const database = require('./../helpers/database.js');
-const { PipUpgradeTypes } = require('./../helpers/upgradeEnums.js');
+const { PipUpgradeTypes } = require('./../helpers/commonEnums.js');
 const formatNumber = require('../helpers/formatNumber.js');
+const { getEmoji } = require('../helpers/emojis.js');
+const { getMultiBuyCost, customMultibuyModalSubmit, parseMultibuySetting } = require('../helpers/multibuy.js');
 
 module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('ponder')
-		.setDescription('Learn to know the limits, and yourself.')
+    data: new SlashCommandBuilder()
+        .setName('ponder')
+        .setDescription('Learn to know the limits, and yourself.')
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
-	async execute(interaction) {
-        await interaction.reply(await getEditMessage(interaction, PipUpgradeTypes.BONUS));
-	},
+    async execute(interaction) {
+        await interaction.reply(await getEditMessage(interaction, PipUpgradeTypes.BONUS, 1));
+    },
     buttons: {
         delete: (async interaction => {
             await interaction.update({ content: "(...)", components: [] });
             await interaction.deleteReply(interaction.message);
         }),
-        category: (async (interaction, newCategory) => {
-            await interaction.update(await getEditMessage(interaction, newCategory));
+        category: (async (interaction, newCategory, buySetting) => {
+            await interaction.update(await getEditMessage(interaction, newCategory, parseMultibuySetting(buySetting)));
         }),
+        multibuy: (async (interaction, buySetting) => {
+            const catButtonRow = interaction.message.components[1];
+            const category = catButtonRow.components.find(button => button.style === ButtonStyle.Primary).customId.split('-')[1];
+
+            buySetting = parseMultibuySetting(buySetting);
+
+            await interaction.update(await getEditMessage(interaction, category, buySetting));
+        }),
+        custommb: (async interaction => {
+            const modal = new ModalBuilder()
+                .setCustomId('ponder:custommb')
+                .setTitle('Custom Multi-Buy Amount')
+                .addLabelComponents(
+                    new LabelBuilder()
+                        .setLabel('Upgrade Count')
+                        .setDescription('Enter a number or "MAX".')
+                        .setTextInputComponent(
+                            new TextInputBuilder()
+                                .setStyle(TextInputStyle.Short)
+                                .setCustomId('value')
+                        )
+                );
+            await interaction.showModal(modal);
+        })
+    },
+    modals: {
+        custommb: (async interaction => {
+            const newBuySetting = await customMultibuyModalSubmit(interaction);
+            if (newBuySetting === undefined || interaction.replied) return; // already returned
+
+            const catButtonRow = interaction.message.components[1];
+            const category = catButtonRow.components.find(button => button.style === ButtonStyle.Primary).customId.split('-')[1];
+
+            return await interaction.update(await getEditMessage(interaction, category, newBuySetting));
+        })
     },
     dropdowns: {
-        buy: (async interaction => {
+        buy: (async (interaction, buySetting) => {
+            buySetting = parseMultibuySetting(buySetting);
+
             const upgradeId = interaction.values[0];
             if (upgradeId === 'none') return await interaction.reply({ content: 'you already got everything.', ephemeral: true });
             const playerData = await database.Player.findByPk(`${interaction.user.id}`);
 
             let playerUpgradeLevel = playerData.prestigeUpgrades[upgradeId] ?? 0;
-            const upgradeClass = upgrades['pip'][upgradeId];
-            const price = upgradeClass.getPrice(playerUpgradeLevel);
-            
+            const upgradeClass = upgrades.pip[upgradeId];
+            const mbr = getMultiBuyCost(buySetting, upgradeClass, playerData.pip, playerUpgradeLevel);
+            const price = mbr.price;
+            const levels = mbr.levels;
+
             if (price > playerData.pip) {
                 const msg = ['oh.']
 
                 const button = new ButtonBuilder()
                     .setCustomId('ponder:delete')
-                    .setLabel(msg[Math.floor(Math.random()*msg.length)])
+                    .setLabel(msg[Math.floor(Math.random() * msg.length)])
                     .setStyle(ButtonStyle.Secondary)
 
                 await interaction.update(await getEditMessage(interaction, upgradeClass.type())); // fix dropdown remaining after failed upgrade
                 return await interaction.followUp({
-                    content: `You can't afford that. (Missing \`${formatNumber(price-playerData.pip)} PIP\`)`,
+                    content: `You can't afford that. (Missing \`${formatNumber(price - playerData.pip, { options: playerData.formatSettings })} PIP\`)`,
                     components: [new ActionRowBuilder().addComponents(button)]
                 })
             }
 
-            playerUpgradeLevel += 1;
+            playerUpgradeLevel += levels;
             playerData.pip -= price;
             playerData.prestigeUpgrades[upgradeId] = playerUpgradeLevel;
             playerData.changed('prestigeUpgrades', true) // this is a hacky way to set the upgrades field, but it works
@@ -64,53 +105,34 @@ module.exports = {
                 }
             }
 
-
             await playerData.save();
 
             const msg = ['alright', 'sure', 'okay', 'uh-huh', 'sure thing'];
+            const followupType = playerData.settings.upgradeFollowup;
+            const ephemeral = followupType === 'ephemeral' || followupType === 'none' ? MessageFlags.Ephemeral : null;
 
             const button = new ButtonBuilder()
                 .setCustomId('ponder:delete')
-                .setLabel(msg[Math.floor(Math.random()*msg.length)])
+                .setLabel(msg[Math.floor(Math.random() * msg.length)])
                 .setStyle(ButtonStyle.Success)
-            
-            await interaction.update(await getEditMessage(interaction, upgradeClass.type()));
 
-            let unlockMessage = "";
-            for (const [checkedUpgradeId, checkedUpgrade] of Object.entries(upgrades['pip'])) {
-                const req = checkedUpgrade.upgradeRequirements();
+            await interaction.update(await getEditMessage(interaction, upgradeClass.type(), buySetting));
 
-                if (playerData.prestigeUpgrades[checkedUpgradeId]) continue; // already unlocked
-                if (!req[upgradeId]) continue; // doesn't require newly unlocked upgrade
-                if (req[upgradeId] > playerUpgradeLevel) continue; // not yet
-
-                let newlyUnlocked = true;
-                for (const [requiredUpgrade, requiredLevel] of Object.entries(req)) {
-                    if (requiredLevel < (playerData.prestigeUpgrades[requiredUpgrade] ?? 0)) {
-                        newlyUnlocked = false;
-                        break;
-                    };
-                }
-                if (!newlyUnlocked) continue;
-
-                unlockMessage += `\n**${checkedUpgrade.getDetails().emoji} ${checkedUpgrade.getDetails().name}**\n${checkedUpgrade.getDetails().description}`
+            if (followupType !== 'none') {
+                return await interaction.followUp({
+                    content: `**${upgradeClass.getDetails().name}** is now level ${playerUpgradeLevel}. (\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\` left)`,
+                    components: [new ActionRowBuilder().addComponents(button)],
+                    flags: ephemeral
+                })
             }
-            if (unlockMessage !== "") {
-                unlockMessage = "\nYou also unlocked:\n" + unlockMessage;
-            }
-
-            return await interaction.followUp({
-                content: `**${upgradeClass.getDetails().name}** is now level ${playerUpgradeLevel}. (\`${formatNumber(playerData.pip)} PIP\` left)${unlockMessage}`,
-                components: [new ActionRowBuilder().addComponents(button)]
-            })
         })
     }
 }
 
-async function getEditMessage(interaction, category) {
-    
-    const [playerData, _created] = await database.Player.findOrCreate({ where: { userId: interaction.user.id }})
-    if (!playerData.prestigeUpgrades.beginning && !playerData.pip) {
+async function getEditMessage(interaction, category, buySetting) {
+    const [playerData,] = await database.Player.findOrCreate({ where: { userId: interaction.user.id } })
+    const stats = await playerData.stats();
+    if (stats.total.eternities === 0) {
         const button = new ButtonBuilder()
             .setCustomId('ponder:delete')
             .setLabel('oh... okay')
@@ -121,48 +143,83 @@ async function getEditMessage(interaction, category) {
         }
     }
 
-    const buttonRow = new ActionRowBuilder();
-    for (const [_key, cat] of Object.entries(PipUpgradeTypes)) {
+    const categoryRow = new ActionRowBuilder();
+    for (const [, cat] of Object.entries(PipUpgradeTypes)) {
         const button = new ButtonBuilder()
-            .setCustomId(`ponder:category-${cat}`)
+            .setCustomId(`ponder:category-${cat}-${buySetting}`)
             .setLabel(cat)
             .setStyle(category === cat ? ButtonStyle.Primary : ButtonStyle.Secondary)
-            .setDisabled(category === cat)
-        buttonRow.addComponents(button)
+        categoryRow.addComponents(button)
     }
 
     const pUpgrades = playerData.prestigeUpgrades
     const select = new StringSelectMenuBuilder()
-        .setCustomId('ponder:buy')
+        .setCustomId(`ponder:buy-${buySetting}`)
         .setPlaceholder('pick an upgrade')
-    let description = `You have **__\`${formatNumber(playerData.pip)} PIP\`__**. Spend wisely.`
-    const embed = new EmbedBuilder()
-        .setTitle("Ponder")
-        .setColor("#162b94")
 
-    for (const [upgradeId, upgrade] of Object.entries(upgrades['pip'])) {
+    const description = `You have **__\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\`__**. Spend wisely.
+You're buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: playerData.formatSettings }) : buySetting}** upgrade${buySetting === 1 ? '' : 's'} at a time.\n`
+
+    const container = new ContainerBuilder()
+        .setAccentColor(0x162b94)
+        .addTextDisplayComponents((textDisplay) => textDisplay.setContent("### Ponder \n" + description))
+
+    const multiBuys = [1, 3, 10, 'MAX']
+    const multiBuyButtons = []
+    for (const multiBuy of multiBuys) {
+        const button = new ButtonBuilder()
+            .setCustomId(`ponder:multibuy-${multiBuy}`)
+            .setLabel(`x${multiBuy}`)
+            .setStyle(multiBuy === buySetting ? ButtonStyle.Primary : ButtonStyle.Secondary)
+            .setDisabled(multiBuy === buySetting)
+        multiBuyButtons.push(button)
+    }
+    multiBuyButtons.push(
+        new ButtonBuilder()
+            .setCustomId('ponder:custommb')
+            .setLabel('custom...')
+            .setStyle(ButtonStyle.Secondary)
+    )
+    container.addActionRowComponents((actionRow) => actionRow.addComponents(multiBuyButtons))
+        .addSeparatorComponents((separator) =>
+            separator.setSpacing(SeparatorSpacingSize.Small)
+        )
+
+    function addToContainer(text) {
+        container.addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(text)
+        )
+    }
+
+    const context = { upgrades: pUpgrades };
+
+    for (const [upgradeId, upgrade] of Object.entries(upgrades.pip)) {
         const upgradeLevel = pUpgrades[upgradeId] ?? 0
-        if (upgrade.type() != category) continue;
+        if (upgrade.type() !== category) continue;
 
-        let canBuy = true;
-        for (const [requiredUpgrade, requiredLevel] of Object.entries(upgrade.upgradeRequirements())) {
-            canBuy = !(pUpgrades[requiredUpgrade] === undefined || pUpgrades[requiredUpgrade] < requiredLevel) && canBuy; // check if upgrade is unlocked
-        }
-        if (!canBuy) continue;
-
-        if (upgrade.getPrice(upgradeLevel) === null) {
-            description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (MAX)**\n*"${upgrade.getDetails().flavor}"*\n${upgrade.getDetails().description}\nCurrently ${upgrade.getEffectString(upgradeLevel)}` 
+        const unlocked = upgrade.unlockRequirements(context);
+        if (!unlocked.showable) continue;
+        if (!unlocked.buyable) {
+            addToContainer(`-# ${getEmoji('locked', '🔒')} locked upgrade | *${unlocked.reason}*`)
             continue;
         }
 
-        description += `\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${upgradeLevel})**
+        if (upgrade.getPrice(upgradeLevel) === null) {
+            addToContainer(`**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (MAX)**\n*"${upgrade.getDetails().flavor}"*\n${upgrade.getDetails().description}\nCurrently ${upgrade.getEffectString(upgradeLevel)}`)
+            continue;
+        }
+
+        const { price, levels } = getMultiBuyCost(buySetting, upgrade, playerData.pip, upgradeLevel);
+
+        const maxSuffix = upgrade.getMax ? `/${upgrade.getMax()}` : ""
+        addToContainer(`\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatSettings })}${maxSuffix})**
 *"${upgrade.getDetails().flavor}"*
 ${upgrade.getDetails().description}
-${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel+1)} for \`${formatNumber(upgrade.getPrice(upgradeLevel))} PIP\`` 
+${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, { decimalPlaces: 3, options: playerData.formatSettings })} PIP\``)
 
         select.addOptions(
             new StringSelectMenuOptionBuilder()
-                .setLabel(`${upgrade.getDetails().name} | ${upgrade.getPrice(upgradeLevel)} PIP`)
+                .setLabel(`${upgrade.getDetails().name} | ${formatNumber(price, { options: playerData.formatSettings })} PIP`)
                 .setValue(upgradeId)
         )
     }
@@ -176,8 +233,7 @@ ${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLev
         )
     }
 
+    container.addActionRowComponents((actionRow) => actionRow.addComponents(select))
 
-    embed.setDescription(description)
-
-    return { embeds: [embed], components: [buttonRow, new ActionRowBuilder().addComponents(select)] }
+    return { embeds: [], components: [container, categoryRow], flags: MessageFlags.IsComponentsV2 }
 }

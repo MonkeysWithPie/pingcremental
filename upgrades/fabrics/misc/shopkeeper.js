@@ -1,0 +1,26 @@
+const { FabricUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
+
+module.exports = {
+    getPrice() {
+        return 83;
+    },
+    getDetails() {
+        return {
+            description: 
+`unlocks 4 new \`pts\` upgrades, marked with "[🛍️]".
+-# these upgrades won't work if you don't have this fabric equipped.`,
+            name: "Shopkeeper's Fabric",
+            emoji: "🛍️",
+        }
+    },
+    getEffect() {
+        return {
+            special: {
+                allowShopkeeperUpgrades: true,
+            }
+        };
+    },
+    type() { return FabricUpgradeTypes.MISC },
+    isUnique() { return true; },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
+}

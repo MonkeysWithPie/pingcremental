@@ -1,5 +1,6 @@
-const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: favoredUnlockRequirements } = require('../misc/favored.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -7,7 +8,7 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "flip a coin until you land on heads, and gain __+10%__ (additive) pts for every tails you land on",
+            description: "flip a coin until you land on heads, and gain __+10%__ (additive) `pts` for every tails you land on",
             name: "Eternal Coinflip",
             emoji: getEmoji('ponder_coinflip', "🪙"),
             flavor: "the coin has been flipping endlessly from the moment it was tossed.", // this is a phigros reference!
@@ -34,13 +35,20 @@ module.exports = {
             return {
                 multiply: mult,
                 message: `${tails} tails`,
+                special: {
+                    coinflipCount: tails,
+                }
             }
         }
         return {};
     },
-    upgradeRequirements() {
-        return { favored: 1 };
+    unlockRequirements(context) {
+        if (!(favoredUnlockRequirements(context).buyable)) return { showable: false };
+        if (!context.upgrades.favored) return { showable: true, buyable: false, reason: `buy 'Favored'` };
+
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 4 },
-    type() { return PipUpgradeTypes.BONUS }
+    type() { return PipUpgradeTypes.BONUS },
+    section() { return PingCalculationStates.SCORING; }
 }

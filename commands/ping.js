@@ -4,6 +4,7 @@ const ownerId = process.env.OWNER_ID
 const formatNumber = require('./../helpers/formatNumber.js')
 const ping = require('./../helpers/pingCalc.js');
 const awardBadge = require('../helpers/awardBadge.js');
+const { getEmbeddedCommand } = require('../helpers/embedCommand.js');
 const database = require('../helpers/database.js');
 
 module.exports = {
@@ -19,7 +20,7 @@ module.exports = {
         const row = new ActionRowBuilder()
             .addComponents(again);
 
-        let pingmessage = pingMessages(interaction.client.ws.ping, { user: interaction.user })
+        const pingmessage = pingMessages(interaction.client.ws.ping, { user: interaction.user })
 
         await interaction.reply({
             content: `${pingmessage}`,
@@ -63,25 +64,25 @@ async function pingResponse(interaction, isSuper = false) {
         })
     }
 
-    let againId = 'ping:again';
-    const again = new ButtonBuilder()
-        .setCustomId(againId)
-        .setLabel('ping again!')
-        .setStyle(ButtonStyle.Secondary);
-    let row = new ActionRowBuilder();
-
     if (interaction.client.ws.ping === -1 && !developmentMode) { // bot just restarted
-        row.addComponents(again, new ButtonBuilder()
-            .setCustomId('ping:unknown')
-            .setLabel('unknown ms?')
-            .setStyle(ButtonStyle.Secondary));
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('ping:again')
+                .setLabel('ping again!')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId('ping:unknown')
+                .setLabel('unknown ms?')
+                .setStyle(ButtonStyle.Secondary));
         return await interaction.update({ // return early 
             content: `${pingMessages(interaction.client.ws.ping, { user: interaction.user })}`,
-            components: [row]
+            components: [row],
+            embeds: [],
         })
     }
 
-    const {score, displays, currentEffects, context} = await ping(interaction, isSuper, { developmentMode});
+    const { score, displays, currentEffects, context } = await ping(interaction, isSuper, { developmentMode });
+
     const playerProfile = await database.Player.findByPk(`${interaction.user.id}`);
     const pingFormat = playerProfile.settings.pingFormat || "expanded";
 
@@ -94,71 +95,85 @@ async function pingResponse(interaction, isSuper = false) {
         playerProfile.glimmerClicks += currentEffects.specials.glimmer;
     }
 
-    const rowComponents = [];
-    // blue ping handling
-    if (!currentEffects.specials.budge) {
-        rowComponents.push(again);
-    }
-    // check if blue ping should trigger
-    if (currentEffects.spawnedSuper) {
-        playerProfile.bluePings += 1;
-        const superPing = new ButtonBuilder()
-            .setCustomId('ping:super')
-            .setLabel(`blue ping!${isSuper ? ` x${currentEffects.blueCombo + 1}` : ''}`)
-            .setStyle(ButtonStyle.Primary);
-        rowComponents.push(superPing);
-    }
-    if (currentEffects.specials.budge) {
-        if (!currentEffects.specials.bully) rowComponents.push(again);
-    }
-
     /* SAVE STATS */
-
     context.totalScore = playerProfile.score + score;
     const pingMessage = pingMessages(context.ping, context); // get the ping message
 
+    const stats = await playerProfile.stats();
+
     // click saving
-    playerProfile.clicks += 1;
-    playerProfile.totalClicks += 1;
-    if (playerProfile.clicks > playerProfile.totalClicks) playerProfile.totalClicks = playerProfile.clicks; // make sure total clicks is always higher than clicks
-    if (currentEffects.rare) playerProfile.luckyPings += 1;
-    if (currentEffects.blueCombo > playerProfile.highestBlueStreak) playerProfile.highestBlueStreak = currentEffects.blueCombo;
+    playerProfile.increaseStat('clicks', 1);
+    if (currentEffects.rare) playerProfile.increaseStat('luckyPings', 1);
     if (!isSuper) {
         let missed = false;
-        for (const messageButton of interaction.message.components[0].components) { // check every button in the first row
-            if (messageButton.data.custom_id === 'ping:super') {
-                missed = true;
-                break;
+        for (const row of interaction.message.components) {
+            for (const messageButton of row.components) {
+                if (messageButton.data.custom_id === 'ping:super') {
+                    missed = true;
+                    break;
+                }
             }
         }
-        if (missed) playerProfile.bluePingsMissed += 1; // if the button is still there, it means they didn't click it
+        if (missed) playerProfile.increaseStat('bluePingsMissed', 1); // if the button is still there, it means they didn't click it
+    }
+    if (isSuper) playerProfile.increaseStat('bluePings', 1);
+
+    // high score and streak saving
+    for (const layerStat of Object.values(stats)) {
+        if (currentEffects.blueCombo > layerStat.blueStreak)
+            layerStat.blueStreak = currentEffects.blueCombo;
+
+        if (score > layerStat.highScore)
+            layerStat.highScore = score;
+
+        if (currentEffects.specials.artisanCombo > layerStat.highestArtisanCombo)
+            layerStat.highestArtisanCombo = currentEffects.specials.artisanCombo;
+        if (currentEffects.specials.orchestraCombo > layerStat.highestOrchestraCombo)
+            layerStat.highestOrchestraCombo = currentEffects.specials.orchestraCombo;
+        if (currentEffects.specials.coinflipCount > layerStat.highestCoinflipCount)
+            layerStat.highestCoinflipCount = currentEffects.specials.coinflipCount;
+        if (currentEffects.specials.pigScore > layerStat.highestPigScore)
+            layerStat.highestPigScore = currentEffects.specials.pigScore;
+
+        if (layerStat.changed) await layerStat.save();
     }
 
     // score saving
     playerProfile.score += score;
-    playerProfile.totalScore += score;
-    if (playerProfile.highestScore < score) playerProfile.highestScore = score;
 
     // etc
     playerProfile.bp = Math.min(currentEffects.bp + playerProfile.bp, currentEffects.bpMax);
+    playerProfile.apt += currentEffects.apt || 0;
     playerProfile.lastPing = Date.now();
 
 
     // badges
-    if (currentEffects.blueCombo >= 10) { 
-        await awardBadge(interaction.user.id, 'blue stupor', interaction.client); 
+    if (currentEffects.blueCombo >= 10) {
+        await awardBadge(interaction.user.id, 'blue stupor', interaction.client);
     }
     if (currentEffects.rare) {
         await awardBadge(interaction.user.id, 'lucky', interaction.client);
     }
-    if (playerProfile.totalClicks >= 10000) {
+    if (stats.total.clicks >= 10000) {
         await awardBadge(interaction.user.id, 'heavy hands', interaction.client);
+    }
+    if (stats.eternity.clicks === 1 && score > 100000) {
+        await awardBadge(interaction.user.id, 'jumpstart', interaction.client);
+    }
+    if (currentEffects.specials.glimmer <= -5) {
+        await awardBadge(interaction.user.id, 'hall of mirrors', interaction.client);
+    }
+    if (currentEffects.specials.artisanCombo >= 250) {
+        await awardBadge(interaction.user.id, 'craftmaster', interaction.client);
+    }
+    if (currentEffects.specials.orchestraCombo >= 100) {
+        await awardBadge(interaction.user.id, 'maestro', interaction.client);
     }
 
     await playerProfile.save();
 
-    // show upgrade popup after 150 clicks
-    if (playerProfile.totalClicks === 150) {
+    // show upgrade popup when it unlocks
+    if (stats.total.clicks === 50) {
         const button = new ButtonBuilder()
             .setLabel('that looks important...')
             .setStyle(ButtonStyle.Secondary)
@@ -169,68 +184,162 @@ async function pingResponse(interaction, isSuper = false) {
         return await interaction.update({
             content:
                 `${pingMessage}
-you have a lot of pts... why don't you go spend them over in </upgrade:1360377407109861648>?`, // TODO: change to dynamically use ID
-            components: [disabledRow]
+you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCommand(`upgrade`)}?`,
+            components: [disabledRow],
+            embeds: [],
         })
     }
 
+    let components = getButtonRows(currentEffects);
+
     if (currentEffects.rare) {
-        row = new ActionRowBuilder()
+        components = [new ActionRowBuilder()
             .addComponents(new ButtonBuilder()
                 .setCustomId('ping:again')
                 .setLabel('whoa!')
                 .setStyle(ButtonStyle.Success)
                 .setDisabled(true),
-            );
-    } else {
-        row = new ActionRowBuilder()
-            .addComponents(rowComponents);
+            )];
     }
 
     let displayDisplay = ""
     for (const dispType of ['add', 'mult', 'exponents', 'extra']) {
         const display = displays[dispType];
         if (display.length === 0) continue; // skip empty displays
-        if (pingFormat === "expanded") {
-            displayDisplay += ", " + display.join(', ') 
-        } else {
-            displayDisplay += ", " + display.join(' ')
-        }
-
+        displayDisplay += ", " + formatDisplay(display, pingFormat);
     }
     displayDisplay = displayDisplay.substring(2); // remove first comma and space
-    
+
     if (currentEffects.bp) {
-        displayDisplay += `\n-# \`${formatNumber(Math.ceil(playerProfile.bp))}/${formatNumber(currentEffects.bpMax)} bp\`${playerProfile.bp >= currentEffects.bpMax ? " **(MAX)**" : ""} `
-        displayDisplay += displays.bp.join(', ');
+        displayDisplay += `\n-# \`${formatNumber(Math.ceil(playerProfile.bp, { options: playerProfile.formatSettings }))}/${formatNumber(currentEffects.bpMax, { options: playerProfile.formatSettings })} bp\`${playerProfile.bp >= currentEffects.bpMax ? " **(MAX)**" : ""} `
+        displayDisplay += formatDisplay(displays.bp, pingFormat);
     }
 
+    if (currentEffects.apt) {
+        displayDisplay += `\n-# \`${formatNumber(playerProfile.apt, { options: playerProfile.formatSettings })} APT\` `
+        displayDisplay += formatDisplay(displays.apt, pingFormat);
+    }
+
+
+    const scoreLine = `\`${formatNumber(playerProfile.score, { decimalPlaces: 4, options: playerProfile.formatSettings })} pts\` (**\`+${formatNumber(score, { decimalPlaces: 3, options: playerProfile.formatSettings })}\`**)\n-# ${displayDisplay}`
     try {
         // update ping
         await interaction.update({
             content:
-                `${pingMessage}
-\`${formatNumber(playerProfile.score, true, 4)} pts\` (**\`+${formatNumber(score, true, 3)}\`**)\n-# ${displayDisplay}`,
-            components: [row]
+                `${pingMessage}\n${scoreLine}`,
+            components: components,
+            embeds: [],
         });
     } catch (error) {
         // automod error, since it doesn't like some messages
-        if (error.code == 200000) {
+        if (error.code === 200000) {
             await interaction.update({
                 content:
-                    `this ping message is non-offensive, and contains nothing that will anger AutoMod! (${ping}ms)
-\`${formatNumber(playerProfile.score, true, 4)} pts\` (**\`+${formatNumber(score, true, 3)}\`**)\n-# ${displayDisplay}`,
-                components: [row]
+                    `this ping message is non-offensive, and contains nothing that will anger AutoMod! (${ping}ms)\n${scoreLine}`,
+                components: components,
+                embeds: [],
             });
         } else {
             throw error; // rethrow if not automod 
         }
     }
 
+    if (currentEffects.apt && stats.total.aptClicks === -1) {
+        stats.total.aptClicks = 0;
+        await stats.total.save();
+
+        const button = new ButtonBuilder()
+            .setLabel('intriguing!')
+            .setStyle(ButtonStyle.Secondary)
+            .setCustomId('ping:delete')
+        
+        await interaction.followUp({
+            content: `you've just found some **APT**!\nAPT is a special currency used to ping multiple times for you. check it out in ${getEmbeddedCommand(`autoping`)}!`,
+            components: [new ActionRowBuilder().addComponents(button)],
+            flags: MessageFlags.Ephemeral
+        })
+    }
+
     if (currentEffects.rare) {
         await (new Promise(resolve => setTimeout(resolve, 2000))); // wait a bit
         await interaction.editReply({
-            components: [new ActionRowBuilder().addComponents(rowComponents)], // refresh buttons
+            components: getButtonRows(currentEffects), // refresh buttons
         })
+    }
+}
+
+function getButtonRows(currentEffects) {
+    if (currentEffects.specials.artisan) {
+        const rows = [];
+        const againRow = new ActionRowBuilder();
+
+        let ind = 0;
+        for (const symbol of currentEffects.artisanNextSymbols) {
+            const artisanButton = new ButtonBuilder()
+                .setCustomId(`ping:again-${ind}`)
+                .setLabel(`${symbol} ping again!`)
+                .setStyle(ButtonStyle.Secondary);
+            againRow.addComponents(artisanButton);
+            ind++;
+        }
+
+        if (!(currentEffects.specials.budge) || !(currentEffects.spawnedSuper)) {
+            rows.push(againRow);
+        }
+
+        if (currentEffects.spawnedSuper) {
+            const superRow = new ActionRowBuilder()
+            ind = 0;
+
+            for (const symbol of currentEffects.artisanNextSymbols.reverse()) {
+                const superPing = new ButtonBuilder()
+                    .setCustomId(`ping:super-${ind}`)
+                    .setLabel(`${symbol} blue ping!${currentEffects.blueCombo > 0 ? ` x${currentEffects.blueCombo + 1}` : ''}`)
+                    .setStyle(ButtonStyle.Primary);
+                superRow.addComponents(superPing);
+                ind++;
+            }
+
+            rows.push(superRow);
+        }
+
+        if (currentEffects.spawnedSuper && currentEffects.specials.budge && !(currentEffects.specials.bully)) {
+            rows.push(againRow);
+        }
+
+        return rows;
+    }
+
+    const row = new ActionRowBuilder();
+
+    const again = new ButtonBuilder()
+        .setCustomId('ping:again')
+        .setLabel('ping again!')
+        .setStyle(ButtonStyle.Secondary);
+
+    if (!(currentEffects.specials.budge) || !(currentEffects.spawnedSuper)) {
+        row.addComponents(again);
+    }
+
+    if (currentEffects.spawnedSuper) {
+        const superPing = new ButtonBuilder()
+            .setCustomId('ping:super')
+            .setLabel(`blue ping!${currentEffects.blueCombo > 0 ? ` x${currentEffects.blueCombo + 1}` : ''}`)
+            .setStyle(ButtonStyle.Primary);
+        row.addComponents(superPing);
+    }
+
+    if (currentEffects.spawnedSuper && currentEffects.specials.budge && !(currentEffects.specials.bully)) {
+        row.addComponents(again);
+    }
+
+    return [row];
+}
+
+function formatDisplay(display, format) {
+    if (format === "expanded") {
+        return display.join(', ');
+    } else if (format === "compact") {
+        return display.join(' ');
     }
 }

@@ -1,30 +1,32 @@
-const { UpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
     getPrice(currentLevel) {
-        if (currentLevel*0.5 >= 10) return null; // 10% max
-        return 350 * (2**currentLevel)
+        if (currentLevel >= 30) return null; // 30% max
+        return Math.round(350 * (1.35**currentLevel))
     },
     getDetails() {
         return {
-            description: "__+0.5%__ (additive) chance to get x3 pts",
+            description: "__+1%__ (additive) chance to get x3 `pts`",
             name: "pipiping",
             emoji: getEmoji('upgrade_pipiping', "🔁"),
         }
     },
     getEffectString(level) {
-        return `${(level*0.5).toFixed(1)}%`
+        return `${level}%`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
-            multiply: Math.random()*1000 <= (level*5) ? 3 : undefined,
+            multiply: Math.random()*1000 <= (level*10) ? 3 : undefined,
         }
     },
-    isBuyable(context) {
-        return true;
+    unlockRequirements() {
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 5 },
 
-    type() { return UpgradeTypes.MULT_BONUS }
+    type() { return UpgradeTypes.MULT_BONUS },
+    section() { return PingCalculationStates.SCORING; },
+    getMax() { return 30; }
 }

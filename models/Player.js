@@ -68,6 +68,10 @@ module.exports = (sequelize) => {
 			this._pendingStatIncreases ??= {};
 			this._pendingStatIncreases[key] = (this._pendingStatIncreases[key] || 0) + count;
 		}
+
+		static associate(db) {
+			this.hasMany(db.PlayerStat, { as: 'rawStat' });
+		}
 	}
 
 	User.init({

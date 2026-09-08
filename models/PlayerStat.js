@@ -2,7 +2,11 @@ const { Model, DataTypes } = require("sequelize");
 const { PrestigeLayers } = require("../helpers/commonEnums");
 
 module.exports = (sequelize) => {
-    class UserStats extends Model {}
+    class UserStats extends Model {
+        static associate(db) {
+            this.belongsTo(db.Player);
+        }
+    }
 
     UserStats.init({
         id: {

@@ -10,6 +10,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.0.1",
-    "globals": "^17.3.0"
+    "globals": "^17.3.0",
+    "sequelize-cli": "^6.6.5"
   }
 }

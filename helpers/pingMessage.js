@@ -595,7 +595,7 @@ function get(ping, context) {
 
     // only if player was clicking (can't appear with /ping, only on button press)
     if (context.score) {
-        const totalClicks = context.stats.total.clicks;
+        const totalClicks = context.stats ? context.stats.total.clicks : 0;
         if (Math.random() * 100 <= 7) messagesList = [
             `i don't know if i made this clicking too addictive. sorry in advance`,
             `number go up!`,
@@ -888,7 +888,7 @@ function get(ping, context) {
             "bot rebooted but left its consciousness behind",
             "this ping has no ping.. very paradoxical",
         ]
-        if (context.stats.total.eternities > 0) {
+        if (context.stats && context.stats.total.eternities > 0) {
             messagesList.push(
                 "milliseconds? buddy, we're talking *eternities*... and not the prestige layer",
             )

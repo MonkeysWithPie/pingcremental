@@ -167,15 +167,16 @@ async function ping(interaction, isSuper = false, overrides = {}) {
             displays.mult.push(`${getEmoji('upgrade_blue')}`)
         }
 
-        for (const row of interaction.message.components) {
-            for (const messageButton of row.components) {
-                if (messageButton.data.custom_id.startsWith('ping:super')) {
-                    context.blueCombo = (parseInt(messageButton.data.label.split('x')[1]) || 1); // get the current combo
+        if (!overrides.blueCombo) 
+            for (const row of interaction.message.components) {
+                for (const messageButton of row.components) {
+                    if (messageButton.data.custom_id.startsWith('ping:super')) {
+                        context.blueCombo = (parseInt(messageButton.data.label.split('x')[1]) || 1); // get the current combo
+                    }
                 }
             }
-        }
 
-        if (overrides.blueCombo) {
+        else {
             context.blueCombo = overrides.blueCombo;
         }
     }

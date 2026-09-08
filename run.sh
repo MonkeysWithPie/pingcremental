@@ -1,8 +1,7 @@
 echo "Starting.."
 while true
 do
-    node deploy/dbInit.js
-    node deploy/deploy.js
+    node deploy.js
 
     node .
     echo ".."

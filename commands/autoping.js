@@ -200,8 +200,8 @@ async function doAutoping(interaction, count) {
     // re-fetch in case stats changed while autoping was active
     player = await database.Player.findByPk(interaction.user.id);
 
-    player.slumberClicks += Math.max(storedCache.profile.slumberClicks, 0);
-    player.glimmerClicks += Math.max(storedCache.profile.glimmerClicks, 0);
+    player.slumberClicks = Math.max(storedCache.profile.slumberClicks, 0);
+    player.glimmerClicks = Math.max(storedCache.profile.glimmerClicks, 0);
 
     // wow that's a lot of stats
     player.apt -= pings;

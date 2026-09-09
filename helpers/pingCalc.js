@@ -68,6 +68,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         upgrades: playerProfile.upgrades,
         totalFabrics: Object.keys(playerProfile.ownedFabrics).length,
         stats: await playerProfile.stats(),
+        formatOptions: playerProfile.formatSettings,
 
         // per-upgrade vars
         slumberClicks: playerProfile.slumberClicks,

@@ -1,5 +1,6 @@
 const { getEmbeddedCommand } = require('./embedCommand.js');
 const { getEmoji } = require('./emojis.js');
+const formatNumber = require('./formatNumber.js');
 
 function get(ping, context) {
     // base messages
@@ -596,10 +597,13 @@ function get(ping, context) {
     // only if player was clicking (can't appear with /ping, only on button press)
     if (context.score) {
         const totalClicks = context.stats ? context.stats.total.clicks : 0;
+
+        const formattedClicks = formatNumber(totalClicks, { shortHand: false, options: context.formatOptions });
+        const formattedScore = formatNumber(context.score, { options: context.formatOptions });
         if (Math.random() * 100 <= 7) messagesList = [
             `i don't know if i made this clicking too addictive. sorry in advance`,
             `number go up!`,
-            `did you know \`1,000,000 pts\` is called a megapt?`,
+            `did you know \`${formatNumber(1e6, { options: context.formatOptions, shortHand: false })} pts\` is called a megapt?`,
             `if you keep clicking like this, you'll be the next clicker extraordinaire`,
             "i'm glad it's a button and not a command",
             `hopefully this ping isn't too much to deal with while you click away`,
@@ -613,15 +617,15 @@ function get(ping, context) {
             `i'm so glad they let you ping eternally`,
             `you're currently #${Math.ceil(Math.random() * 10)} in the world! just kidding, i can't be bothered to check, you can check ${getEmbeddedCommand("leaderboard")} though`,
             `do you actually care about my ping? or do you just want \`pts\`? it's okay, i don't mind`,
-            totalClicks >= 100 ? `${totalClicks} is a pretty big amount of pings` : `you've pinged me ${totalClicks} times`,
-            totalClicks >= 1000 ? `is the carpal tunnel setting in yet? with your ${totalClicks} pings?` : `you've pinged me ${totalClicks} times`,
+            totalClicks >= 100 ? `${formattedClicks} is a pretty big amount of pings` : `you've pinged me ${formattedClicks} times`,
+            totalClicks >= 500 ? `you've clicked ${formattedClicks} times. is your mouse okay?` : `you've clicked ${formattedClicks} times. that's like, medium pinger level`,
+            totalClicks >= 1000 ? `is the carpal tunnel setting in yet? with your ${formattedClicks} pings?` : `you've pinged me ${formattedClicks} times`,
             `points and \`pts\` are not the same, do NOT confuse them`,
             `"\`pts\`" is pronounced like "points" but remember they're not the same`,
-            `that ping scored you a full \`${context.score} pts\`.`,
-            `what if i gave you another \`${context.score * 2} pts\`? you can probably get that by just clicking a bit more`,
-            `you got \`${context.score} pts\` just then, which is like, a lot. probably`,
-            totalClicks >= 500 ? `you've clicked ${totalClicks} times. is your mouse okay?` : `you've clicked ${totalClicks} times. that's like, medium pinger level`,
-            `you've earned \`${context.score} pts\` from this one ping, and not a single one was a tax write-off`,
+            `that ping scored you a full \`${formattedScore} pts\`.`,
+            `what if i gave you another \`${formatNumber(context.score * 2, { options: context.formatOptions })} pts\`? you can probably get that by just clicking a bit more`,
+            `you got \`${formattedScore} pts\` just then, which is like, a lot. probably`,
+            `you've earned \`${formattedScore} pts\` from this one ping, and not a single one was a tax write-off`,
             `click count: ${totalClicks}. you should probably stretch your fingers`,
             `ping economy in shambles (you clicked too hard)`,
             `you've out-clicked 99.9% of people who never clicked at all. the other 0.1% are, uhh...?`,
@@ -765,7 +769,7 @@ function get(ping, context) {
             "you probably want to click that",
             "blue appearance! it's super effective at looking cool",
         ]
-        if (context.artisanNextSymbols) {
+        if (context.artisanNextSymbols && context.artisanNextSymbols.length > 0) {
             messagesList.push(
                 "SIX buttons?! that's just unnecessary",
                 "hey look, another row!",
@@ -808,10 +812,13 @@ function get(ping, context) {
         ]
         if ((context.blueCombo || 0) > 3) {
             messagesList.push(
-                "wow, look at that combo go",
+                "wow, look at that combo go!",
                 "do you think if you get enough in a row it'll turn more purple?",
-                `${context.blueCombo} in a row is pretty`,
-                `${context.blueCombo} blue pings, and it'll only grow from there`,
+                `${context.blueCombo} in a row is so many`,
+                `${context.blueCombo} blue pings, and it'll only grow from here`,
+                "let's keep the combo going, yeah?",
+                "more! MORE!",
+                "another!"
             )
         }
         if (context.specials.glimmer) {

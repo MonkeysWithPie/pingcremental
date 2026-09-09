@@ -80,7 +80,7 @@ module.exports = {
                     .setLabel(msg[Math.floor(Math.random() * msg.length)])
                     .setStyle(ButtonStyle.Secondary)
 
-                await interaction.update(await getEditMessage(interaction, upgradeClass.type())); // fix dropdown remaining after failed upgrade
+                await interaction.update(await getEditMessage(interaction, upgradeClass.type(), buySetting)); // fix dropdown remaining after failed upgrade
                 return await interaction.followUp({
                     content: `You can't afford that. (Missing \`${formatNumber(price - playerData.pip, { options: playerData.formatSettings })} PIP\`)`,
                     components: [new ActionRowBuilder().addComponents(button)]

@@ -266,11 +266,18 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
     }
 
     for (const sectionName of availableSections) {
-        categoryRow.addComponents(new ButtonBuilder()
+        const button = new ButtonBuilder()
             .setCustomId(`weave:section-${sectionName}`)
             .setLabel(sectionName)
-            .setStyle(section === sectionName ? ButtonStyle.Primary : ButtonStyle.Secondary)
-        );
+            .setStyle(section === sectionName ? ButtonStyle.Primary : ButtonStyle.Secondary);
+        
+        if (sectionName === WEAVE_SECTION.Shop && Object.keys(player.ownedFabrics).length === 0) {
+            button.setLabel(`[!] ${sectionName}`).setStyle(ButtonStyle.Success);
+        }
+
+        if (sectionName === WEAVE_SECTION.Cloak && Object.keys(player.equippedFabrics).length === 0) {
+            button.setLabel(`[!] ${sectionName}`).setStyle(ButtonStyle.Success);
+        }
     }
     for (const sectionName of Object.values(WEAVE_SECTION)) {
         if (!availableSections.includes(sectionName)) {
@@ -449,7 +456,7 @@ async function getSewEmbed(interaction, equippedFabrics, state = "normal") {
         equippedFabrics = player.equippedFabrics || {};
     }
 
-    if (player.cloakModificationsAllowed <= 0) {
+    if (player.cloakModificationsAllowed <= 0 && state !== "final") {
         return {
             embeds: [],
             components: [

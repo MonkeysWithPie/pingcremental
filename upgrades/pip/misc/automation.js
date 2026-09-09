@@ -10,7 +10,7 @@ module.exports = {
     getDetails() {
         return {
             description: "gain __+1__ APT when finding a blue ping",
-            name: "automation",
+            name: "Automation",
             emoji: getEmoji('ponder_template', "⚙️"),
             flavor: "all things eventually converge on industry.",
         }

@@ -130,8 +130,8 @@ async function pingResponse(interaction, isSuper = false) {
             layerStat.highestArtisanCombo = currentEffects.specials.artisanCombo;
         if (currentEffects.specials.orchestraCombo > layerStat.highestOrchestraCombo)
             layerStat.highestOrchestraCombo = currentEffects.specials.orchestraCombo;
-        if (currentEffects.specials.coinflipCount > layerStat.highestCoinflipCount)
-            layerStat.highestCoinflipCount = currentEffects.specials.coinflipCount;
+        if (currentEffects.specials.coinflipCount > layerStat.coinflipCount)
+            layerStat.coinflipCount = currentEffects.specials.coinflipCount;
         if (currentEffects.specials.pigScore > layerStat.highestPigScore)
             layerStat.highestPigScore = currentEffects.specials.pigScore;
 

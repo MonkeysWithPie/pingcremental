@@ -51,8 +51,12 @@ async function getMessage(interaction, leaderboardType) {
         if (interaction.user.id === player.userId) {
             userDisplay = `__${userDisplay}__` // highlight the user's own score
         }
+        let metric = leaderboardTypes[leaderboard].metric;
+        if (score === 1 && leaderboardTypes[leaderboard].metricSingle) {
+            metric = leaderboardTypes[leaderboard].metricSingle;
+        }
 
-        return `**${userDisplay}** - \`${formatNumber(score, { decimalPlaces: 6, options: interactionPlayer?.formatSettings })}\` ${leaderboardTypes[leaderboard].metric}\n`
+        return `**${userDisplay}** - \`${formatNumber(score, { decimalPlaces: 6, options: interactionPlayer?.formatSettings })}\` ${metric}\n`
     }
 
     const leaderboardEmojis = []
@@ -152,7 +156,8 @@ function initTypes() {
         clicks: {
             name: 'total clicks',
             emoji: '🖱️',
-            metric: "clicks"
+            metric: "clicks",
+            metricSingle: "click"
         },
         highScore: {
             name: 'highest score',
@@ -162,17 +167,20 @@ function initTypes() {
         bluePings: {
             name: 'blue pings',
             emoji: getEmoji('upgrade_blue', '🔵'),
-            metric: "blue pings clicked"
+            metric: "blue pings clicked",
+            metricSingle: "blue ping clicked"
         },
         eternities: {
             name: 'total eternities',
             emoji: getEmoji('upgrade_pingularity', '♾️'),
-            metric: "eternities"
+            metric: "eternities",
+            metricSingle: "eternity"
         },
         tears: {
             name: 'total tears',
             emoji: '🌆',
-            metric: "tears"
+            metric: "tears",
+            metricSingle: "tear"
         },
         pip: {
             name: 'total pip',
@@ -187,17 +195,20 @@ function initTypes() {
         bluePingsMissed: {
             name: 'blue pings missed',
             emoji: getEmoji('ponder_regret', '😔'),
-            metric: "blue pings missed"
+            metric: "blue pings missed",
+            metricSingle: "blue ping missed"
         },
         blueStreak: {
             name: 'highest blue streak',
             emoji: getEmoji('upgrade_chain', '🔗'),
-            metric: "blue pings in a row"
+            metric: "blue pings in a row",
+            metricSingle: "blue ping in a row"
         },
         luckyPings: {
             name: 'lucky pings',
             emoji: getEmoji('upgrade_special', '🍀'),
-            metric: "rare pings discovered"
+            metric: "rare pings discovered",
+            metricSingle: "rare ping discovered"
         },
     }
 }

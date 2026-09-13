@@ -4,7 +4,7 @@ const { unlockRequirements: indigoUnlockRequirements } = require('./indigo.js');
 
 module.exports = {
     getPrice(currentLevel) {
-        return Math.round(103 * (currentLevel)**4) + 1234;
+        return Math.round(103 * (3.3 ** currentLevel)) + 1131;
     },
     getDetails() {
         return {

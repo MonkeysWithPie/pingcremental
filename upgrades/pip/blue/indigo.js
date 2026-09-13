@@ -3,7 +3,7 @@ const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
     getPrice(currentLevel) {
-        return Math.round(100 * (currentLevel + 1)**3.5) + 1111;
+        return Math.round(100 * (2.5 ** currentLevel)) + 1011;
     },
     getDetails() {
         return {

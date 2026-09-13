@@ -55,6 +55,7 @@ function multiBuyThreshold(upgrade, score, playerUpgradeLevel, buySetting) {
     return { price, levels }
 }
 
+// TODO can we just add a fast track to every upgrade when we switch to break_infinity.js? (sorry future me)
 function getMultiBuyCost(buySetting, upgrade, score, playerUpgradeLevel) {
     if (buySetting !== 'MAX') {
         return multiBuyThreshold(upgrade, score, playerUpgradeLevel, buySetting);
@@ -96,13 +97,13 @@ function getMultiBuyCost(buySetting, upgrade, score, playerUpgradeLevel) {
         if (levels === oldLevel) break;
     }
 
-    ({ price, levels } = multiBuyThreshold(upgrade, score, playerUpgradeLevel, levels, true));
+    ({ price, levels } = multiBuyThreshold(upgrade, score, playerUpgradeLevel, levels));
 
     // since the price probably increased from what we expected, lower the level until it's okay again
     while (price > score && levels > 1) {
         levels--;
         price -= upgrade.getPrice(playerUpgradeLevel + levels);
-    }    
+    }
 
     return { price, levels }
 }

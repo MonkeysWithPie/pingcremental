@@ -4,7 +4,7 @@ const { unlockRequirements: favoredUnlockRequirements } = require('../misc/favor
 
 module.exports = {
     getPrice(currentLevel) {
-        return Math.round(100 * (currentLevel + 3)**3) + 1212;
+        return Math.round(1000 * (2.9 ** currentLevel)) + 1212;
     },
     getDetails() {
         return {

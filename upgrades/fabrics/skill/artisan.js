@@ -21,7 +21,7 @@ clicking the same symbol twice in a row will result in a **^0.7** debuff, and re
         }
     },
     getEffect(_level, context) {
-        if (context.state === PingCalculationStates.RNG_AND_SPECIAL) return { special: { artisan: true } };
+        if (context.state === PingCalculationStates.STATIC_SPECIAL) return { special: { artisan: true } };
         if (!context.artisanClickedSymbol) return { special: { artisan: true } };
 
         let exponent = 1;
@@ -59,5 +59,5 @@ clicking the same symbol twice in a row will result in a **^0.7** debuff, and re
     type() { return FabricUpgradeTypes.SKILL_BASED },
     isUnique() { return true; },
     artisanSymbols,
-    section() { return PingCalculationStates.SCORING | PingCalculationStates.RNG_AND_SPECIAL | PingCalculationStates.NON_REPEAT_FINISH; }
+    section() { return PingCalculationStates.SCORING | PingCalculationStates.STATIC_SPECIAL | PingCalculationStates.NON_REPEAT_FINISH; }
 }

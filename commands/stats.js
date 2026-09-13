@@ -157,7 +157,7 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
         `${formatNumber(stats.luckyPings, formatSettings)} lucky ping${stats.luckyPings === 1 ? '' : 's'}${allStatAsterisk}\n`;
     addToContainer(basicsText);
 
-    if (stats.bluePings > 0) {
+    if (stats.bluePings + stats.bluePingsMissed > 0) {
         const bluePingsText = `__blue pings__\n` +
             `${formatNumber(stats.bluePings, formatSettings)} blue ping${stats.bluePings === 1 ? '' : 's'} clicked${allStatAsterisk}\n` +
             `${formatNumber(stats.bluePingsMissed, formatSettings)} missed blue ping${stats.bluePingsMissed === 1 ? '' : 's'}${allStatAsterisk}\n` +

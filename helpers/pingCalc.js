@@ -28,6 +28,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     measureTimeSegment("upgrade prep")
     
     let allUpgrades = { 
+        [PingCalculationStates.STATIC_SPECIAL]: {},
         [PingCalculationStates.RNG_AND_SPECIAL]: {}, 
         [PingCalculationStates.SCORING]: {}, 
         [PingCalculationStates.POST_SCORING]: {},
@@ -86,7 +87,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
         RNGmult: 1,
         blueCombo: 0,
         apt: 0,
-        state: PingCalculationStates.RNG_AND_SPECIAL
+        state: PingCalculationStates.STATIC_SPECIAL,
     }
     
     // prep a bunch of variables for the effects
@@ -124,7 +125,21 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     measureTimeSegment("object prep");
     measureTimeSegment("upgrade check 1");
     
+    /* STATIC SPECIAL CALCULATION */
+    // this is for upgrades that return a special and nothing else,
+    // to ensure the order of events is okay
+    for (const [upgradeId, level] of Object.entries(allUpgrades[context.state])) {
+        const upgradeClass = rawUpgrades[upgradeId];
+        const effect = upgradeClass.getEffect(level, context);
+        if (effect.special) {
+            for (const [special, value] of Object.entries(effect.special)) {
+                currentEffects.specials[special] = value;
+            }
+        }
+    }
+    
     /* PRE-PTS CALCULATION */
+    context.state = PingCalculationStates.RNG_AND_SPECIAL;
     
     let effect;
     let score = pingMs; // base score is ping
@@ -270,7 +285,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     score *= totalMult;
 
     if (totalMult > 1 && pingFormat !== "expanded") {
-        displays.mult.push(`__\`x${formatNumber(totalMult, playerProfile.formatSettings)}\`__`);
+        displays.mult.push(`__\`x${formatNumber(totalMult, { options: playerProfile.formatSettings })}\`__`);
     }
 
     let totalExp = 1;
@@ -280,7 +295,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     score = Math.pow(score, totalExp);
 
     if (totalExp > 1 && pingFormat !== "expanded") {
-        displays.exponents.push(`**__\`^${formatNumber(totalExp, playerProfile.formatSettings)}\`__**`);
+        displays.exponents.push(`**__\`^${formatNumber(totalExp, { options: playerProfile.formatSettings })}\`__**`);
     }
 
     score = Math.round(score);

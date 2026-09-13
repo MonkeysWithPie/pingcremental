@@ -22,5 +22,5 @@ inpingity will give an additional **x1.08** bonus per **888** total clicks you h
     },
     type() { return FabricUpgradeTypes.FLAT_BONUS },
     isUnique() { return true; },
-    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
+    section() { return PingCalculationStates.STATIC_SPECIAL; }
 }

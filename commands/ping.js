@@ -99,8 +99,6 @@ async function pingResponse(interaction, isSuper = false) {
     context.totalScore = playerProfile.score + score;
     const pingMessage = pingMessages(context.ping, context); // get the ping message
 
-    const stats = await playerProfile.stats();
-
     // click saving
     playerProfile.increaseStat('clicks', 1);
     if (currentEffects.rare) playerProfile.increaseStat('luckyPings', 1);
@@ -146,8 +144,8 @@ async function pingResponse(interaction, isSuper = false) {
     playerProfile.apt += currentEffects.apt || 0;
     playerProfile.lastPing = Date.now();
 
-
     // badges
+    const stats = await playerProfile.stats();
     if (currentEffects.blueCombo >= 10) {
         await awardBadge(interaction.user.id, 'blue stupor', interaction.client);
     }

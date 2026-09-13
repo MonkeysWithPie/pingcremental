@@ -22,5 +22,5 @@ module.exports = {
     },
     type() { return FabricUpgradeTypes.MISC },
     isUnique() { return true; },
-    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
+    section() { return PingCalculationStates.STATIC_SPECIAL; }
 }

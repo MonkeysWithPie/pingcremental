@@ -23,5 +23,5 @@ slumber gives a **^1.03** bonus per level in addition to its multiplier (e.g. ^1
     },
     type() { return FabricUpgradeTypes.MISC },
     isUnique() { return true; },
-    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
+    section() { return PingCalculationStates.STATIC_SPECIAL; }
 }

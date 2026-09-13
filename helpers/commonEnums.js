@@ -15,10 +15,11 @@ const PipUpgradeTypes = {
 
 // some upgrades are used in multiple states, so we use bitflags
 const PingCalculationStates = {
-    RNG_AND_SPECIAL:   0b0001,
-    SCORING:           0b0010,
-    POST_SCORING:      0b0100,
-    NON_REPEAT_FINISH: 0b1000,
+    STATIC_SPECIAL:    0b00001,
+    RNG_AND_SPECIAL:   0b00010,
+    SCORING:           0b00100,
+    POST_SCORING:      0b01000,
+    NON_REPEAT_FINISH: 0b10000,
 }
 
 const FabricUpgradeTypes = {

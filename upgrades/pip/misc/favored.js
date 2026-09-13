@@ -32,5 +32,5 @@ module.exports = {
     },
     sortOrder() { return 202 }, // NO WAY CELESTE REFERNECE!?!?/
     type() { return PipUpgradeTypes.MISC },
-    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
+    section() { return PingCalculationStates.STATIC_SPECIAL; }
 }

@@ -14,7 +14,7 @@ module.exports = {
         }
     },
     getEffectString(level) {
-        return level === 0 ? "+0" : `+${formatNumber(getFib(level+1), true, 4)}`;
+        return level === 0 ? "+0" : `+${formatNumber(getFib(level+1), { decimalPlaces: 4 })}`;
     },
     getEffect(level, context) {
         if (context.state !== PingCalculationStates.SCORING) return {};

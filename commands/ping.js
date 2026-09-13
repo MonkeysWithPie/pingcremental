@@ -126,16 +126,16 @@ async function pingResponse(interaction, isSuper = false) {
         if (score > layerStat.highScore)
             layerStat.highScore = score;
 
-        if (currentEffects.specials.artisanCombo > layerStat.highestArtisanCombo)
-            layerStat.highestArtisanCombo = currentEffects.specials.artisanCombo;
-        if (currentEffects.specials.orchestraCombo > layerStat.highestOrchestraCombo)
-            layerStat.highestOrchestraCombo = currentEffects.specials.orchestraCombo;
+        if (currentEffects.specials.artisanCombo > layerStat.artisanCombo)
+            layerStat.artisanCombo = currentEffects.specials.artisanCombo;
+        if (currentEffects.specials.orchestraCombo > layerStat.orchestraCombo)
+            layerStat.orchestraCombo = currentEffects.specials.orchestraCombo;
         if (currentEffects.specials.coinflipCount > layerStat.coinflipCount)
             layerStat.coinflipCount = currentEffects.specials.coinflipCount;
-        if (currentEffects.specials.pigScore > layerStat.highestPigScore)
-            layerStat.highestPigScore = currentEffects.specials.pigScore;
+        if (currentEffects.specials.pigScore > layerStat.pigScore)
+            layerStat.pigScore = currentEffects.specials.pigScore;
 
-        if (layerStat.changed) await layerStat.save();
+        if (layerStat.changed()) await layerStat.save();
     }
 
     // score saving
@@ -211,7 +211,7 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
     displayDisplay = displayDisplay.substring(2); // remove first comma and space
 
     if (currentEffects.bp) {
-        displayDisplay += `\n-# \`${formatNumber(Math.ceil(playerProfile.bp, { options: playerProfile.formatSettings }))}/${formatNumber(currentEffects.bpMax, { options: playerProfile.formatSettings })} bp\`${playerProfile.bp >= currentEffects.bpMax ? " **(MAX)**" : ""} `
+        displayDisplay += `\n-# \`${formatNumber(Math.ceil(playerProfile.bp), { options: playerProfile.formatSettings })}/${formatNumber(currentEffects.bpMax, { options: playerProfile.formatSettings })} bp\`${playerProfile.bp >= currentEffects.bpMax ? " **(MAX)**" : ""} `
         displayDisplay += formatDisplay(displays.bp, pingFormat);
     }
 

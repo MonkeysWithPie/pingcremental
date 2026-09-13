@@ -25,5 +25,5 @@ increases the blue ping chance after another blue ping by **10%** (NOT bypassing
     },
     type() { return FabricUpgradeTypes.BLUE_PING },
     isUnique() { return true; },
-    section() { return PingCalculationStates.SCORING; },
+    section() { return PingCalculationStates.SCORING | PingCalculationStates.RNG_AND_SPECIAL; },
 }

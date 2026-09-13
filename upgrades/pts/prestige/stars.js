@@ -16,7 +16,7 @@ module.exports = {
         }
     },
     getEffectString(level) {
-        return `${formatNumber(level*4, true, 3)} bp`
+        return `${formatNumber(level*4, { decimalPlaces: 3 })} bp`
     },
     getEffect(level, context) {
         if (context.state !== PingCalculationStates.POST_SCORING) return {};

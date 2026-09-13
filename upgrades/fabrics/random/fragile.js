@@ -26,13 +26,14 @@ module.exports = {
 
         if (hits > 0) {
             return {
+                multiply: 0.9 ** level,
                 exponent: 1.6 ** hits,
                 message: `***__A ${['', 'BRILLIANT ', 'LEGENDARY ', 'GODLIKE '][hits]}SURGE OF POWER!__***`
             }
         }
 
         return {
-            multiply: 0.9,
+            multiply: 0.9 ** level,
         }
     },
     type() { return FabricUpgradeTypes.PURE_RANDOM },

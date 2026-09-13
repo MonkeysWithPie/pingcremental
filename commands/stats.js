@@ -25,7 +25,7 @@ module.exports = {
                 .addStringOption(option =>
                     option.setName('layer')
                         .setDescription('which prestige layer to view stats for')
-                        .addChoices(PrestigeLayers.map(layer => ({ name: layer, value: layer })))
+                        .addChoices(...PrestigeLayers.map(layer => ({ name: layer, value: layer })))
                 )
         ),
     async execute(interaction) {
@@ -72,7 +72,7 @@ async function getGlobalMessage(selfId) {
     let formatSettings;
     if (selfId) {
         const selfData = await database.Player.findByPk(selfId);
-        formatSettings = { options: selfData.formatSettings }
+        formatSettings = { options: selfData?.formatSettings }
     }
 
     const refreshButton = new ButtonBuilder()
@@ -110,11 +110,11 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
     if (!player) return { content: `<@${userId}> hasn't pinged yet.`, allowedMentions: { parse: [] }, flags: MessageFlags.Ephemeral };
 
     let formatSettings;
+    formatSettings = { options: player.formatSettings }
     if (selfId && selfId !== userId && selfId !== "undefined") {
         const self = await database.Player.findByPk(selfId);
-        formatSettings = { options: self.formatSettings }
-    } else {
-        formatSettings = { options: player.formatSettings }
+
+        if (self) formatSettings = { options: self.formatSettings }
     }
 
     const allStats = await player.stats();
@@ -125,7 +125,10 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
     let layerReached = true;
     if (layer === 'eternity' && totalStats.eternities === 0) layerReached = false;
     if (layer === 'tear' && totalStats.tears === 0) layerReached = false;
-    if (!layerReached) layer = 'total'; // fallback to total if layer not reached yet
+
+    // fallback to total if layer not reached yet
+    // this is OK because if the layer isn't reached yet, the stats will be the same as total anyway
+    if (!layerReached) layer = 'total';
 
     const desc = `viewing stats for **${await player.getUserDisplay(interaction.client, database)}**\n`
 
@@ -180,7 +183,7 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
         addToContainer(tearsText);
     }
 
-    const luckbased = ["coinflip", "pigScore", "artisanCombo", "orchestraCombo"];
+    const luckbased = ["coinflipCount", "pigScore", "artisanCombo", "orchestraCombo"];
     const hasLuckBased = luckbased.some(stat => stats[stat] > 0);
 
     if (hasLuckBased) {

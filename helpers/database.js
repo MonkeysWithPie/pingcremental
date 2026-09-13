@@ -2,6 +2,16 @@ const { Sequelize } = require('sequelize');
 const fs = require('fs');
 const path = require('path');
 
+if (!fs.existsSync('data')) {
+	fs.mkdirSync('data');
+	console.log("'data' folder automatically created");
+}
+
+if (fs.existsSync('database.sqlite')) {
+	fs.renameSync('database.sqlite', 'data/database.sqlite');
+	console.log("Old database.sqlite file automatically moved to 'data' folder");
+}
+
 const sequelize = new Sequelize('database', 'user', 'password', {
 	host: 'localhost',
 	dialect: 'sqlite',

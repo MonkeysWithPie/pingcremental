@@ -19,7 +19,7 @@ module.exports = {
         if (!context.specials.allowShopkeeperUpgrades) return {};
 
         return {
-            multiply: Math.min(level * 0.0002 * context.pip, 15 * level)
+            multiply: Math.min(level * 0.0002 * context.pip, 15 * level) + 1
         }
     },
     unlockRequirements(context) {

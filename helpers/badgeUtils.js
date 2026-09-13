@@ -38,7 +38,8 @@ function getBadgeByName(name) {
 function getBadgesByName(...names) {
     const badges = []
     for (const name of names) {
-        badges.push(getBadgeByName(name));
+        const badge = getBadgeByName(name);
+        if (badge) badges.push(badge);
     }
 
     return badges;

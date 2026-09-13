@@ -21,11 +21,12 @@ module.exports = (sequelize) => {
 		async stats() {
 			await this.refreshStats();
 			const stats = await this.getRawStat();
+			const ret = {};
 			for (const layer of PrestigeLayers) {
-				stats[layer] = stats.find(stat => stat.layer === layer) || null;
+				ret[layer] = stats.find(stat => stat.layer === layer) || null;
 			}
 
-			return stats;
+			return ret;
 		}
 		statsSync() {
 			const stats = this.rawStat;

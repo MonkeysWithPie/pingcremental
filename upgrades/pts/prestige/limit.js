@@ -14,7 +14,7 @@ module.exports = {
         }
     },
     getEffectString(level) {
-        return `${formatNumber((level+1)*10000, true, 3)} storage`;
+        return `${formatNumber((level+1)*10000, { decimalPlaces: 3 })} storage`;
     },
     getEffect(level) {
         return {

@@ -1,7 +1,8 @@
 @echo off
 echo Starting..
 :main
-rem set up cmds
+rem set up cmds and db
+node dbInit.js
 node deploy.js
 rem run
 node .

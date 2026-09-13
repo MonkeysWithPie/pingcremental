@@ -16,7 +16,7 @@ module.exports = {
     getEffect(_level, context) {
         return {
             blue: 40 - (context.upgrades?.blueshift ? 0.6 * context.upgrades.blueshift : 0),
-            blueStrength: (context.upgrades?.blueshift ? 0.5 * context.upgrades.blueshift : 1),
+            blueStrength: (context.upgrades?.blueshift ? 0.5 * context.upgrades.blueshift : 0),
         }
     },
     type() { return FabricUpgradeTypes.BLUE_PING },

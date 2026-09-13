@@ -26,5 +26,5 @@ gain **x1.5** pip.`,
     },
     type() { return FabricUpgradeTypes.MISC },
     isUnique() { return true; },
-    section() { PingCalculationStates.POST_SCORING; }
+    section() { return PingCalculationStates.POST_SCORING; }
 }

@@ -183,8 +183,8 @@ async function doAutoping(interaction, count) {
         pingDataTotal.bluesMissed += currentEffects.spawnedSuper && !currentEffects.specials.budge ? 1 : 0;
         pingDataTotal.rares += currentEffects.rare ? 1 : 0;
 
-        storedCache.profile.slumberClicks += currentEffects.slumberClicks || 0;
-        storedCache.profile.glimmerClicks += currentEffects.glimmerClicks || 0;
+        storedCache.profile.slumberClicks += currentEffects.specials.slumberClicks || 0;
+        storedCache.profile.glimmerClicks += currentEffects.specials.glimmerClicks || 0;
 
         if (currentEffects.artisanClickedSymbol) {
             nextPingArtisan = currentEffects.artisanNextSymbols[0];
@@ -211,7 +211,7 @@ async function doAutoping(interaction, count) {
     player.score += pingDataTotal.score;
 
     for (const layerStat of Object.values(stats)) {
-        if (pingDataTotal.highestScore > layerStat.highestScore)
+        if (pingDataTotal.highestScore > layerStat.highScore)
             layerStat.highScore = pingDataTotal.highestScore;
 
         if (pingDataTotal.highestBlueCombo > layerStat.highestBlueStreak)
@@ -285,7 +285,7 @@ ${finalDescription}`)
         components.push(
             new ButtonBuilder()
                 .setCustomId(`autoping:run-${pings}`)
-                .setLabel(`${formatNumber(pings, { options: player.formatNumber })}x more!`)
+                .setLabel(`${formatNumber(pings, { options: player.formatSettings })}x more!`)
                 .setStyle(ButtonStyle.Secondary)
         );
     }

@@ -278,6 +278,8 @@ async function getEmbed(interaction, section = WEAVE_SECTION.Shop) {
         if (sectionName === WEAVE_SECTION.Cloak && Object.keys(player.equippedFabrics).length === 0) {
             button.setLabel(`[!] ${sectionName}`).setStyle(ButtonStyle.Success);
         }
+
+        categoryRow.addComponents(button);
     }
     for (const sectionName of Object.values(WEAVE_SECTION)) {
         if (!availableSections.includes(sectionName)) {

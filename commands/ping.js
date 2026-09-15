@@ -117,6 +117,7 @@ async function pingResponse(interaction, isSuper = false) {
     if (isSuper) playerProfile.increaseStat('bluePings', 1);
 
     // high score and streak saving
+    let stats = await playerProfile.stats();
     for (const layerStat of Object.values(stats)) {
         if (currentEffects.blueCombo > layerStat.blueStreak)
             layerStat.blueStreak = currentEffects.blueCombo;
@@ -143,9 +144,10 @@ async function pingResponse(interaction, isSuper = false) {
     playerProfile.bp = Math.min(currentEffects.bp + playerProfile.bp, currentEffects.bpMax);
     playerProfile.apt += currentEffects.apt || 0;
     playerProfile.lastPing = Date.now();
+    await playerProfile.save();
 
     // badges
-    const stats = await playerProfile.stats();
+    stats = await playerProfile.stats(); // refresh stats since we just saved
     if (currentEffects.blueCombo >= 10) {
         await awardBadge(interaction.user.id, 'blue stupor', interaction.client);
     }
@@ -167,8 +169,6 @@ async function pingResponse(interaction, isSuper = false) {
     if (currentEffects.specials.orchestraCombo >= 100) {
         await awardBadge(interaction.user.id, 'maestro', interaction.client);
     }
-
-    await playerProfile.save();
 
     // show upgrade popup when it unlocks
     if (stats.total.clicks === 50) {

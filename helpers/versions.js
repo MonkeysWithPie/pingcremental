@@ -16,7 +16,7 @@ async function getLatestVersion(forceRefresh = false) {
         return cachedLatestVersion;
     }
 
-    const [addedNullVer, _created] = await database.Version.findOrCreate({
+    const [addedNullVer, ] = await database.Version.findOrCreate({
         where: { verNum: '0.0.0' },
         defaults: {
             importance: 'major',

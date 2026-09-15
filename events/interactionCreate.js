@@ -16,7 +16,7 @@ module.exports = {
 
                 await command.execute(interaction);
             } else if (interaction.isButton()) {
-                if (interaction.message.interaction && interaction.user.id != interaction.message.interaction.user.id) {
+                if (interaction.message.interaction && interaction.user.id !== interaction.message.interaction.user.id) {
                     return await interaction.reply({ content: "this one's not yours?", flags: MessageFlags.Ephemeral })
                 }
 
@@ -28,12 +28,16 @@ module.exports = {
                     if (!buttonCommand) {
                         await log(`No command for button ${buttonId} (command ${buttonCommand}) was found.`, interaction.client)
                         return;
+                    }
+                    const [buttonType, ...buttonArgs] = split[1].split('-');
+                    if (buttonArgs.length <= 1) {
+                        await buttonCommand.buttons[buttonType](interaction, buttonArgs[0]);
                     } else {
-                        await buttonCommand.buttons[split[1].split('-')[0]](interaction, split[1].split('-')[1]);
+                        await buttonCommand.buttons[buttonType](interaction, ...buttonArgs);
                     }
                 }
             } else if (interaction.isStringSelectMenu()) {
-                if (interaction.message.interaction && interaction.user.id != interaction.message.interaction.user.id) {
+                if (interaction.message.interaction && interaction.user.id !== interaction.message.interaction.user.id) {
                     return await interaction.reply({ content: "this one's not yours?", flags: MessageFlags.Ephemeral })
                 }
 
@@ -45,8 +49,13 @@ module.exports = {
                     if (!buttonCommand) {
                         await log(`No command for dropdown ${dropdownId} (command ${buttonCommand}) was found.`, interaction.client)
                         return;
+                    } 
+                    const [buttonType, ...buttonArgs] = split[1].split('-');
+
+                    if (buttonArgs.length <= 1) {
+                        await buttonCommand.dropdowns[buttonType](interaction, buttonArgs[0]);
                     } else {
-                        await buttonCommand.dropdowns[split[1].split('-')[0]](interaction, split[1].split('-')[1]);
+                        await buttonCommand.dropdowns[buttonType](interaction, ...buttonArgs);
                     }
                 }
             } else if (interaction.isAutocomplete()) {
@@ -71,10 +80,10 @@ module.exports = {
                 await modalCommand.modals[split[1]](interaction);
             }
         } catch (error) {
-            if (error instanceof DiscordAPIError && error.code == 10062) {
+            if (error instanceof DiscordAPIError && error.code === 10062) {
                 return console.log(`[INFO] unknown interaction error; thanks, discord`)
             }
-            if (error instanceof DiscordAPIError && error.code == 10008) {
+            if (error instanceof DiscordAPIError && error.code === 10008) {
                 return console.log(`[INFO] unknown message error; thanks, discord`)
             }
 
@@ -83,7 +92,7 @@ module.exports = {
     ${error.requestBody && error.requestBody.json && error.requestBody.json.data ? JSON.stringify(error.requestBody.json.data) : "no request body available"}`, interaction.client, error);
 
             const reply = {
-                embeds: [new EmbedBuilder().setTitle("An error occurred!").setDescription(`wuh oh, something broke\ndon't worry! the developer has been informed of this failure and will fix this bug ASAP.\n\n${error}`).setColor("ff0000")],
+                embeds: [new EmbedBuilder().setTitle("An error occurred!").setDescription(`wuh oh, something broke\nthe developer has been informed of this failure and will fix it ASAP; __no need to report this__.`).setColor("ff0000")],
                 flags: MessageFlags.Ephemeral
             }
             try {

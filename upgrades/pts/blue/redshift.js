@@ -1,4 +1,4 @@
-const { UpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
@@ -7,23 +7,25 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "__-0.3%__ chance to spawn a blue ping (additive), but __x1.08__ all pts",
+            description: "__-0.3%__ chance to spawn a blue ping (additive), but __x1.08__ all `pts`",
             name: "redshift",
             emoji: getEmoji('upgrade_redshift', "🔴"),
         }
     },
     getEffectString(level) {
-        return `-${(0.3*level).toFixed(1)}% chance, x${(1+level*0.08).toFixed(2)} pts`
+        return `-${(0.3*level).toFixed(1)}% chance, x${(1+level*0.08).toFixed(2)} \`pts\``
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             blue: level*-0.3,
             multiply: 1+(level*0.08)
         }
     },
-    isBuyable(context) {
-        return Object.keys(context.upgrades).includes('blue')
+    unlockRequirements(context) {
+        if (!context.upgrades.blue) return { showable: true, buyable: false, reason: "buy 'blue ping'" };
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 12 },
-    type() { return UpgradeTypes.BLUE_PING }
+    type() { return UpgradeTypes.BLUE_PING },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL | PingCalculationStates.SCORING; }
 }

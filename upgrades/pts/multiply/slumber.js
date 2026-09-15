@@ -1,5 +1,6 @@
-const { UpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: multiplierUnlockRequirements } = require('../multiply/multiplier.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -8,7 +9,7 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "gain __x1.1__ pts for 1 ping, for every __20__ minutes of non-pinging (up to __144__ pings, or 2d inactive)",
+            description: "gain __x1.1__ `pts` for 1 ping, for every __20__ minutes of non-pinging (up to __144__ pings, or 2d inactive)",
             name: "slumber",
             emoji: getEmoji("upgrade_slumber", "💤"),
         }
@@ -17,20 +18,29 @@ module.exports = {
         return `x${(1+level*0.1).toFixed(1)}, every ${21-level}m, up to ${Math.round((2*24*60)/(21-level))} pings`;
     },
     getEffect(level, context) {
+        if (context.state !== PingCalculationStates.SCORING) return;
+
         let clicks = context.slumberClicks;
-        const intervalMs = 1000 * 60 * (21 - level);
+        let intervalMs = 1000 * 60 * (21 - level);
+        let maxClicks = Math.round((2 * 24 * 60) / (21 - level));
+        if (context.specials.superSlumber) {
+            intervalMs = 1000 * 60;
+            maxClicks = 300;
+        }
+
         const timeSinceLastPing = Date.now() - context.lastPing;
 
-        if (timeSinceLastPing >= intervalMs) {
+        if (timeSinceLastPing >= intervalMs && !context.autopinging) {
             const earnedClicks = Math.floor(timeSinceLastPing / intervalMs);
             clicks += earnedClicks;
-            clicks = Math.min(clicks, Math.round((2 * 24 * 60) / (21 - level)));
+            clicks = Math.min(clicks, maxClicks);
             clicks = Math.max(clicks, 0);
         }
 
         if (clicks > 0) {
             return {
                 multiply: 1 + (level * 0.1),
+                exponent: context.specials.superSlumber ? (1 + (level * 0.03)) : 1,
                 special: { "slumber": clicks - context.slumberClicks - 1 },
                 message: `(${clicks} left)`,
             }
@@ -38,9 +48,16 @@ module.exports = {
         
         return {}
     },
-    isBuyable(context) {
-        return context.upgrades.multiplier && context.upgrades.multiplier >= 10;
+    unlockRequirements(context) {
+        if (!(multiplierUnlockRequirements(context).buyable)) return { showable: false };
+
+        const multiplierLevel = context.upgrades.multiplier || 0;
+        if (multiplierLevel < 10) return { showable: true, buyable: false, reason: `'fine, just have a multiplier' ${multiplierLevel}/10` };
+        
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 107 },
-    type() { return UpgradeTypes.MULT_BONUS  }
+    type() { return UpgradeTypes.MULT_BONUS },
+    section() { return PingCalculationStates.SCORING; },
+    getMax() { return 5; }
 }

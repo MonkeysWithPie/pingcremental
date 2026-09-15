@@ -1,7 +1,6 @@
-config.json
-database.sqlite
 node_modules/
 package-lock.json
 *.code-workspace
 
 .env
+data/

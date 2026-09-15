@@ -1,4 +1,4 @@
-const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
@@ -7,7 +7,7 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "gain __+20%__ pts per digit in your owned PIP count",
+            description: "gain __+20%__ `pts` per digit in your owned PIP count",
             name: "Stardust",
             emoji: getEmoji('ponder_hoard', "🌌"),
             flavor: "the stars offer both beauty and utility.",
@@ -21,9 +21,11 @@ module.exports = {
             multiply: 1 + (`${Math.round(context.pip)}`.length * level * 0.2),
         }
     },
-    upgradeRequirements() {
-        return { beginning: 1 };
+    unlockRequirements(context) {
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity's Welcome'" };
+        return { showable: true, buyable: true };
     },
-    sortOrder() { return 402 },
-    type() { return PipUpgradeTypes.PRESTIGE }
+    sortOrder() { return 405 },
+    type() { return PipUpgradeTypes.PRESTIGE },
+    section() { return PingCalculationStates.SCORING; }
 }

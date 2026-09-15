@@ -1,6 +1,5 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, MessageFlags, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, InteractionContextType, ContainerBuilder, MessageFlags, SeparatorSpacingSize, StringSelectMenuBuilder } = require('discord.js');
 const database = require('./../helpers/database.js');
-const log = require('./../helpers/log.js');
 
 const settings = {
     'upgradeFollowup': {
@@ -10,6 +9,7 @@ const settings = {
             "regular", "ephemeral", "none"
         ],
         default: "regular",
+        style: "dropdown",
     },
     'pingFormat': {
         name: 'ping format',
@@ -18,6 +18,7 @@ const settings = {
             "expanded", "compact", "compact emojiless"
         ],
         default: "expanded",
+        style: "dropdown",
     },
     'updateNotification': {
         name: 'update notification',
@@ -26,15 +27,26 @@ const settings = {
             "always", "everything but hotfixes", "minor and major only", "major only", "never"
         ],
         default: "major only",
+        style: "dropdown",
     },
-    // 'numberFormat': {
-    //     name: 'number format',
-    //     description: 'how should large numbers be formatted by default?',
-    //     options: [
-    //         "suffix", "full", "scientific"
-    //     ],
-    //     default: "suffix",
-    // },
+    'numberFormat': {
+        name: 'number format',
+        description: 'how should large numbers be formatted?',
+        options: [
+            "standard", "scientific", "engineering", "letters"
+        ],
+        default: "standard",
+        style: "dropdown",
+    },
+    'swapCommas': {
+        name: 'swap commas and periods',
+        description: 'should commas be used instead of periods and vice versa when formatting numbers?',
+        options: [
+            "yes", "no"
+        ],
+        default: "no",
+        style: "toggle",
+    }
 }
 
 module.exports = {
@@ -46,8 +58,13 @@ module.exports = {
         await interaction.reply(await getMessage(interaction));
     },
     buttons: {
+        'delete': async (interaction) => {
+            await interaction.update({ content: `(bye!)`, components: [], embeds: [] });
+            await interaction.deleteReply(interaction.message);
+        },
         'switch': async (interaction, setting) => {
             const playerData = await database.Player.findByPk(`${interaction.user.id}`);
+
             const value = settings[setting];
 
             if (!value) return;
@@ -60,14 +77,31 @@ module.exports = {
             await playerData.save();
             await interaction.update(await getMessage(interaction));
         }
+    },
+    dropdowns: {
+        'switch': async (interaction, setting) => {
+            const playerData = await database.Player.findByPk(`${interaction.user.id}`);
+
+            const value = settings[setting];
+            if (!value) return;
+
+            const selectedValue = interaction.values[0];
+            if (!value.options.includes(selectedValue)) return;
+
+            playerData.settings[setting] = selectedValue;
+            playerData.changed('settings', true);
+            await playerData.save();
+            await interaction.update(await getMessage(interaction));
+        }
     }
 }
 
 async function getMessage(interaction) {
     const playerData = await database.Player.findByPk(`${interaction.user.id}`);
-    const buttons = [];
-    let description = ""
     let settingsUpdated = false;
+    const container = new ContainerBuilder()
+        .setAccentColor(0x374152)
+        .addTextDisplayComponents((textDisplay) => textDisplay.setContent(`### settings`));
 
     for (const [key, value] of Object.entries(settings)) {
         if (!playerData.settings[key]) {
@@ -75,19 +109,35 @@ async function getMessage(interaction) {
             settingsUpdated = true;
         }
 
-        buttons.push(
-            new ButtonBuilder()
-                .setCustomId(`settings:switch-${key}`)
-                .setLabel(value.name)
-                .setStyle(ButtonStyle.Secondary)
-        );
+        container.addSeparatorComponents((separator) => separator.setSpacing(SeparatorSpacingSize.Small))
 
-        description += `
-**${value.name}**: ${value.description}\n`
-        description += value.options.map((option) => {
-            const bold = playerData.settings[key] === option ? '__' : '';
-            return `${bold}${option}${bold}`;
-        }).join(' | ') + '\n';
+        if (value.style === "dropdown") {
+            container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`**${value.name}**: ${value.description}`));
+
+            const dropdown = new StringSelectMenuBuilder()
+                .setCustomId(`settings:switch-${key}`)
+                .setPlaceholder(`current: ${playerData.settings[key]}`)
+                .addOptions(value.options.map((option) => {
+                    return {
+                        label: option,
+                        value: option,
+                        default: option === playerData.settings[key]
+                    }
+                }));
+            container.addActionRowComponents((actionRow) => actionRow.addComponents(dropdown));
+        }
+        else if (value.style === "toggle") {
+            const enabled = playerData.settings[key] === "yes";
+
+            const button = new ButtonBuilder()
+                .setCustomId(`settings:switch-${key}`)
+                .setLabel(enabled ? "disable" : "enable")
+                .setStyle(enabled ? ButtonStyle.Danger : ButtonStyle.Success);
+            container.addSectionComponents((section) => section
+                .addTextDisplayComponents((textDisplay) => textDisplay.setContent(`**${value.name}**: ${value.description}`))
+                .setButtonAccessory(button)
+            );
+        }
     }
 
     if (settingsUpdated) {
@@ -95,14 +145,5 @@ async function getMessage(interaction) {
         await playerData.save();
     }
 
-    // TODO: make separate action rows for >5 settings
-    const row = new ActionRowBuilder()
-        .addComponents(buttons);
-
-    const embed = new EmbedBuilder()
-        .setColor('#374152')
-        .setTitle('settings')
-        .setDescription(description.trim())
-
-    return { embeds: [embed], components: [row] };
+    return { embeds: [], components: [container], flags: MessageFlags.IsComponentsV2 };
 }

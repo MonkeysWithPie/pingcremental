@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, MessageFlags, TextInputBuilder, ModalBuilder } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, InteractionContextType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, MessageFlags, ContainerBuilder, SeparatorSpacingSize } = require('discord.js');
 const database = require('./../helpers/database.js')
 const feedbackCategories = [
     'bug',
@@ -7,6 +7,7 @@ const feedbackCategories = [
     'other'
 ]
 const ownerId = process.env.OWNER_ID;
+const FEEDBACK_PER_PAGE = 15;
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -51,7 +52,7 @@ module.exports = {
 
             await database.Feedback.create({ userId, type: feedbackType, text: feedbackText });
             await interaction.client.users.fetch(ownerId).then(user => {
-                sillies = ['ding dong! new feedback is here', 'feedback! feedback! get your feedback here!', 'someone has an opinion!', 'a package was delievered!', 'i have bad news... feedback just arrived!']
+                const sillies = ['ding dong! new feedback is here', 'feedback! feedback! get your feedback here!', 'someone has an opinion!', 'a package was delievered!', 'i have bad news... feedback just arrived!']
                 user.send(`${sillies[Math.floor(Math.random() * sillies.length)]}\n\n__${feedbackType}__ from __${interaction.user.username}__ (${interaction.user.id})\n${feedbackText}`);
             })
             await interaction.reply({ content: `success! thanks for the feedback.`, flags: MessageFlags.Ephemeral });
@@ -61,22 +62,22 @@ module.exports = {
         }
     },
     buttons: {
-        "category": (async (interaction, newCategory) => {
-            await interaction.update(await buildFeedbackEmbed(interaction, newCategory));
+        "category": (async (interaction, newCategory, page) => {
+            await interaction.update(await buildFeedbackEmbed(interaction, newCategory, page));
         })
     },
     dropdowns: {
-        "chooseFeedback": (async (interaction) => {
+        "chooseFeedback": (async (interaction, page) => {
             const feedbackId = interaction.values[0];
             if (feedbackId === 'none') return await interaction.reply({ content: 'you didn\'t select anything? how did you manage that?', ephemeral: true });
             const feedback = await database.Feedback.findByPk(feedbackId);
 
             if (!feedback) return await interaction.reply({ content: 'this one doesn\'t even exist? how?', ephemeral: true });
             if (feedback.userId !== interaction.user.id && interaction.user.id !== ownerId) return await interaction.reply({ content: 'you don\'t have permission to delete this...', ephemeral: true });
-            
+
             if (feedback.userId === interaction.user.id && interaction.user.id !== ownerId) {
                 await feedback.destroy();
-                await interaction.update(await buildFeedbackEmbed(interaction, feedback.type));
+                await interaction.update(await buildFeedbackEmbed(interaction, feedback.type, page));
                 return await interaction.followUp({ content: `deleted your feedback.`, flags: MessageFlags.Ephemeral });
             }
 
@@ -101,7 +102,7 @@ module.exports = {
                         .setLabel('no wait, never mind')
                         .setValue('cancel')
                 );
-            await interaction.update(await buildFeedbackEmbed(interaction, feedback.type));
+            await interaction.update(await buildFeedbackEmbed(interaction, feedback.type, page));
             await interaction.followUp({ content: `deleting feedback #${feedbackId}?`, flags: MessageFlags.Ephemeral, components: [new ActionRowBuilder().addComponents(dropdown)] });
         }),
         "finishDelete": (async (interaction, feedbackId) => {
@@ -139,36 +140,48 @@ module.exports = {
     },
 }
 
-async function buildFeedbackEmbed(interaction, category) {
+async function buildFeedbackEmbed(interaction, category, page = 1) {
     // get all feedback for the category
-    const feedbacks = await database.Feedback.findAll({
+    const allFeedbacks = await database.Feedback.findAll({
         where: { type: category },
-        order: [['createdAt', 'DESC']] // newest first
+        order: [['createdAt', 'DESC']], // newest first
     });
 
+    // paginate
+    const feedbacks = allFeedbacks.slice((page - 1) * FEEDBACK_PER_PAGE, page * FEEDBACK_PER_PAGE);
+
     const buttons = [];
-    // prep buttons
+    // prep category buttons
     for (const cat of feedbackCategories) {
         buttons.push(
             new ButtonBuilder()
                 .setCustomId(`feedback:category-${cat}`)
                 .setLabel(`${cat} (${await database.Feedback.count({ where: { type: cat } })})`)
-                .setStyle(ButtonStyle.Secondary)
-                .setDisabled(cat === category) // disable the current category button
+                .setStyle(cat === category ? ButtonStyle.Primary : ButtonStyle.Secondary)
         )
     }
+
+    const container = new ContainerBuilder()
+        .setAccentColor(0x997565)
+        .addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`### feedback\n__${feedbacks.length}__ for category __${category}__`)
+        )
+        .addSeparatorComponents((separator) =>
+            separator.setSpacing(SeparatorSpacingSize.Small).setDivider(false)
+        )
 
     const row = new ActionRowBuilder()
         .addComponents(buttons);
     const dropdown = new StringSelectMenuBuilder()
-        .setCustomId('feedback:chooseFeedback')
+        .setCustomId(`feedback:chooseFeedback-${page}`)
         .setPlaceholder('pick feedback to delete')
-
-    let description = `__${feedbacks.length}__ for category __${category}__\n`;
 
     for (const feedback of feedbacks) {
         const user = await interaction.client.users.fetch(feedback.userId); // find the user for username display
-        description += `\n- __${user.username}__: ${feedback.text}`;
+        container.addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`__${user.username}__: ${feedback.text}`)
+        )
+
         if (interaction.user.id === feedback.userId || interaction.user.id === ownerId) { // if the user is the owner or the feedback author, add the feedback to the dropdown
             dropdown.addOptions(
                 new StringSelectMenuOptionBuilder()
@@ -176,24 +189,47 @@ async function buildFeedbackEmbed(interaction, category) {
                     .setValue(`${feedback.dbId}`)
             )
         }
-
     }
 
     if (feedbacks.length === 0) {
-        description = `__no feedback here.__`;
+        container.addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`__no feedback here.__`)
+        )
     }
 
-    const embed = new EmbedBuilder()
-        .setTitle("feedback")
-        .setColor('#997565')
-        .setDescription(description)
-
-    const components = [row];
     if (dropdown.options.length > 0) { // only add dropdown if there are options
-        components.push(new ActionRowBuilder().addComponents(dropdown));
+        container.addActionRowComponents((actionRow) =>
+            actionRow.setComponents(dropdown)
+        )
+    }
+
+    // pagination, if needed
+    if (allFeedbacks.length > FEEDBACK_PER_PAGE) {
+        const totalPages = Math.ceil(allFeedbacks.length / FEEDBACK_PER_PAGE);
+        
+        const leftButton = new ButtonBuilder()
+            .setCustomId(`feedback:category-${category}-${page - 1}`)
+            .setLabel('<--')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(page === 1);
+        if (page - 1 === 1) leftButton.setCustomId(`feedback:category-${category}`);
+
+        const rightButton = new ButtonBuilder()
+            .setCustomId(`feedback:category-${category}-${page + 1}`)
+            .setLabel('-->')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(page >= totalPages);
+        
+        const paginationRow = new ActionRowBuilder()
+            .addComponents(leftButton, rightButton);
+            
+        container.addActionRowComponents((actionRow) =>
+            actionRow.setComponents(paginationRow.components)
+        )
     }
     return {
-        embeds: [embed],
-        components: components
+        components: [container, row],
+        embeds: [],
+        flags: MessageFlags.IsComponentsV2
     }
 }

@@ -85,46 +85,53 @@ async function doAutoping(interaction, count) {
             flags: MessageFlags.Ephemeral,
         });
     }
-
+    
+    usersAutopinging.push(interaction.user.id);
+    function popUserAutoping(id) {
+        usersAutopinging = usersAutopinging.filter(i => i !== id);
+    }
+    
     let player = await database.Player.findByPk(interaction.user.id);
-
+    
+    
     let pings;
     if (count === "all") {
         pings = player.apt;
     } else {
         pings = parseInt(count);
     }
-
+    
     if (isNaN(pings)) {
+        popUserAutoping(interaction.user.id)
         return interaction.reply({
             content: "please input a number...",
             flags: MessageFlags.Ephemeral,
         });
     }
     if (pings < 1 || pings > player.apt) {
+        popUserAutoping(interaction.user.id)
         return interaction.reply({
             content: `please input a number between 1 and ${formatNumber(player.apt, { options: player.formatSettings })}.`,
             flags: MessageFlags.Ephemeral,
         });
     }
-
+    
     function buildAutopingContainer(progress) {
         const container = new ContainerBuilder()
-            .setAccentColor(0xc4bf18)
-            .addTextDisplayComponents((textDisplay) =>
-                textDisplay.setContent(`### autopinging...\n**${formatNumber(progress, { shortHand: false, options: player.formatSettings })}**/${formatNumber(pings, { shortHand: false, options: player.formatSettings })}...`)
-            )
+        .setAccentColor(0xc4bf18)
+        .addTextDisplayComponents((textDisplay) =>
+            textDisplay.setContent(`### autopinging...\n**${formatNumber(progress, { shortHand: false, options: player.formatSettings })}**/${formatNumber(pings, { shortHand: false, options: player.formatSettings })}...`)
+        )
         return container
     }
 
+    try {
 
     await interaction.update({
         embeds: [],
         components: [buildAutopingContainer(0)],
         flags: MessageFlags.IsComponentsV2,
     })
-
-    usersAutopinging.push(interaction.user.id);
 
     let updateEmbedEvery = Math.ceil(pings / (4 + (Math.random() * Math.log10(pings))));
     if (updateEmbedEvery <= 1) updateEmbedEvery = pings;
@@ -304,11 +311,14 @@ ${finalDescription}`)
         actionRow.setComponents(components)
     )
 
-    usersAutopinging = usersAutopinging.filter(id => id !== interaction.user.id);
 
     await interaction.editReply({
         components: [finalContainer],
     });
+    } catch (error) {
+        popUserAutoping(interaction.user.id)
+        throw error;
+    }
 }
 
 async function getAutopingEmbed(interaction) {

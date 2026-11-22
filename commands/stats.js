@@ -188,7 +188,7 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
 
     if (hasLuckBased) {
         const luckBasedText = `__upgrades__\n` +
-            (stats.coinflip ? `${formatNumber(stats.coinflip, formatSettings)} coinflip${stats.coinflip === 1 ? '' : 's'} in one ping\n` : '') +
+            (stats.coinflipCount ? `${formatNumber(stats.coinflipCount, formatSettings)} coinflip${stats.coinflipCount === 1 ? '' : 's'} in one ping\n` : '') +
             (stats.pigScore ? `${formatNumber(stats.pigScore, formatSettings)} pig score in one ping\n` : '') +
             (stats.artisanCombo ? `${formatNumber(stats.artisanCombo, formatSettings)} artisan combo at once\n` : '') +
             (stats.orchestraCombo ? `${formatNumber(stats.orchestraCombo, formatSettings)} orchestra combo at once\n` : '');

@@ -9,8 +9,8 @@ async function run() {
 	}
 
 	const sequelize = database.sequelize
-	await sequelize.sync({ force });
-	sequelize.close();
+	await sequelize.sync({ force, alter: !force });
+	await sequelize.close();
 }
 
 run()

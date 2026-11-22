@@ -11,6 +11,11 @@ module.exports = (sequelize) => {
             autoIncrement: true,
         },
 
+        UserUserId: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+
         layer: {
             type: DataTypes.ENUM(PrestigeLayers)
         },

@@ -144,7 +144,7 @@ module.exports = {
                         .setContent(`cloak sewing cancelled.`)
                 ],
                 embeds: [],
-                flags: MessageFlags.Ephemeral
+                flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
             })
 
             await new Promise(resolve => setTimeout(resolve, 4000));

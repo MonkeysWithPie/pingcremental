@@ -193,7 +193,7 @@ async function doAutoping(interaction, count) {
         storedCache.profile.slumberClicks += currentEffects.specials.slumberClicks || 0;
         storedCache.profile.glimmerClicks += currentEffects.specials.glimmerClicks || 0;
 
-        if (currentEffects.artisanClickedSymbol) {
+        if (currentEffects.specials.artisan) {
             nextPingArtisan = currentEffects.artisanNextSymbols[0];
         }
 
@@ -221,7 +221,7 @@ async function doAutoping(interaction, count) {
         if (pingDataTotal.highestScore > layerStat.highScore)
             layerStat.highScore = pingDataTotal.highestScore;
 
-        if (pingDataTotal.highestBlueCombo > layerStat.highestBlueStreak)
+        if (pingDataTotal.highestBlueCombo > layerStat.blueStreak)
             layerStat.blueStreak = pingDataTotal.highestBlueCombo;
 
         if (layerStat.changed()) await layerStat.save();

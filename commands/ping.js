@@ -337,7 +337,7 @@ function getButtonRows(currentEffects) {
 function formatDisplay(display, format) {
     if (format === "expanded") {
         return display.join(', ');
-    } else if (format === "compact") {
+    } else if (format.includes("compact")) {
         return display.join(' ');
     }
 }

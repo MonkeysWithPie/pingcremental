@@ -28,7 +28,7 @@ function formatNumber(num, { decimalPlaces = 2, shortHand = true, shortHandPlace
 
         const roundedDecimal = decimalPart.toFixed(shortHand ? decimalPlaces - magnitude : shortHandPlaces).slice(2);
 
-        return integerPart.toLocaleString().replace(",", options.swapCommas ? "." : ",") 
+        return integerPart.toLocaleString().replaceAll(",", options.swapCommas ? "." : ",") 
             + (roundedDecimal ? (options.swapCommas ? "," : ".") + roundedDecimal : "");
     }
 
@@ -52,13 +52,13 @@ function formatNumber(num, { decimalPlaces = 2, shortHand = true, shortHandPlace
     }
 
     let formatted = notation.format(num, decimalPlaces)
-        .replace(" ", ""); // remove space before suffix
+        .replaceAll(" ", ""); // remove space before suffix
 
     if (options.swapCommas) {
         formatted = formatted
-            .replace(",", TEMP_REPLACEMENT)
-            .replace(".", ",")
-            .replace(TEMP_REPLACEMENT, ".");
+            .replaceAll(",", TEMP_REPLACEMENT)
+            .replaceAll(".", ",")
+            .replaceAll(TEMP_REPLACEMENT, ".");
     }
 
     return formatted;

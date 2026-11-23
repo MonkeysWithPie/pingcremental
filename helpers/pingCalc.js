@@ -276,6 +276,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     measureTimeSegment("scoring");
 
     score = Math.max(score, 1); // prevent negative scores
+    const addedScore = score;
 
     let totalMult = 1;
     // add mults at the end so they're actually effective
@@ -325,7 +326,7 @@ async function ping(interaction, isSuper = false, overrides = {}) {
     }
     
     if (pingFormat !== "expanded") {
-        displays.add.push(`\`+${formatNumber(score, { options: playerProfile.formatSettings })}\``);
+        displays.add.push(`\`+${formatNumber(addedScore, { options: playerProfile.formatSettings })}\``);
         if (currentEffects.bp) {
             displays.bp.push(`\`+${formatNumber(currentEffects.bp, { options: playerProfile.formatSettings })} bp\``);
         }

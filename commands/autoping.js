@@ -311,10 +311,10 @@ ${finalDescription}`)
         actionRow.setComponents(components)
     )
 
-
     await interaction.editReply({
         components: [finalContainer],
     });
+    popUserAutoping(interaction.user.id)
     } catch (error) {
         popUserAutoping(interaction.user.id)
         throw error;

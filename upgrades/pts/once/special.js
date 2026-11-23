@@ -1,13 +1,13 @@
-const { UpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
     getPrice(currentLevel) {
-        return currentLevel === 0 ? 3000 : null
+        return currentLevel === 0 ? 1000 : null
     },
     getDetails() {
         return {
-            description: "getting a rare ping message gives 100x pts",
+            description: "getting a rare ping message gives 100x `pts`",
             name: "i feel special",
             emoji: getEmoji('upgrade_special', "✨"),
         }
@@ -21,9 +21,11 @@ module.exports = {
             message: context.rare ? "WHOA!" : null,
         }
     },
-    isBuyable(context) {
-        return true;
+    unlockRequirements() {
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 100 },
-    type() { return UpgradeTypes.ONE_TIME }
+    type() { return UpgradeTypes.ONE_TIME },
+    section() { return PingCalculationStates.SCORING; },
+    getMax() { return 1; }
 }

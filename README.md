@@ -25,13 +25,15 @@ there are three fields that should be mostly self-explainatory. these fields wil
 
 3. `OWNER_ID` - the discord snowflake of the owner user of the bot. technically optional, but some functionality will be disabled or work incorrectly.
 
+4. `BETA_TEST` - when set to "true", gives all players 100 APT always so they can test faster.
+
 ### running
 
 there are two ways to do this.
 
 #### 1. automatic
 
-just run `run.bat`! it's that simple. it'll set everything up for you (commands, database, and the bot itself).
+just run `run.bat` or `run.sh`! it's that simple. it'll set everything up for you (commands, database, and the bot itself).
 
 the bot will restart on its own upon encountering an error, or when using `/development restart`.
 
@@ -53,9 +55,9 @@ to run the bot, simply run the `index.js` file. there are some flags for running
     this prevents the usage of /ping unless you are the owner.
     this additionally sets the ping to always be 5, in order to bypass the wait for `client.ws.ping` to update.
 
-2. `-v` or `--verbose` (not done yet)
+2. `-t` or `--timing`
 
-    this logs a lot of actions that occur, used for debugging.
+    this logs the duration of segments when calculating ping. useful for optimization.
 
 ### go wild
 

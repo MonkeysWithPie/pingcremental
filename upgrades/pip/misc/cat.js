@@ -1,5 +1,6 @@
-const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const RandSeed = require('rand-seed').default;
 
 module.exports = {
     getPrice(currentLevel) {
@@ -17,28 +18,32 @@ module.exports = {
         return level > 0 ? "cat :D" : "no cat D:"
     },
     getEffect(level, context) {
-        const roll = Math.random()*3;
+        const seed = new RandSeed(context.rngSeed + "pipcat");
+        const roll = seed.next();
 
-        if (roll < 1.8) {
+        if (roll < 0.65) { // 65%
             return {
-                add: 5 + Math.floor(Math.random()*5),
+                add: 1 + Math.floor(seed.next()*50),
                 message: "mrrow!"
             }
-        } else if (roll < 2.7) {
+        } else if (roll < 0.9) { // 25%
             return {
-                multiply: 1.2 + Math.random()*0.5,
+                multiply: 1.2 + seed.next()*0.7,
                 message: "mrrp!",
             }
-        } else {
+        }  // 10%
             return {
-                exponent: 1.08,
+                apt: 1 + Math.floor(seed.next()*5),
                 message: "purrrr!",
             }
-        }
+        
     },
-    upgradeRequirements() {
-        return { beginning: 1 };
+    unlockRequirements(context) {
+        if (!context.upgrades.beginning) return { showable: true, buyable: false, reason: "buy 'Eternity's Welcome'" };
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 203 },
-    type() { return PipUpgradeTypes.MISC }
+    type() { return PipUpgradeTypes.MISC },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL | PingCalculationStates.SCORING | PingCalculationStates.POST_SCORING; },
+    getMax() { return 1; }
 }

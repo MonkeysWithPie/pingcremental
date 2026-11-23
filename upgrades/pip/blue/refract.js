@@ -1,5 +1,6 @@
-const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: indigoUnlockRequirements } = require('./indigo.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -7,7 +8,7 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "an additional 5% of your Glimmer clicks (up to 20) are used per click, gain __x1.25__ pts (additive) for each",
+            description: "an additional 5% of your Glimmer clicks (up to 20) are used per click, gain __x1.25__ `pts` (additive) for each",
             name: "Refract",
             emoji: getEmoji('ponder_refract', "☀️"),
             flavor: "'i can see the light!' - someone long forgotten",
@@ -26,15 +27,20 @@ module.exports = {
         if (mult === 1) return {};
         return {
             special: {
-                "glimmer": -(extraGlimmer + 1) // +1 due to the base glimmer click
+                "glimmer": (context.specials.glimmer || 0) - extraGlimmer
             },
             multiply: mult,
             message: `(used ${extraGlimmer} extra)`
         }
     },
-    upgradeRequirements() {
-        return { indigo: 3 };
+    unlockRequirements(context) {
+        if (!(indigoUnlockRequirements(context).buyable)) return { showable: false };
+        const indigoLevel = context.upgrades.indigo || 0;
+        if (indigoLevel < 3) return { showable: true, buyable: false, reason: `'Indigo Vision' ${indigoLevel}/3` };
+        
+        return { showable: true, buyable: true };
     },
-    sortOrder() { return 106 },
-    type() { return PipUpgradeTypes.BLUE_PING }
+    sortOrder() { return 105 },
+    type() { return PipUpgradeTypes.BLUE_PING },
+    section() { return PingCalculationStates.SCORING; }
 }

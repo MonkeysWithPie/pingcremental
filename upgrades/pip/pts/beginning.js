@@ -1,4 +1,4 @@
-const { PipUpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { PipUpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
@@ -7,7 +7,7 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "gain 2x pts",
+            description: "gain 2x `pts`",
             name: "Eternity's Welcome",
             emoji: getEmoji('ponder_beginning', "🌃"),
             flavor: "Eternity is glad to have you. it hopes you are glad to have it, as well.",
@@ -16,14 +16,16 @@ module.exports = {
     getEffectString(level) {
         return level === 0 ? "x1" : "x2";
     },
-    getEffect(level, context) {
+    getEffect() {
         return {
             multiply: 2,
         }
     },
-    upgradeRequirements() {
-        return {};
+    unlockRequirements() {
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 1 },
-    type() { return PipUpgradeTypes.BONUS }
+    type() { return PipUpgradeTypes.BONUS },
+    section() { return PingCalculationStates.SCORING; },
+    getMax() { return 1; }
 }

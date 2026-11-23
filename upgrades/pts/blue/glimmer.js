@@ -1,5 +1,6 @@
-const { UpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { unlockRequirements: budgeUnlockRequirements } = require('./budge.js');
 
 module.exports = {
     getPrice(currentLevel) {
@@ -7,7 +8,7 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "after clicking a blue ping, the next 5 pings will give x1.2 pts",
+            description: "after clicking a blue ping, the next 5 pings will give x1.2 `pts`",
             name: "glimmer",
             emoji: getEmoji('upgrade_glimmer', "✨"),
         }
@@ -23,15 +24,20 @@ module.exports = {
             }
         } else if (context.glimmerClicks) {
             return {
-                special: { "glimmer": -1 },
+                special: { "glimmer": (context.specials.glimmer || 0) - 1 },
                 multiply: 1.2,
                 message: `(${context.glimmerClicks} left)`,
             }
-        } else return {};
+        } return {};
     },
-    isBuyable(context) {
-        return context.upgrades.budge && context.upgrades.budge > 1 && context.upgrades.blueshift && context.upgrades.blueshift > 3;
+    unlockRequirements(context) {
+        if (!budgeUnlockRequirements(context).buyable) return { showable: false };
+        if (!context.upgrades.budge) return { showable: true, buyable: false, reason: `buy 'budge'` };
+
+        return { showable: true, buyable: true };
     },
     sortOrder() { return 17 },
-    type() { return UpgradeTypes.BLUE_PING }
+    type() { return UpgradeTypes.BLUE_PING },
+    section() { return PingCalculationStates.SCORING; },
+    getMax() { return 1; }
 }

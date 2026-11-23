@@ -1,0 +1,14 @@
+const { BADGE_TIERS } = require('../helpers/badgeUtils.js');
+const { getEmoji } = require('../helpers/emojis.js');
+
+function get() {
+    return {
+        name: 'template',
+        description: 'this is a badge template',
+        flavorText: 'this is some flavor text for the badge template',
+        emoji: getEmoji('badge_none_1'),
+        tier: BADGE_TIERS.SILVER,
+    }
+}
+
+module.exports = get;

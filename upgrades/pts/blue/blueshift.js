@@ -1,4 +1,4 @@
-const { UpgradeTypes } = require('../../../helpers/upgradeEnums.js');
+const { UpgradeTypes, PingCalculationStates } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
 
 module.exports = {
@@ -15,14 +15,17 @@ module.exports = {
     getEffectString(level) {
         return `+${(0.6*level).toFixed(1)}%`
     },
-    getEffect(level, context) {
+    getEffect(level) {
         return {
             blue: level*0.6
         }
     },
-    isBuyable(context) {
-        return Object.keys(context.upgrades).includes('blue')
+    unlockRequirements(context) {
+        if (context.upgrades.blue) return { showable: true, buyable: true };
+
+        return { showable: true, buyable: false, reason: "buy 'blue ping'" };
     },
     sortOrder() { return 11 },
-    type() { return UpgradeTypes.BLUE_PING }
+    type() { return UpgradeTypes.BLUE_PING },
+    section() { return PingCalculationStates.RNG_AND_SPECIAL; }
 }

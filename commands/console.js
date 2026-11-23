@@ -337,6 +337,7 @@ const commands = {
             );
 
         await interaction.showModal(modal);
+        return true;
     }),
     "award": ownerRequiredCommand(async (interaction, args) => {
         function badgeDisplay(badge) {

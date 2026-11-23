@@ -105,6 +105,11 @@ function getMultiBuyCost(buySetting, upgrade, score, playerUpgradeLevel) {
         price -= upgrade.getPrice(playerUpgradeLevel + levels);
     }
 
+    if (levels <= 0) {
+        price = upgrade.getPrice(playerUpgradeLevel);
+        levels = 1;
+    }
+
     return { price, levels }
 }
 

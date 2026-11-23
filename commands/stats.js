@@ -223,7 +223,7 @@ async function getUserMessage(userId, interaction, selfId, layer = "total") {
         ).setButtonAccessory(refreshButton)
     if ((layer === "total" && stats.eternities > 0 && stats.legacyStat) || (stats.legacyStat && layer === "eternity")) {
         section.addTextDisplayComponents((textDisplay) =>
-            textDisplay.setContent(`-# \\*these stats were not recorded until v3.0.0.`)
+            textDisplay.setContent(`-# \\*these stats were not recorded until v2.0.0.`)
         )
     }
 

@@ -52,6 +52,11 @@ function multiBuyThreshold(upgrade, score, playerUpgradeLevel, buySetting) {
         price += levelPrice;
     }
 
+    if (levels <= 0) {
+        price = upgrade.getPrice(playerUpgradeLevel);
+        levels = 1;
+    }
+
     return { price, levels }
 }
 
@@ -103,11 +108,6 @@ function getMultiBuyCost(buySetting, upgrade, score, playerUpgradeLevel) {
     while (price > score && levels > 1) {
         levels--;
         price -= upgrade.getPrice(playerUpgradeLevel + levels);
-    }
-
-    if (levels <= 0) {
-        price = upgrade.getPrice(playerUpgradeLevel);
-        levels = 1;
     }
 
     return { price, levels }

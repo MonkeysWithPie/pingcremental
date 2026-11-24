@@ -100,7 +100,7 @@ module.exports = {
         sew: async (interaction) => {
             await interaction.reply(await getSewEmbed(interaction));
         },
-        sewRemove: async (interaction, fabricName) => {
+        sewRemove: async (interaction, fabricName, ) => {
             const equippedFabrics = getEquippedFromSewMessage(interaction.message);
 
             equippedFabrics[fabricName]--;
@@ -526,7 +526,7 @@ async function getSewEmbed(interaction, equippedFabrics, state = "normal") {
                 container.addSectionComponents((section) => section
                     .addTextDisplayComponents((textDisplay) => textDisplay.setContent(`**${fabricUpgrade.getDetails().emoji} ${fabricUpgrade.getDetails().name}**\n${fabricUpgrade.getDetails().description}`))
                     .setButtonAccessory(new ButtonBuilder()
-                        .setCustomId(`weave:sewRemove-${fabricName}`)
+                        .setCustomId(`weave:sewRemove-${fabricName}-${i}`)
                         .setLabel(`remove`)
                         .setStyle(ButtonStyle.Danger)
                     )

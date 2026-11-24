@@ -106,7 +106,8 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral
         }),
         multibuy: (async (interaction, buySetting) => {
             const catButtonRow = interaction.message.components[1];
-            const category = catButtonRow.components.find(button => button.style === ButtonStyle.Primary).customId.split('-')[1];
+            const matchingButton = catButtonRow.components.find(button => button.style === ButtonStyle.Primary)
+            const category = matchingButton ? matchingButton.customId.split('-')[1] : "addition";
 
             buySetting = parseMultibuySetting(buySetting);
 

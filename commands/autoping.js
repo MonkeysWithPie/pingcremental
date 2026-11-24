@@ -11,9 +11,18 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("autoping")
         .setDescription("ping a ton for you, automatically")
-        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
+        .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel)
+        .addStringOption((option) => 
+            option.setName("apt")
+                .setDescription('enter a number or "ALL" to quickly start autopinging')
+                .setRequired(false)
+        ),
 
     async execute(interaction) {
+        if (interaction.options.getString("apt")) {
+            return this.buttons.run(interaction, interaction.options.getString("apt"));
+        }
+
         await interaction.reply(await getAutopingEmbed(interaction));
     },
     buttons: {

@@ -20,7 +20,8 @@ module.exports = {
 
     async execute(interaction) {
         if (interaction.options.getString("apt")) {
-            return this.buttons.run(interaction, interaction.options.getString("apt"));
+            this.buttons.run(interaction, interaction.options.getString("apt"), true);
+            return;
         }
 
         await interaction.reply(await getAutopingEmbed(interaction));
@@ -29,7 +30,7 @@ module.exports = {
         refresh: async (interaction) => {
             await interaction.update(await getAutopingEmbed(interaction));
         },
-        run: async (interaction, count) => {
+        run: async (interaction, count, direct) => {
             if (usersAutopinging.includes(interaction.user.id)) {
                 return interaction.reply({
                     content: "you are already autopinging!",
@@ -61,7 +62,7 @@ module.exports = {
 
             // for quick repeats ("100x more!")
             if (count) {
-                return doAutoping(interaction, count);
+                return doAutoping(interaction, count, direct);
             }
 
             const modal = new ModalBuilder()
@@ -87,7 +88,7 @@ module.exports = {
     }
 }
 
-async function doAutoping(interaction, count) {
+async function doAutoping(interaction, count, direct) {
     if (usersAutopinging.includes(interaction.user.id)) {
         return interaction.reply({
             content: "you are already autopinging!",
@@ -104,7 +105,7 @@ async function doAutoping(interaction, count) {
     
     
     let pings;
-    if (count === "all") {
+    if (count.toLowerCase() === "all") {
         pings = player.apt;
     } else {
         pings = parseInt(count);
@@ -113,7 +114,7 @@ async function doAutoping(interaction, count) {
     if (isNaN(pings)) {
         popUserAutoping(interaction.user.id)
         return interaction.reply({
-            content: `"${pings}" isn't a number i understand, please enter a more reasonable number.`,
+            content: `"${count}" isn't a number i understand, please enter a more reasonable number.`,
             flags: MessageFlags.Ephemeral,
         });
     }
@@ -140,11 +141,20 @@ async function doAutoping(interaction, count) {
 
     try {
 
-    await interaction.update({
-        embeds: [],
-        components: [buildAutopingContainer(0)],
-        flags: MessageFlags.IsComponentsV2,
-    })
+    if (direct) {
+        await interaction.reply({
+            embeds: [],
+            components: [buildAutopingContainer(0)],
+            flags: MessageFlags.IsComponentsV2
+        })
+
+    } else {
+        await interaction.update({
+            embeds: [],
+            components: [buildAutopingContainer(0)],
+            flags: MessageFlags.IsComponentsV2,
+        })
+    }
 
     let updateEmbedEvery = Math.ceil(pings / (4 + (Math.random() * Math.log10(pings))));
     if (updateEmbedEvery <= 1) updateEmbedEvery = pings;

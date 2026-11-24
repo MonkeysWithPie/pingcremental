@@ -47,13 +47,13 @@ module.exports = {
             if (!playerData.upgrades.pingularity) {
                 return await interaction.update({
                     content: "you don't have the required upgrade for this yet, and tbh i don't think you even know what a pingularity *is*",
-                    components: [failButton]
+                    components: [new ActionRowBuilder().addComponents(failButton)]
                 })
             }
             if (playerData.bp < 10000) {
                 return await interaction.update({
                     content: "you don't have enough bp yet. get back to work at the bp factory",
-                    components: [failButton]
+                    components: [new ActionRowBuilder().addComponents(failButton)]
                 })
             }
 

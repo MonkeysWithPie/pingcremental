@@ -46,13 +46,13 @@ module.exports = {
                 .setStyle(ButtonStyle.Secondary)
             if (!playerData.upgrades.pingularity) {
                 return await interaction.update({
-                    content: "i don't think you even know what a pingularity *is*.",
+                    content: "you don't have the required upgrade for this yet, and tbh i don't think you even know what a pingularity *is*",
                     components: [failButton]
                 })
             }
             if (playerData.bp < 10000) {
                 return await interaction.update({
-                    content: "you shouldn't be here yet.",
+                    content: "you don't have enough bp yet. get back to work at the bp factory",
                     components: [failButton]
                 })
             }

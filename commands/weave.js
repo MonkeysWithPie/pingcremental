@@ -30,7 +30,7 @@ module.exports = {
 
             if (stats.tear.eternities < getTearRequirement(stats.total.tears)) {
                 return await interaction.reply({
-                    content: `you can't.... what?`,
+                    content: "tearing without enough eternities is a REALLY bad idea. you'd break time itself, delete me from reality, and worst of all you wouldn't even get any thread",
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -123,6 +123,14 @@ module.exports = {
         },
         sewFinishConfirm: async (interaction) => {
             const player = await database.Player.findByPk(interaction.user.id);
+
+            if (player.cloakModificationsAllowed < 1) {
+                return await interaction.reply({
+                    contents: "you've used your cloak allowance already. maybe you could find a job that pays you in cloak modifications",
+                    flags: MessageFlags.Ephemeral
+                })
+            } 
+
             const equippedFabrics = getEquippedFromSewMessage(interaction.message);
 
             player.equippedFabrics = equippedFabrics;
@@ -193,9 +201,18 @@ module.exports = {
                 });
             }
 
+            const currentStock = getShopStock(player.shopSeed);
+            if (!currentStock.includes(fabricName)) {
+                await interaction.update(await getEmbed(interaction, WEAVE_SECTION.Shop))
+                return await interaction.followUp({
+                    content: "the shop doesn't have that anymore. are you trying to buy from yourself?? sales tax still applies so you'd just waste thread",
+                    flags: MessageFlags.Ephemeral
+                })
+            }
+
             // because sequelize doesn't like modifying lists directly
             const currentEmpty = player.shopEmptySlots || [];
-            currentEmpty.push(getShopStock(player.shopSeed).indexOf(fabricName));
+            currentEmpty.push(currentStock.indexOf(fabricName));
 
             player.thread -= fabricUpgrade.getPrice();
             player.ownedFabrics[fabricName] = (player.ownedFabrics[fabricName] || 0) + 1;

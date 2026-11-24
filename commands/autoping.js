@@ -31,7 +31,7 @@ module.exports = {
             const player = await database.Player.findByPk(interaction.user.id);
             if (player.apt < 1) {
                 return interaction.reply({
-                    content: "you don't have any APT...",
+                    content: "you used all your APT somewhere else already. maybe you shouldn't put all your APT in one basket, or just... get more APT",
                     flags: MessageFlags.Ephemeral,
                 });
             }
@@ -104,16 +104,20 @@ async function doAutoping(interaction, count) {
     if (isNaN(pings)) {
         popUserAutoping(interaction.user.id)
         return interaction.reply({
-            content: "please input a number...",
+            content: `"${pings}" isn't a number i understand, please enter a more reasonable number.`,
             flags: MessageFlags.Ephemeral,
         });
     }
-    if (pings < 1 || pings > player.apt) {
+    if (pings < 1) {
         popUserAutoping(interaction.user.id)
         return interaction.reply({
-            content: `please input a number between 1 and ${formatNumber(player.apt, { options: player.formatSettings })}.`,
-            flags: MessageFlags.Ephemeral,
-        });
+            content: "are you trying to rob yourself of pings?? if you want `pts` deducted so bad just look at /upgrades",
+            flags: MessageFlags.Ephemeral
+        })
+    }
+
+    if (pings > player.apt) {
+        pings = player.apt
     }
     
     function buildAutopingContainer(progress) {

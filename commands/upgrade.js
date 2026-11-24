@@ -77,7 +77,6 @@ module.exports = {
             playerData.bp = 0;
             playerData.increaseStat("eternities", 1);
 
-            await playerData.save();
             await playerData.layerReset('eternity');
 
             // memory effects
@@ -91,6 +90,7 @@ module.exports = {
             }
 
             playerData.changed('upgrades', true)
+            await playerData.save();
 
             await interaction.update({ content: `*it is done.*\n-# you gained __\`${formatNumber(gainedPip, { options: playerData.formatSettings })} PIP\`__, so you now have __\`${formatNumber(playerData.pip, { options: playerData.formatSettings })} PIP\`__`, components: [] });
             if (firstEternity) {

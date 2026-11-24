@@ -39,6 +39,24 @@ module.exports = {
         eternity: (async interaction => {
             const playerData = await database.Player.findByPk(`${interaction.user.id}`);
             const stats = await playerData.stats();
+
+            const failButton = new ButtonBuilder()
+                .setCustomId("upgrade:delete")
+                .setLabel("oh... okay!")
+                .setStyle(ButtonStyle.Secondary)
+            if (!playerData.upgrades.pingularity) {
+                return await interaction.update({
+                    content: "i don't think you even know what a pingularity *is*.",
+                    components: [failButton]
+                })
+            }
+            if (playerData.bp < 10000) {
+                return await interaction.update({
+                    content: "you shouldn't be here yet.",
+                    components: [failButton]
+                })
+            }
+
             const firstEternity = stats.total.eternities === 0;
 
             // add removed upgrade levels, for "vague" upgrade

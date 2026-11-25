@@ -670,7 +670,7 @@ function getGainedThread(player, simplify = true) {
         gain.pip = Math.floor(Math.log10(player.pip) * 2);
     }
     if (stats.tear.eternities > getTearRequirement(totalTears)) {
-        stats.tear.eternities = Math.min(player.eternities - getTearRequirement(totalTears), 15);
+        gain.eternities = Math.min(stats.tear.eternities - getTearRequirement(totalTears), 15);
     }
     if (totalTears > 0) {
         gain.tears = Math.min(totalTears * 3, 30);

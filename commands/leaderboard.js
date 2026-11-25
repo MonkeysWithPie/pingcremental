@@ -122,6 +122,11 @@ async function getMessage(interaction, leaderboardType) {
         .addTextDisplayComponents((textDisplay) =>
             textDisplay.setContent(`### ${leaderboardTypes[leaderboardType].emoji} ${leaderboardTypes[leaderboardType].name} leaderboard\n` + description)
         )
+    
+    if (leaderboardType === "score")
+        container.addTextDisplayComponents((textDisplay) => 
+            textDisplay.setContent("-# event ends <t:1795971600:R>\n-# top 10 on this leaderboard earn prizes")
+        )
 
     let needReInit = false;
     for (const [key, value] of Object.entries(leaderboardTypes)) {

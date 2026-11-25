@@ -438,7 +438,6 @@ function get(ping, context) {
 
         // command-related
         `you should check out our ${getEmbeddedCommand('ping')} command at some point`,
-        `got any ideas? try ${getEmbeddedCommand('feedback submit')}`,
         `not a fan of how i'm running? maybe change some ${getEmbeddedCommand('settings')}`,
 
         // these are all references

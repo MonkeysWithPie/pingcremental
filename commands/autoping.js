@@ -37,6 +37,12 @@ module.exports = {
                     flags: MessageFlags.Ephemeral,
                 });
             }
+            if (Date.now() > 1795971600000) {
+                return interaction.reply({
+                    content: "the event is over!",
+                    flags: MessageFlags.Ephemeral
+                })
+            }
 
             const player = await database.Player.findByPk(interaction.user.id);
             if (player.apt < 1) {

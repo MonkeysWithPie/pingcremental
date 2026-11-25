@@ -250,6 +250,21 @@ module.exports = (sequelize) => {
 			defaultValue: {},
 		},
 
+		circuits: {
+			type: DataTypes.NUMBER,
+			allowNull: false,
+			defaultValue: 0,
+			set(value) {
+				this.increaseStat('circuits', value - this.getDataValue('circuits'));
+				this.setDataValue('circuits', value);
+			}
+		},
+		circuitRules: {
+			type: DataTypes.JSON,
+			allowNull: false,
+			defaultValue: {},
+		},
+
 		// slumber upgrade
 		lastPing: {
 			type: DataTypes.DATE,

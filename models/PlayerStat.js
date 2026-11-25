@@ -122,6 +122,11 @@ module.exports = (sequelize) => {
             defaultValue: 0,
         },
 
+        circuits: {
+            type: DataTypes.NUMBER,
+            defaultValue: 0,
+        },
+
         artisanCombo: {
             type: DataTypes.NUMBER,
             defaultValue: 0,

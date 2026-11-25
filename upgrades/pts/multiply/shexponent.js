@@ -12,7 +12,7 @@ module.exports = {
         }
     },
     getEffectString(level) {
-        return `^${level*0.01 + 1} \`pts\``
+        return `^${(level*0.01 + 1).toFixed(2)} \`pts\``
     },
     getEffect(level, context) {
         if (!context.specials.allowShopkeeperUpgrades) return {};

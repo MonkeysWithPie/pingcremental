@@ -20,7 +20,7 @@ module.exports = {
         return {
             description: "add `pts` based on __`pts` spent on this upgrade__",
             name: "`pts`vestment [🛍️]",
-            emoji: getEmoji('upgrade_slow', "🕓"),
+            emoji: getEmoji('upgrade_investment', "📊"),
         }
     },
     getEffectString(level) {

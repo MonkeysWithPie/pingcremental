@@ -268,6 +268,14 @@ module.exports = (sequelize) => {
 			defaultValue: 0,
 			allowNull: false,
 		},
+
+
+		// awesome! cats
+		catRewards: {
+			type: DataTypes.JSON,
+			defaultValue: {},
+			allowNull: false,
+		}
 	}, {
 		sequelize,
 		timestamps: true,

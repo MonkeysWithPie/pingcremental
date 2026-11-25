@@ -6,6 +6,8 @@ const ping = require('./../helpers/pingCalc.js');
 const awardBadge = require('../helpers/awardBadge.js');
 const { getEmbeddedCommand } = require('../helpers/embedCommand.js');
 const database = require('../helpers/database.js');
+const { getEmoji } = require('../helpers/emojis.js');
+const fs = require('fs');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -34,12 +36,40 @@ module.exports = {
         "super": (async (interaction) => {
             await pingResponse(interaction, true)
         }),
+        "catchcat": (async (interaction) => {
+            await pingResponse(interaction, false)
+            const availableCats = JSON.parse(fs.readFileSync("./data/bonusCats.json"))
+
+            for (let i = 0; i < availableCats.length; i++) {
+                const cat = availableCats[i]
+                if (Math.random() < cat.chance && cat.available > 1) {
+                    const player = await database.Player.findByPk(interaction.user.id);
+
+                    player.catRewards[cat.type] ??= 0;
+                    player.catRewards[cat.type] += cat.count;
+                    player.changed("catRewards",true)
+
+                    cat.available -= 1;
+                    availableCats[i] = cat;
+                    fs.writeFileSync("./data/bonusCats.json", JSON.stringify(availableCats));
+                    await player.save();
+
+                    await interaction.followUp({ 
+                        content: `wow! you found ${cat.count} ${getEmoji(`${cat.type}cat`)} ${cat.type} cat${cat.count > 1 ? "s" : ""} lurking in the shadows!\n-# cats will be awarded by @spooks.mp4 in Cat Stand after the event ends`,
+                        flags: MessageFlags.Ephemeral
+                    })
+                    return;
+                }
+            }
+
+            await interaction.followUp({ content: "unfortunately, the shadow you saw ran away...!", flags: MessageFlags.Ephemeral })
+        }),
         "delete": (async interaction => {
             await interaction.update({ content: `(bye!)`, components: [] });
             await interaction.deleteReply(interaction.message);
         }),
         "unknown": (async interaction => {
-            await interaction.reply({ content: "unknown ping occurs when the bot just restarted. either something has gone horribly wrong, or something was changed! maybe some new stuff was added, maybe a bug was fixed. you can check the [github](<https://github.com/MonkeysWithPie/pingcremental/>) if you're curious. if you wait a few seconds, the ping will come back to normal.", flags: MessageFlags.Ephemeral })
+            await interaction.reply({ content: "unknown ping occurs when the bot just restarted. if you wait a few seconds, ping will return to normal.", flags: MessageFlags.Ephemeral })
         })
     }
 };
@@ -61,6 +91,12 @@ async function pingResponse(interaction, isSuper = false) {
                     .setLabel('dang!')
                     .setStyle(ButtonStyle.Secondary))
             ],
+        })
+    }
+
+    if (Date.now() > 1795971600000) {
+        return await interaction.update({
+            content: "the event is over!"
         })
     }
 
@@ -189,6 +225,16 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
     }
 
     let components = getButtonRows(currentEffects);
+
+    if (Math.random()  < 1) {
+        const catButton = new ButtonBuilder()
+            .setCustomId("ping:catchcat")
+            .setLabel("???")
+            .setEmoji(getEmoji("mysterycat"))
+            .setStyle(ButtonStyle.Secondary)
+        
+        components.unshift(new ActionRowBuilder().addComponents(catButton))
+    }
 
     if (currentEffects.rare) {
         components = [new ActionRowBuilder()

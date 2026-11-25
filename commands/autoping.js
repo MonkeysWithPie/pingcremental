@@ -2,6 +2,7 @@ const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInput
 const database = require("../helpers/database");
 const formatNumber = require("../helpers/formatNumber");
 const ping = require("../helpers/pingCalc");
+const embedCommand = require("../helpers/embedCommand");
 const betaMode = process.env.BETA_TEST === 'true';
 
 // autopinging multiple times can cause issues, so this keeps track of userIDs
@@ -39,6 +40,12 @@ module.exports = {
             }
 
             const player = await database.Player.findByPk(interaction.user.id);
+            if (!player) {
+                return interaction.reply({
+                    content: `you don't have any \`pts\`, let alone any APT! you should start with ${embedCommand("ping")} instead.`
+                })
+            }
+
             if (player.apt < 1) {
                 return interaction.reply({
                     content: "you used all your APT somewhere else already. maybe you shouldn't put all your APT in one basket, or just... get more APT",

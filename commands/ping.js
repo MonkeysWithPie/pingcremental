@@ -226,7 +226,7 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
 
     let components = getButtonRows(currentEffects);
 
-    if (Math.random()  < 1) {
+    if (Math.random() * 250 < 1) {
         const catButton = new ButtonBuilder()
             .setCustomId("ping:catchcat")
             .setLabel("???")

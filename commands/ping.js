@@ -42,7 +42,7 @@ module.exports = {
 
             for (let i = 0; i < availableCats.length; i++) {
                 const cat = availableCats[i]
-                if (Math.random() < cat.chance && cat.available > 1) {
+                if (Math.random() < cat.chance && cat.available > 0) {
                     const player = await database.Player.findByPk(interaction.user.id);
 
                     player.catRewards[cat.type] ??= 0;
@@ -227,13 +227,16 @@ you have a lot of \`pts\`... why don't you go spend them over in ${getEmbeddedCo
     let components = getButtonRows(currentEffects);
 
     if (Math.random() * 250 < 1) {
-        const catButton = new ButtonBuilder()
-            .setCustomId("ping:catchcat")
-            .setLabel("???")
-            .setEmoji(getEmoji("mysterycat"))
-            .setStyle(ButtonStyle.Secondary)
-        
-        components.unshift(new ActionRowBuilder().addComponents(catButton))
+        const catJson = JSON.parse(fs.readFileSync("./data/bonusCats.json"));
+        if (Object.values(catJson).reduce((acc, cat) => acc + cat.count) !== 0) {
+            const catButton = new ButtonBuilder()
+                .setCustomId("ping:catchcat")
+                .setLabel("???")
+                .setEmoji(getEmoji("mysterycat"))
+                .setStyle(ButtonStyle.Secondary)
+            
+            components.unshift(new ActionRowBuilder().addComponents(catButton))
+        }
     }
 
     if (currentEffects.rare) {

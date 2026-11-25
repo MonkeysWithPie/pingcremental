@@ -8,19 +8,19 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "start with __10,000__ `pts`, __x4__ each time you buy this",
+            description: "start with __10,000__ `pts`",
             name: "Distant Memories",
             emoji: getEmoji('ponder_memory', "🧠"),
             flavor: "your past isn't worthless. don't forget it.",
         }
     },
     getEffectString(level) {
-        return `${formatNumber(4 ** (level-1) * 10000)} \`pts\``
+        return `${formatNumber(10000 * level)} \`pts\``
     },
     getEffect(level) {
         return {
             special: {
-                startPts: 4 ** (level-1) * 10000,
+                startPts: level * 10000,
             },
         }
     },

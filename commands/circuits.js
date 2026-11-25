@@ -24,6 +24,34 @@ module.exports = {
         },
         section: async (interaction, newTab) => {
             await interaction.update(await getResponse(interaction, newTab))
+        },
+        buy: async (interaction) => {
+            const player = await database.Player.findByPk(interaction.user.id);
+            const stats = await player.stats()
+            const price = getCircuitBoardCost(stats.total.circuits);
+
+            if (player.apt < price) {
+                return await interaction.reply({
+                    content: "you don't have enough APT. i know it's hard not to spend it all right away but you have to save up for these things",
+                    flags: MessageFlags.Ephemeral
+                })
+            }
+
+            player.circuits += 1;
+            player.increaseStat("circuits", 1);
+            player.apt -= price;
+            await player.save();
+
+            await interaction.update(await getResponse(interaction));
+            await interaction.followUp({
+                content: `you bought a circuit for ${price} APT!`,
+                components: [new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("circuits:delete")
+                        .setLabel("sweet!")
+                        .setStyle(ButtonStyle.Secondary)
+                )]
+            })
         }
     }
 }
@@ -49,7 +77,7 @@ async function getResponse(interaction, tab = CIRCUIT_TAB.Buy) {
     const availableTabs = [CIRCUIT_TAB.Buy, CIRCUIT_TAB.Milestones];
 
     const container = new ContainerBuilder()
-        .setAccentColor("#57FF6D")
+        .setAccentColor(0x57FF6D)
     
     const tabRow = new ActionRowBuilder()
 
@@ -80,16 +108,33 @@ async function getResponse(interaction, tab = CIRCUIT_TAB.Buy) {
     }
 
     if (tab === CIRCUIT_TAB.Buy) {
-        let desc = "";
+        let desc = "### circuitboard shop\n";
 
         if (stats.total.circuits < 1) {
-            desc = "to make use of your newfound electronics knowledge, you could get a circuitboard! they can help you automate things you don't want to do.\n"
+            desc += "to make use of your newfound electronics knowledge, you could get a circuitboard! they can help you automate things you don't want to do.\n"
         }
 
         desc += `the next circuitboard costs ${formatNumber(getCircuitBoardCost(stats.total.circuits), {} )} APT, and you have **${formatNumber(player.apt, { options: player.formatSettings })}**. care to buy?`
+        desc += `\nyou currently have ${player.circuits} circuitboard${player.circuits === 1 ? "" : "s"} available.`
+    
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(desc))
+        container.addActionRowComponents((row) => row.addComponents(
+            new ButtonBuilder()
+                .setCustomId("circuits:buy")
+                .setLabel("buy one!")
+                .setStyle(ButtonStyle.Primary)
+                .setDisabled(player.apt < getCircuitBoardCost(stats.total.circuits))
+        ))
     }
+
+    // TODO handle other tabs
+    if (tab !== CIRCUIT_TAB.Buy) {
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent("coming soon lol"))
+    }
+
+    return { embeds: [], components: [container, tabRow], flags: MessageFlags.IsComponentsV2 };
 }
 
 function getCircuitBoardCost(owned) {
-    return ((1 + owned / 2) ** 2) * 10
+    return Math.floor(((1 + owned / 2) ** 2) * 10)
 }

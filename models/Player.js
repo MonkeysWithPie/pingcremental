@@ -253,11 +253,7 @@ module.exports = (sequelize) => {
 		circuits: {
 			type: DataTypes.NUMBER,
 			allowNull: false,
-			defaultValue: 0,
-			set(value) {
-				this.increaseStat('circuits', value - this.getDataValue('circuits'));
-				this.setDataValue('circuits', value);
-			}
+			defaultValue: 0
 		},
 		circuitRules: {
 			type: DataTypes.JSON,

@@ -6,19 +6,19 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "gain __^1.02__ pts",
+            description: "gain __^1.01__ pts",
             name: "more exponents [🛍️]",
             emoji: "📈",
         }
     },
     getEffectString(level) {
-        return `^${level*0.02 + 1} \`pts\``
+        return `^${(level*0.01 + 1).toFixed(2)} \`pts\``
     },
     getEffect(level, context) {
         if (!context.specials.allowShopkeeperUpgrades) return {};
 
         return {
-            exponent: level*0.02 + 1
+            exponent: level*0.01 + 1
         }
     },
     unlockRequirements(context) {

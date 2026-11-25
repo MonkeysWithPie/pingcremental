@@ -8,19 +8,19 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "randomly adds __-0.7% to 1.5%__ to blue ping chance",
+            description: "randomly adds __-0.5% to 1.5%__ to blue ping chance",
             name: "stupidshift [🛍️]",
             emoji: "🌈",
         }
     },
     getEffectString(level) {
-        return `${(-0.7 * level).toFixed(1)}% to ${(1.5 * level).toFixed(1)}%`;
+        return `${(-0.5 * level).toFixed(1)}% to ${(1.5 * level).toFixed(1)}%`;
     },
     getEffect(level, context) {
         if (!context.specials.allowShopkeeperUpgrades) return {};
 
         return {
-            blue: (Math.random() * (1.5 + 0.7) - 0.7) * level
+            blue: (Math.random() * (1.5 + 0.5) - 0.5) * level
         }
     },
     unlockRequirements(context) {

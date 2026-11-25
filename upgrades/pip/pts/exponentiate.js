@@ -11,7 +11,7 @@ module.exports = {
             description: "gain __^1.02__ `pts`",
             name: "Exponentiate",
             emoji: getEmoji('ponder_exponentiate', "^"),
-            flavor: "they only way out is up.",
+            flavor: "the only way out is up.",
         }
     },
     getEffectString(level) {

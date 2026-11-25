@@ -1,5 +1,6 @@
 const { PipUpgradeTypes } = require('../../../helpers/commonEnums.js');
 const { getEmoji } = require('../../../helpers/emojis.js');
+const { formatNumber } = require("../../../helpers/formatNumber.js")
 
 module.exports = {
     getPrice(currentLevel) {
@@ -7,19 +8,19 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "start with __10,000__ `pts`",
+            description: "start with __10,000__ `pts`, __x4__ each time you buy this",
             name: "Distant Memories",
             emoji: getEmoji('ponder_memory', "🧠"),
             flavor: "your past isn't worthless. don't forget it.",
         }
     },
     getEffectString(level) {
-        return `${level*10}K \`pts\``
+        return `${formatNumber(4 ** (level-1) * 10000)} \`pts\``
     },
-    getEffect() {
+    getEffect(level) {
         return {
             special: {
-                startPts: 10000,
+                startPts: 4 ** (level-1) * 10000,
             },
         }
     },

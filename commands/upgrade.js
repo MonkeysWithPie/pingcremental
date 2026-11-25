@@ -81,7 +81,7 @@ module.exports = {
 
             // memory effects
             if (playerData.prestigeUpgrades.memory) {
-                playerData.score += (10000 * playerData.prestigeUpgrades.memory);
+                playerData.score += upgrades.pip.memory.getEffect(playerData.prestigeUpgrades.memory).special.startPts;
             }
             if (playerData.prestigeUpgrades.remnants) {
                 for (const ptUpgrade of upgrades.pip.remnants.getEffect(playerData.prestigeUpgrades.remnants).special.upgrades) {

@@ -17,7 +17,7 @@ module.exports = {
     getDetails() {
         return {
             description:
-`clicking in a rhythm will grant a scaling bonus up to **^1.15**.
+`clicking in a rhythm will grant a scaling bonus up to **^1.2**.
 clicking too far off rhythm will break the combo. 
 skipping one beat is okay, but more will break the combo.
 -# rare ping delays will give leniency for the next ping so combo isn't broken unfairly.`,
@@ -132,12 +132,12 @@ function addBonus(userId, amount, state) {
     if (!bonusCache[userId]) {
         bonusCache[userId] = 1;
     }
-    const exp = Math.min(bonusCache[userId] + amount, 1.15);
+    const exp = Math.min(bonusCache[userId] + amount, 1.2);
     if (state !== PingCalculationStates.NON_REPEAT_FINISH) {
         return exp;
     }
 
-    bonusCache[userId] = Math.min(bonusCache[userId] + amount, 1.15);
+    bonusCache[userId] = Math.min(bonusCache[userId] + amount, 1.2);
     comboCache[userId] = (comboCache[userId] || 0) + 1;
     return exp;
 }

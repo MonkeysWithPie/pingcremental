@@ -87,23 +87,24 @@ module.exports = {
                 })
             }
 
-            playerUpgradeLevel += levels;
-            playerData.pip -= price;
-            playerData.prestigeUpgrades[upgradeId] = playerUpgradeLevel;
-            playerData.changed('prestigeUpgrades', true) // this is a hacky way to set the upgrades field, but it works
-
             // memory-type upgrades give immediate effects so that they apply to the current prestige
             if (upgradeClass.type() === PipUpgradeTypes.KEEP) {
                 if (upgradeId === 'memory') {
-                    playerData.score += upgradeClass.getEffect(0, {}).special.startPts;
+                    playerData.score -= upgradeClass.getEffect(playerUpgradeLevel).special.startPts;
+                    playerData.score += upgradeClass.getEffect(playerUpgradeLevel + levels).special.startPts;
                 }
                 if (upgradeId === 'remnants') {
                     for (const ptUpgrade of upgradeClass.getEffect(0, {}).special.upgrades) {
-                        playerData.upgrades[ptUpgrade] = (playerData.upgrades[ptUpgrade] ?? 0) + 1;
+                        playerData.upgrades[ptUpgrade] = (playerData.upgrades[ptUpgrade] ?? 0) + levels;
                     }
                     playerData.changed('upgrades', true) // hacky, you know the drill
                 }
             }
+
+            playerUpgradeLevel += levels;
+            playerData.pip -= price;
+            playerData.prestigeUpgrades[upgradeId] = playerUpgradeLevel;
+            playerData.changed('prestigeUpgrades', true) // this is a hacky way to set the upgrades field, but it works
 
             await playerData.save();
 

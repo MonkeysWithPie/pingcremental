@@ -20,10 +20,13 @@ module.exports = {
     getEffect(level, context) {
         const nonCapped = level * context.score / 1e6;
         if (nonCapped < 1000) return { bp: Math.ceil(nonCapped * 2.5) };
-        const capped = 1000 + (nonCapped - 1000)**0.8;
+        let capped = (nonCapped - 1000)**0.6;
+        if (capped+1000 > 1e6) {
+            capped = Math.log(capped-1e6) + 1e6
+        }
 
         return {
-            bp: Math.ceil(capped * 2.5),
+            bp: Math.ceil(capped + 1000 * 2.5),
         }
     },
     unlockRequirements(context) {

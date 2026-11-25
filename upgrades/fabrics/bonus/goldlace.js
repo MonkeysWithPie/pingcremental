@@ -6,14 +6,14 @@ module.exports = {
     },
     getDetails() {
         return {
-            description: "grants a flat **x10** multiplier.",
+            description: "grants a flat **x20** multiplier.",
             name: "Gold-Laced Fabric",
             emoji: "🔸",
         }
     },
     getEffect(level) {
         return {
-            multiply: 10 ** level,
+            multiply: 20 ** level,
         }
     },
     type() { return FabricUpgradeTypes.FLAT_BONUS },

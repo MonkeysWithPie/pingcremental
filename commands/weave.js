@@ -687,5 +687,9 @@ function getGainedThread(player, simplify = true) {
 }
 
 function getTearRequirement(tears) {
-    return tears * 2 + 3;
+    let price = tears * 2 + 3
+    if (price > 10) {
+        price = Math.round((price-10)**0.6) + 10
+    }
+    return price;
 }

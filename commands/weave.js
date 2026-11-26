@@ -41,9 +41,13 @@ module.exports = {
             player.increaseStat("tears");
             player.thread += gainedThread;
             player.cloakModificationsAllowed = 1;
-            if (stats.total.tears !== 0) player.shopSeed = getNewSeed();
             player.shopEmptySlots = [];
-            player.shopRerolls = 0;
+            if (player.shopRerolls <= 0 && stats.total.tears > 0) 
+                player.shopRerolls -= 1;
+            else if (stats.total.tears > 0) 
+                player.shopRerolls = -1;
+            else 
+                player.shopRerolls = 0;
 
             player.upgrades = {};
             player.score = 0;
@@ -161,14 +165,14 @@ module.exports = {
         shopReroll: async (interaction) => {
             const player = await database.Player.findByPk(interaction.user.id);
 
-            if (player.thread < 5 ** player.shopRerolls * 20) {
+            if (player.thread < 5 ** player.shopRerolls * 20 && player.shopRerolls >= 0) {
                 return await interaction.reply({
                     content: `you don't have enough thread to reroll the shop!`,
                     flags: MessageFlags.Ephemeral
                 });
             }
 
-            player.thread -= 5 ** player.shopRerolls * 20;
+            if (player.shopRerolls >= 0) player.thread -= 5 ** player.shopRerolls * 20;
             player.shopRerolls++;
             player.shopSeed = getNewSeed();
             player.shopEmptySlots = [];
@@ -397,10 +401,13 @@ unfortunately, it wants everything you have in return.
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(player.shopRerolls >= 3);
         if (player.shopRerolls >= 3) rerollButton.setLabel(`reroll (3/3)`)
+        if (player.shopRerolls < 0) {
+            rerollButton.setLabel(`reroll (${-player.shopRerolls} free!)`).setStyle(ButtonStyle.Primary)
+        }
 
         container.addSeparatorComponents((separator) => separator.setSpacing(SeparatorSpacingSize.Small))
             .addSectionComponents((section) => section
-                .addTextDisplayComponents((textDisplay) => textDisplay.setContent(`fabrics in stock and reroll prices will be reset after tearing the universe.`))
+                .addTextDisplayComponents((textDisplay) => textDisplay.setContent(`tearing the universe will reset reroll prices and grant one free reroll`))
                 .setButtonAccessory(rerollButton)
             );
     }

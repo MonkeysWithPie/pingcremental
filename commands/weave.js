@@ -41,7 +41,6 @@ module.exports = {
             player.increaseStat("tears");
             player.thread += gainedThread;
             player.cloakModificationsAllowed = 1;
-            player.shopEmptySlots = [];
             if (player.shopRerolls <= 0 && stats.total.tears > 0) 
                 player.shopRerolls -= 1;
             else if (stats.total.tears > 0) 

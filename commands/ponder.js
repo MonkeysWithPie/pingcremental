@@ -216,7 +216,7 @@ You're buying **x${buySetting !== 'MAX' ? formatNumber(buySetting, { options: pl
         addToContainer(`\n**${upgrade.getDetails().emoji} ${upgrade.getDetails().name} (Lv${formatNumber(upgradeLevel, { options: playerData.formatSettings })}${maxSuffix})**
 *"${upgrade.getDetails().flavor}"*
 ${upgrade.getDetails().description}
-${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, { decimalPlaces: 3, options: playerData.formatSettings })} PIP\``)
+${upgrade.getEffectString(upgradeLevel)} -> ${upgrade.getEffectString(upgradeLevel + levels)} for \`${formatNumber(price, { decimalPlaces: 3, options: playerData.formatSettings })} PIP\`${levels > 1 ? `(${levels} Levels)` : ""}`)
 
         select.addOptions(
             new StringSelectMenuOptionBuilder()

@@ -105,7 +105,7 @@ ${getEmbeddedCommand("ponder")}`, flags: MessageFlags.Ephemeral
                 await awardBadge(interaction.user.id, 'foreverbound', interaction.client);
             }
 
-            if (stats.total.tears < 1 && getTearRequirement(0) === playerData.eternities) {
+            if (stats.total.tears < 1 && getTearRequirement(0) === stats.tear.eternities) {
                 await interaction.followUp({
                     content:
                         `*you've been looking for something more, haven't you...?*

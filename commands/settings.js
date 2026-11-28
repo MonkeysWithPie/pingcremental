@@ -31,9 +31,9 @@ const settings = {
     },
     'numberFormat': {
         name: 'number format',
-        description: 'how should large numbers be formatted?',
+        description: 'how should large numbers be formatted? (hybrid formats use standard for the first 30 OOM.)',
         options: [
-            "standard", "scientific", "engineering", "letters"
+            "standard", "hybrid scientific", "scientific", "engineering", "hybrid letters", "letters"
         ],
         default: "standard",
         style: "dropdown",

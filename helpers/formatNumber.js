@@ -33,6 +33,11 @@ function formatNumber(num, { decimalPlaces = 2, shortHand = true, shortHandPlace
     }
 
     let notation;
+    if (options.formatMode.includes("hybrid") && magnitude < 30) {
+        options.formatMode = "standard"
+    } else if (options.formatMode.includes("hybrid")) {
+        options.formatMode = options.formatMode.replace("hybrid ", "")
+    }
     switch (options.formatMode) {
         case "scientific":
             notation = new Notations.ScientificNotation();

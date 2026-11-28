@@ -23,6 +23,8 @@ module.exports = {
         )
         .setContexts(InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel),
     async execute(interaction) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
+
         const fullCommand = interaction.options.getString('command');
         const command = fullCommand.split(" ")[0];
         const args = fullCommand.split(" ").slice(1) || [];
@@ -52,16 +54,16 @@ module.exports = {
         }
 
         if (!output) {
-            return await interaction.reply({ content: `\`# ${fullCommand}\``, flags: MessageFlags.Ephemeral });
+            return await interaction.editReply({ content: `\`# ${fullCommand}\`` });
         }
         if (output instanceof AttachmentBuilder) {
-            return await interaction.reply({ content: `\`# ${fullCommand}\``, files: [output], flags: MessageFlags.Ephemeral });
+            return await interaction.editReply({ content: `\`# ${fullCommand}\``, files: [output] });
         }
         if (output === true) {
             return;
         }
 
-        return await interaction.reply({ content: `\`# ${fullCommand}\`\n\`\`\`txt\n${output}\`\`\``, flags: MessageFlags.Ephemeral });
+        return await interaction.editReply({ content: `\`# ${fullCommand}\`\n\`\`\`txt\n${output}\`\`\`` });
     },
     registerFiles
 }
@@ -207,7 +209,7 @@ const filesRequiredCommand = (command) => {
 
 const commands = {
     "restart": ownerRequiredCommand(async (interaction) => {
-        await interaction.reply({ content: '`# restart`\n```OK!```', flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: '`# restart`\n```OK!```', flags: MessageFlags.Ephemeral });
         process.exit(0);
     }),
     "pull": ownerRequiredCommand(async () => {

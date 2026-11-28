@@ -4,7 +4,7 @@ const util = require("node:util");
 const { cacheCommandIds, getEmbeddedCommand } = require("../helpers/embedCommand");
 const { initEmojis } = require("../helpers/emojis");
 const pingMessages = require("../helpers/pingMessage");
-const { readFileSync, existsSync, readdirSync } = require("node:fs");
+const { readFileSync, existsSync, readdirSync, appendFileSync, rmSync } = require("node:fs");
 const path = require("node:path");
 const { getBadgeByName } = require("../helpers/badgeUtils");
 
@@ -226,13 +226,24 @@ const commands = {
     }),
     "run": ownerRequiredCommand(async (interaction, args) => {
         const code = args.join(" ");
+        
+        function fileify(text) {
+            rmSync("data/run-file.txt")
+            appendFileSync("data/run-file.txt", text)
+            const att = new AttachmentBuilder("data/run-file.txt")
+            return att;
+        }
+
         try {
-            let result = await eval(`async (params) => { ${code} }`)({ database, interaction });
+            let result = await eval(`async (params) => { ${code} }`)({ database, interaction, fileify });
             if (result instanceof Promise) {
                 result = await result;
             }
             if (result === undefined) {
                 return "OK!";
+            }
+            if (result instanceof AttachmentBuilder) {
+                return result;
             }
 
             if (result instanceof Object) {
